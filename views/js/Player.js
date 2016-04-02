@@ -36,7 +36,7 @@ Player.prototype.buildPieces = function(game){
 	}
 };
 
-Player.prototype.setGameIo = function(gameio){
+Player.prototype.setGameIO = function(gameio){
 	this.gameio = gameio;
 };
 

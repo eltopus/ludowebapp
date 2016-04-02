@@ -30,12 +30,17 @@ Dice = function (game, x, y, group) {
     this.frame = 1;
     this.alpha = 0.5;
     this.activity = null;
+    this.gameio;
 
     game.add.existing(this);
 };
 
 Dice.prototype = Object.create(Phaser.Sprite.prototype);
 Dice.prototype.constructor = Dice;
+
+Dice.prototype.setGameIO = function(gameio) {
+    this.gameio = gameio;
+};
 
 
 Dice.prototype.roll = function() {
@@ -79,11 +84,22 @@ Dice.prototype.rollComplete = function(game, value) {
     this.player.diceCompletion();
     var diceObject = {uniqueId: this.uniqueId, value: this.value()};
     this.player.diceObject.push(diceObject);
+    this.gameio.emitDiceRoll(this);
+};
+
+
+Dice.prototype.changeFrameById = function(data) {
+    if (this.uniqueId == data.uniqueId) {
+    	console.log('Dice Roll ' + data.uniqueId + ' frame: ' + data.frame);
+        this.frame = data.frame;
+        this.angle = data.angle;
+    }
 };
 
 Dice.prototype.update = function() {
     if (this.anim.isPlaying) {
         this.angle = this.game.rnd.angle();
+        this.gameio.emitDiceRoll(this);
     }
 };
 
@@ -96,11 +112,6 @@ Dice.prototype.isSpent = function(){
     return (this.isPlayed);
 };
 
-/*
-Dice.prototype.setDieValue = function(newValue){
-    this.activity = newValue;
-};
-*/
 
 Dice.prototype.unSetDieValue = function(){
     this.activity = null;

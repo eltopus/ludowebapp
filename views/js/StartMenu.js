@@ -96,34 +96,34 @@ Ludo.StartMenu.prototype = {
     	var gameMode = this.gameMode;
     	var loadGame = this.loadGame;
     	
-    	if (loadGame)
-    	{
-    		socket.emit('join', {}, function (data){
-
-    			if (data.ok){
-    				console.log('Event was processed successfully');
-    				socket.on('join', function(gameData){
-    					game.game.state.states['Game'].save = JSON.parse(gameData);
-    					game.game.state.states['Game'].playerMode = gameMode;
-    					game.game.state.states['Game'].saveFlag = loadGame;
-    					game.game.state.states['Game'].socket = socket;
-    					game.game.stateTransition.to('Game');
-    				});
-
-    			}
-
-    		});
-    		
-    	}
-    	else
-    	{
-    		this.game.state.states['Game'].playerMode = this.gameMode;
-            this.game.state.states['Game'].saveFlag = this.loadGame;
-            this.game.state.states['Game'].socket = socket;
-            this.game.stateTransition.to('Game');
-            this.sprite.destroy();
-    	}
     	
+    	socket.emit('tryConnecting', {id : socket.id}, function (data){
+
+			if (data.ok)
+			{
+				
+				if (loadGame)
+				{
+					console.log('Event was processed successfully ' + socket.id);
+					game.game.state.states['Game'].save = JSON.parse(data.gameData);
+					game.game.state.states['Game'].playerMode = gameMode;
+					game.game.state.states['Game'].saveFlag = loadGame;
+					game.game.state.states['Game'].socket = socket;
+					game.game.stateTransition.to('Game');
+							
+				}
+				else
+				{
+					game.game.state.states['Game'].playerMode = gameMode;
+		            game.game.state.states['Game'].saveFlag = loadGame;
+		            game.game.state.states['Game'].socket = socket;
+		            game.game.stateTransition.to('Game');
+	
+				}
+				
+			}
+
+		});
     	
         
     },

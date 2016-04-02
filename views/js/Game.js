@@ -38,7 +38,7 @@ Ludo.Game.prototype = {
         this.saveFlag;
         this.gameId = this.getUuid();
         this.socket;
-        this.gameio = new Socket(this.socket);
+        
         
         
         this.sideFragmentSrc = [
@@ -195,7 +195,8 @@ Ludo.Game.prototype = {
         	this.createNewGame();
         }
         
-        
+        this.gameio = new Socket(this.socket, this.ludo, this.controller);
+        this.game.stage.disableVisibilityChange = true;
     },
     
     
@@ -209,30 +210,16 @@ Ludo.Game.prototype = {
     
     restart: function(){
       
-	   this.socket.emit('join', 'joining.............F');
-	   this.socket.on('join', function(data){
-    		
-            console.log(data);
-        });
-    	
+    	var name = 200;
+    	var t;
     	
     	/*
         if (confirm("Restart game?") == true) {
             groupIndex = 0;
             this.game.state.start('StartMenu'); 
         } 
-       
-        /*
-        var pieceUniqueId = "16b4f8ff-4732-4398-8bde-b99bb8ad7cbc";
-        var playerName = "Player Two";
-        var diceUniqueIds = [];
-        diceUniqueIds.push("adc17abf-18f6-4ee6-8695-57bf22b064a8");
-        var diceObject =[];
-        diceObject.push({uniqueId: "3a748b2c-bd68-4fc9-a06f-24773b203635", value: 2});
-        diceObject.push({uniqueId: "db801782-b9ed-4a62-895e-43362d862544", value: 1});
-        var activity = "setDiceValue";
-        this.action.action(pieceUniqueId, playerName, diceUniqueIds, activity, diceObject);
         */
+       
     },
     
     saveGame : function(){
@@ -303,10 +290,8 @@ Ludo.Game.prototype = {
                 case 2:
                     var playerOne = new Player(this, "Player One", false, this.playerOne, 0, this.playerMode, controller); 
                     playerOne.buildPieces(this);
-                    playerOne.setGameIo(this.gameio);
                     var playerTwo = new Player(this, "Player Two", false, this.playerTwo, 1, this.playerMode, controller);
                     playerTwo.buildPieces(this);
-                    playerTwo.setGameIo(this.gameio);
                     players.push(playerOne);
                     players.push(playerTwo);
                     break;
@@ -314,17 +299,13 @@ Ludo.Game.prototype = {
                 case 4:
                     var playerRed = new Player(this, "Player Red", false, this.playerRed, 0, this.playerMode, controller); 
                     playerRed.buildPieces(this);
-                    playerRed.setGameIo(this.gameio);
                     var playerBlue = new Player(this, "Player Blue", false, this.playerBlue, 1, this.playerMode, controller);
                     playerBlue.buildPieces(this);
-                    playerBlue.setGameIo(this.gameio);
                     
                     var playerYellow = new Player(this, "Player Yellow", false, this.playerYellow, 2, this.playerMode, controller); 
                     playerYellow.buildPieces(this);
-                    playerYellow.setGameIo(this.gameio);
                     var playerGreen = new Player(this, "Player Green", false, this.playerGreen, 3, this.playerMode, controller);
                     playerGreen.buildPieces(this);
-                    playerGreen.setGameIo(this.gameio);
                     
                     players.push(playerRed);
                     players.push(playerBlue);
@@ -345,7 +326,6 @@ Ludo.Game.prototype = {
                 player.setDice(obj[i].diceObject);
                 player.setSelectedPieceById(obj[i].selectedPieceId);
                 player.exitingGraphicsPositions = obj[i].exitingGraphicsPositions;
-                player.setGameIo(this.gameio);
                 players.push(player);
             } 
             
