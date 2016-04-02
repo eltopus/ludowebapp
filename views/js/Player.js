@@ -386,11 +386,12 @@ Player.prototype.checkPlayCompleted = function(){
 
 
 //**********************************Dice Operation***************************************
-Player.prototype.rollDice = function(dice){
+Player.prototype.rollDice = function(dice, pusher){
 	this.consumeDice();
 	this.controller.consumeDice();
 	for (var i = 0; i < dice.length; ++i){
 		dice[i].setCurrentPlayer(this);
+		dice[i].pusher = pusher;
 		dice[i].group.callAll("roll", null);
 	}
 };

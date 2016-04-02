@@ -201,7 +201,7 @@ Ludo.Game.prototype = {
     
     
     rollDice : function(){
-        this.controller.rollDice(this.currentPlayer);
+        this.controller.rollDice(this.currentPlayer, true);
     },
     
     playDice : function(){
@@ -241,7 +241,7 @@ Ludo.Game.prototype = {
         this.socket.emit('createNewGame', data);
         
         this.socket.on('connected', function(data){
-            console.log('User is connected ' + data);
+            console.log('User created new game: ' + data);
         });
     },
     

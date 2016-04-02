@@ -26,13 +26,33 @@ Socket = function(gameio, LudoPlayers, controller){
     });
 	
 	this.gameio.on('diceRoll', function(data){
-        for (var i = 0; i <  dice.length; ++i){
-       	 dice[i].changeFrameById(data);
-       }
+		console.log('PlayerName: ' + data.playerName);
+		for (var i = 0; i < players.length; ++i){
+			if (players[i].playerName == data.playerName){
+				for (var j = 0; j < dice.length; ++j){
+					dice[j].setCurrentPlayer(players[i]);
+				}
+			}
+	    }
+		
+       
+        
+    });
+	
+	
+	this.gameio.on('diceRollCompleted', function(diceObject){
+		console.log('Dice Completed: ' + diceObject.uniqueId + ' value: ' + diceObject.value);
+		for (var i = 0; i <  dice.length; ++i){
+       	   dice[i].setDiceObj(diceObject);
+		}
+		
+		 for (var j = 0; j <  dice.length; ++j){
+			 dice[j].roll();
+	      
+		 }
         
     });
 };
-
 
 
 Socket.prototype.emitPieceSelection = function(uniqueId){
@@ -40,5 +60,10 @@ Socket.prototype.emitPieceSelection = function(uniqueId){
 };
 
 Socket.prototype.emitDiceRoll = function(die){
-	this.gameio.emit('diceRoll', {uniqueId : die.uniqueId, frame : die.frame, angle : die.angle});
+	this.gameio.emit('diceRoll', {uniqueId : die.uniqueId, frame : die.frame, playerName :die.player.playerName});
+};
+
+
+Socket.prototype.emitDiceRollCompleted = function(diceObject){
+	this.gameio.emit('diceRollCompleted', diceObject);
 };

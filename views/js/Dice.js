@@ -17,6 +17,7 @@ Dice = function (game, x, y, group) {
     this.inputEnabled = true;
     this.events.onInputDown.add(this.selectDie, this);
     this.uniqueId = null;
+    this.pusher = false;
 
     var i;
     this.pix = [];
@@ -44,6 +45,10 @@ Dice.prototype.setGameIO = function(gameio) {
 
 
 Dice.prototype.roll = function() {
+	if (!this.anim.isPlaying)
+	{
+		this.gameio.emitDiceRoll(this);
+	}
     this.alpha = 1;
     this.isPlayed = false;
     this.filters = [this.blurX, this.blurY];
@@ -68,6 +73,7 @@ Dice.prototype.unSelected = function() {
 
 Dice.prototype.setActivity = function(diceObject) {
     for (var i = 0; i < diceObject.length; ++i){
+    	console.log('Set: ' + diceObject[i].uniqueId + ', ' + diceObject[i].value);
         if (diceObject[i].uniqueId == this.uniqueId){
             this.activity = diceObject[i];
             break;
@@ -75,31 +81,41 @@ Dice.prototype.setActivity = function(diceObject) {
     }
 };
 
+Dice.prototype.setDiceObj = function(diceObject) {
+	
+	console.log('Set: ' + diceObject.uniqueId + ', ' + diceObject.value);
+	if (diceObject.uniqueId == this.uniqueId)
+	{
+		this.activity = diceObject;
+		
+	}
+};
+
 Dice.prototype.rollComplete = function(game, value) {
     this.filters = null;
     this.frame = this.game.rnd.pick([0,1,2,4,5,6]);
+    
     if (this.activity != null){
+    	console.log('Activity: ' + this.activity.uniqueId + ', ' + this.activity.value);
         this.setValue(this.activity);
+        this.activity = null;
     }
+    
     this.player.diceCompletion();
     var diceObject = {uniqueId: this.uniqueId, value: this.value()};
     this.player.diceObject.push(diceObject);
-    this.gameio.emitDiceRoll(this);
-};
-
-
-Dice.prototype.changeFrameById = function(data) {
-    if (this.uniqueId == data.uniqueId) {
-    	console.log('Dice Roll ' + data.uniqueId + ' frame: ' + data.frame);
-        this.frame = data.frame;
-        this.angle = data.angle;
+    
+    if (this.pusher)
+    {
+    	this.gameio.emitDiceRollCompleted(diceObject);
+    	this.pusher = false;
     }
 };
+
 
 Dice.prototype.update = function() {
     if (this.anim.isPlaying) {
         this.angle = this.game.rnd.angle();
-        this.gameio.emitDiceRoll(this);
     }
 };
 
@@ -172,8 +188,9 @@ Dice.prototype.value = function() {
 
 Dice.prototype.setValue = function(diceObject) {
     
-    if (diceObject.value == 0){
-        return;
+    if (diceObject.value == 0)
+    {
+        //return;
     }
     switch(diceObject.value) 
     {
@@ -210,4 +227,5 @@ Dice.prototype.setValue = function(diceObject) {
     
     }
 };
+
 

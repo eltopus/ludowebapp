@@ -7,6 +7,7 @@ var logger = require('morgan');
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var ldx = require('./ludo');
+var debug = require('debug');
 
 app.use(logger('dev'));
 app.use('/', express.static(__dirname + '/views'));
@@ -19,6 +20,7 @@ app.get('/', function(req, res){
 
 
 io.on('connection', function(socket){
+	debug('Listening on ' + socket.id);
     ldx.initGame(io, socket);
 });
 
@@ -32,13 +34,12 @@ app.set('port', port);
 http.listen(port);
 http.on('listening', onListening);
 
-
 function onListening() {
 	  var addr = http.address();
 	  var bind = typeof addr === 'string'
 	    ? 'pipe ' + addr
 	    : 'port ' + addr.port;
-	  //debug('Listening on ' + bind);
+	  debug('Listening on ' + bind);
 	}
 
 
