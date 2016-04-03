@@ -17,7 +17,7 @@ Dice = function (game, x, y, group) {
     this.inputEnabled = true;
     this.events.onInputDown.add(this.selectDie, this);
     this.uniqueId = null;
-    this.pusher = false;
+    this.pusher = true;
 
     var i;
     this.pix = [];
@@ -30,7 +30,7 @@ Dice = function (game, x, y, group) {
 
     this.frame = 1;
     this.alpha = 0.5;
-    this.activity = null;
+    this.diceValueIsSet = false;
     this.gameio;
 
     game.add.existing(this);
@@ -45,10 +45,6 @@ Dice.prototype.setGameIO = function(gameio) {
 
 
 Dice.prototype.roll = function() {
-	if (!this.anim.isPlaying)
-	{
-		this.gameio.emitDiceRoll(this);
-	}
     this.alpha = 1;
     this.isPlayed = false;
     this.filters = [this.blurX, this.blurY];
@@ -71,45 +67,15 @@ Dice.prototype.unSelected = function() {
     return (this.alpha == 1);
 };
 
-Dice.prototype.setActivity = function(diceObject) {
-    for (var i = 0; i < diceObject.length; ++i){
-    	console.log('Set: ' + diceObject[i].uniqueId + ', ' + diceObject[i].value);
-        if (diceObject[i].uniqueId == this.uniqueId){
-            this.activity = diceObject[i];
-            break;
-        }
-    }
-};
-
-Dice.prototype.setDiceObj = function(diceObject) {
-	
-	console.log('Set: ' + diceObject.uniqueId + ', ' + diceObject.value);
-	if (diceObject.uniqueId == this.uniqueId)
-	{
-		this.activity = diceObject;
-		
-	}
-};
 
 Dice.prototype.rollComplete = function(game, value) {
     this.filters = null;
-    this.frame = this.game.rnd.pick([0,1,2,4,5,6]);
-    
-    if (this.activity != null){
-    	console.log('Activity: ' + this.activity.uniqueId + ', ' + this.activity.value);
-        this.setValue(this.activity);
-        this.activity = null;
+    if (this.pusher){
+    	this.frame = this.game.rnd.pick([0,1,2,4,5,6]);
     }
-    
-    this.player.diceCompletion();
-    var diceObject = {uniqueId: this.uniqueId, value: this.value()};
-    this.player.diceObject.push(diceObject);
-    
-    if (this.pusher)
-    {
-    	this.gameio.emitDiceRollCompleted(diceObject);
-    	this.pusher = false;
-    }
+    var diceObject = {uniqueId: this.uniqueId, value: this.value(), playerName : this.player.playerName};
+    this.player.updateDiceObject(diceObject);
+    this.pusher = true;
 };
 
 
@@ -128,10 +94,6 @@ Dice.prototype.isSpent = function(){
     return (this.isPlayed);
 };
 
-
-Dice.prototype.unSetDieValue = function(){
-    this.activity = null;
-};
 
 Dice.prototype.setCurrentPlayer = function(currentPlayer){
     this.player = currentPlayer;
@@ -188,44 +150,49 @@ Dice.prototype.value = function() {
 
 Dice.prototype.setValue = function(diceObject) {
     
-    if (diceObject.value == 0)
-    {
-        //return;
+    for (var i = 0; i < diceObject.length; ++i){
+    	if (diceObject[i].uniqueId == this.uniqueId)
+    	{
+    		//console.log('Set: ' + diceObject[i].uniqueId + ', ' + diceObject[i].value);
+    	    switch(diceObject[i].value) 
+    	    {
+    	        case 6:
+    	            this.frame = 0;
+    	            this.unSelect();
+    	            this.isPlayed = false;
+    	            break;
+    	        case 1:
+    	            this.frame = 1;
+    	            this.unSelect();
+    	            this.isPlayed = false;
+    	            break;
+    	        case 2:
+    	            this.frame = 2;
+    	            this.unSelect();
+    	            this.isPlayed = false;
+    	            break;
+    	        case 5:
+    	            this.frame = 4;
+    	            this.unSelect();
+    	            this.isPlayed = false;
+    	            break;
+    	        case 3:
+    	            this.frame = 5;
+    	            this.unSelect();
+    	            this.isPlayed = false;
+    	            break;
+    	        case 4:
+    	            this.frame = 6;
+    	            this.unSelect();
+    	            this.isPlayed = false;
+    	            break;
+    	    }
+    	    
+
+    	}
     }
-    switch(diceObject.value) 
-    {
-        case 6:
-            this.frame = 0;
-            this.unSelect();
-            this.isPlayed = false;
-            break;
-        case 1:
-            this.frame = 1;
-            this.unSelect();
-            this.isPlayed = false;
-            break;
-        case 2:
-            this.frame = 2;
-            this.unSelect();
-            this.isPlayed = false;
-            break;
-        case 5:
-            this.frame = 4;
-            this.unSelect();
-            this.isPlayed = false;
-            break;
-        case 3:
-            this.frame = 5;
-            this.unSelect();
-            this.isPlayed = false;
-            break;
-        case 4:
-            this.frame = 6;
-            this.unSelect();
-            this.isPlayed = false;
-            break;
     
-    }
+    
 };
 
 

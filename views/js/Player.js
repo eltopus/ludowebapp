@@ -20,6 +20,7 @@ Player = function(game, name, turn, piecesNames, index, playerMode, controller, 
 	this.yellowGraphicsIndex = -1;
 	this.greenGraphicsIndex = -1;
 	this.gameio = null;
+	this.pusher = false;
 
 };
 
@@ -330,7 +331,6 @@ Player.prototype.selectAll = function(){
 	for (var i = 0; i < this.playerPieces.length; ++i){
 		this.playerPieces[i].isSelectable = true;
 		this.playerPieces[i].alpha = 1;
-		//this.playerPieces[i].tint = '0xFFF';
 	}
 };
 
@@ -340,7 +340,6 @@ Player.prototype.deSelectAll = function(){
 	for (var i = 0; i < this.playerPieces.length; ++i){
 		this.playerPieces[i].isSelectable = false;
 		this.playerPieces[i].alpha = 0.2;
-		//this.playerPieces[i].tint = '#F40BD1';
 	}
 
 };
@@ -356,6 +355,7 @@ Player.prototype.setSelectedPiece = function(piece){
 
 	return false;
 };
+
 
 Player.prototype.setSelectedPieceById = function(id){
 	for (var i = 0; i < this.playerPieces.length; ++i){
@@ -389,23 +389,68 @@ Player.prototype.checkPlayCompleted = function(){
 Player.prototype.rollDice = function(dice, pusher){
 	this.consumeDice();
 	this.controller.consumeDice();
+	var uniqueIds = [];
+	this.pusher = pusher;
 	for (var i = 0; i < dice.length; ++i){
 		dice[i].setCurrentPlayer(this);
-		dice[i].pusher = pusher;
 		dice[i].group.callAll("roll", null);
+		uniqueIds.push({uniqueId : dice[i].uniqueId});
+	}
+	
+	if (pusher){
+		this.gameio.emitDiceRoll(uniqueIds);
 	}
 };
 
-Player.prototype.rollDiceActivity = function(dice, diceObject){
+Player.prototype.handleDiceObject = function(dice, diceObject){
 	this.consumeDice();
 	this.controller.consumeDice();
-	for (var i = 0; i < dice.length; ++i){
+	
+	
+	//console.log('SetPlayer: ' + diceObject[0].uniqueId + ', value: ' + diceObject[0].value + ' name: ' + diceObject[0].playerName);
+	//console.log('SetPlayer: ' + diceObject[1].uniqueId + ', value: ' + diceObject[1].value + ' name: ' + diceObject[1].playerName);
+	
+	
+	
+	for (var j = 0; j < diceObject.length; ++j){
+		if (this.playerName == diceObject[j].playerName){
+			this.diceObject.push(diceObject[j]);
+			for (var i = 0; i < dice.length; ++i){
+				dice[i].setCurrentPlayer(this);
+				dice[i].setValue(diceObject);
+				dice[i].pusher = false;
+			}
+			
+			console.log('SetPlayer: ' + this.diceObject[j].uniqueId + ', value: ' + this.diceObject[j].value + ' name: ' + this.diceObject[j].playerName + ' length: ' + this.diceObject.length);
+		}
+		
+	}
+};
 
+Player.prototype.updateDiceObject = function(diceObject){
+	
+	if (this.pusher){
+		console.log('player: ' + diceObject.playerName + ' value: ' + diceObject.value);
+		this.diceObject.push(diceObject);
+		this.diceCompletion();
+		
+		if (this.diceCompleted()){
+			this.gameio.emitDiceRollCompleted(this.diceObject);
+			this.pusher = false;
+			
+		}
+	}
+};
+
+
+Player.prototype.handleDiceUniqueIds = function(dice, uniqueIds){
+	
+	for (var i = 0; i < dice.length; ++i){
 		dice[i].setCurrentPlayer(this);
-		dice[i].setActivity(diceObject);
 		dice[i].group.callAll("roll", null);
 	}
 };
+
 
 Player.prototype.rolledSix = function(){
 	return (this.diceObject[0].value == this.SIX || this.diceObject[1].value == this.SIX);

@@ -12,10 +12,6 @@ DiceController.prototype.rollDice = function(currentPlayer, pusher){
     currentPlayer.rollDice(this.dice, pusher);
 };
 
-DiceController.prototype.rollDiceActivity = function(currentPlayer, diceObject){
-    currentPlayer.rollDiceActivity(this.dice, diceObject);
-};
-
 DiceController.prototype.setDiceValue = function(currentPlayer){
 
     if (currentPlayer.diceObject.length > 0){

@@ -56,52 +56,22 @@ function tryConnecting(data, callback){
 };
 
 
-function diceRoll(data){
+function diceRoll(uniqueIds){
 	var sock = this;
-	console.log('id: ' + data.uniqueId + ' frame: ' + data.frame);
-	sock.broadcast.emit('diceRoll', data);
+	//console.log('id: ' + uniqueIds[0].uniqueId + ' ,' + uniqueIds[1].uniqueId);
+	sock.broadcast.emit('diceRoll', uniqueIds);
 
 };
 
 
 function diceRollCompleted(diceObject){
 	var sock = this;
-	console.log('Dice Completed: ' + diceObject.uniqueId + ' value: ' + diceObject.value);
-	sock.broadcast.emit('diceRollCompleted', diceObject);
+	
+	//console.log('Dice Completed: ' + diceObject[0].uniqueId + ' value: ' + diceObject[0].value + ' playerName: ' + diceObject[0].playerName);
+	//console.log('Dice Completed: ' + diceObject[1].uniqueId + ' value: ' + diceObject[1].value + ' playerName: ' + diceObject[1].playerName);
+	sock.broadcast.emit('diceRollCompletedReturn', diceObject);
 };
 
-
-
-function joinGame(data, callback){
-	
-	console.log('user is joining the game: ' + data.id);
-	//var sock = this;
-	//sock.join(data.id);
-	callback({ok:true, gamedata : gameData});
- 	
- 	
-	//var room = gameSocket.manager.rooms["/" + gameId.toString()];
-
-	//console.log(gameId.toString() + ' ' + sock.id);
-	//console.log(room);
-	
-	/*
-    if( room != undefined )
-    {
-        sock.join(data.gameId);
-        io.sockets.in(gameId).emit('playerJoinedRoom', 'new player joined');
-        console.log('user is joining the game');
-    	callback({ok:true});
-    	sock.emit('join', gameData);
-
-    } else {
-        
-        this.emit('error', 'This room does not exist.' );
-    }
-    */
-    
-
-};
 
 
 function disconnected(){
