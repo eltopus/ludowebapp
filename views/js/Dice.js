@@ -32,6 +32,8 @@ Dice = function (game, x, y, group) {
     this.alpha = 0.5;
     this.diceValueIsSet = false;
     this.gameio;
+    this.randValue = 0;
+    this.diceArr = [0,1,2,4,5,6];
 
     game.add.existing(this);
 };
@@ -44,11 +46,58 @@ Dice.prototype.setGameIO = function(gameio) {
 };
 
 
-Dice.prototype.roll = function() {
-    this.alpha = 1;
-    this.isPlayed = false;
-    this.filters = [this.blurX, this.blurY];
-    this.animations.play("roll", 20);
+Dice.prototype.roll = function(diceObjects) {
+
+	if (this.pusher)
+	{
+		//this.randValue = this.game.rnd.pick([0,1,2,4,5,6]);
+		var rand = this.game.rnd.pick([1,2,3,4,5,6]);
+		var index = ((Math.floor((Math.random() * rand) + 1)) - 1);
+		this.randValue = this.diceArr[index];
+		
+		
+		this.gameio.emitDiceRoll({uniqueId :  this.uniqueId, frame : this.randValue});
+	    this.alpha = 1;
+	    this.isPlayed = false;
+	    this.filters = [this.blurX, this.blurY];
+	    this.animations.play("roll", 20);
+		console.log("Pusher: " + this.uniqueId + ' value: ' + this.value());
+    }else
+    {
+    	
+    	var randValue = this.getDiceObject(diceObjects);
+    	if (randValue < 0){
+    		return;
+    	}else{
+    		this.randValue = randValue;
+    		this.alpha = 1;
+    	    this.isPlayed = false;
+    	    this.filters = [this.blurX, this.blurY];
+    	    this.animations.play("roll", 20);
+    	    console.log("Reciever: " + this.uniqueId + ' value: ' + this.value());
+    	}
+
+    }
+	
+    
+};
+
+Dice.prototype.getDiceObject = function(diceObjects) {
+    for (var i = 0; i < diceObjects.length; ++i){
+    	if (diceObjects[i].uniqueId == this.uniqueId){
+    		return diceObjects[i].frame;
+    	}
+    }
+    
+    return -1;
+};
+
+Dice.prototype.rollComplete = function(game, value) {
+    this.filters = null;
+    this.frame = this.randValue;
+    var diceObject = {uniqueId: this.uniqueId, value: this.value(), playerName : this.player.playerName};
+    this.player.updateDiceObject(diceObject);
+    this.pusher = true;
 };
 
 Dice.prototype.select = function() {
@@ -67,16 +116,6 @@ Dice.prototype.unSelected = function() {
     return (this.alpha == 1);
 };
 
-
-Dice.prototype.rollComplete = function(game, value) {
-    this.filters = null;
-    if (this.pusher){
-    	this.frame = this.game.rnd.pick([0,1,2,4,5,6]);
-    }
-    var diceObject = {uniqueId: this.uniqueId, value: this.value(), playerName : this.player.playerName};
-    this.player.updateDiceObject(diceObject);
-    this.pusher = true;
-};
 
 
 Dice.prototype.update = function() {
@@ -147,52 +186,46 @@ Dice.prototype.value = function() {
     }
 };
 
-
+//Used to set dice values from persisted JSON file
 Dice.prototype.setValue = function(diceObject) {
     
-    for (var i = 0; i < diceObject.length; ++i){
-    	if (diceObject[i].uniqueId == this.uniqueId)
-    	{
-    		//console.log('Set: ' + diceObject[i].uniqueId + ', ' + diceObject[i].value);
-    	    switch(diceObject[i].value) 
-    	    {
-    	        case 6:
-    	            this.frame = 0;
-    	            this.unSelect();
-    	            this.isPlayed = false;
-    	            break;
-    	        case 1:
-    	            this.frame = 1;
-    	            this.unSelect();
-    	            this.isPlayed = false;
-    	            break;
-    	        case 2:
-    	            this.frame = 2;
-    	            this.unSelect();
-    	            this.isPlayed = false;
-    	            break;
-    	        case 5:
-    	            this.frame = 4;
-    	            this.unSelect();
-    	            this.isPlayed = false;
-    	            break;
-    	        case 3:
-    	            this.frame = 5;
-    	            this.unSelect();
-    	            this.isPlayed = false;
-    	            break;
-    	        case 4:
-    	            this.frame = 6;
-    	            this.unSelect();
-    	            this.isPlayed = false;
-    	            break;
-    	    }
-    	    
-
-    	}
+    if (diceObject.value == 0){
+        return;
     }
+    switch(diceObject.value) 
+    {
+        case 6:
+            this.frame = 0;
+            this.unSelect();
+            this.isPlayed = false;
+            break;
+        case 1:
+            this.frame = 1;
+            this.unSelect();
+            this.isPlayed = false;
+            break;
+        case 2:
+            this.frame = 2;
+            this.unSelect();
+            this.isPlayed = false;
+            break;
+        case 5:
+            this.frame = 4;
+            this.unSelect();
+            this.isPlayed = false;
+            break;
+        case 3:
+            this.frame = 5;
+            this.unSelect();
+            this.isPlayed = false;
+            break;
+        case 4:
+            this.frame = 6;
+            this.unSelect();
+            this.isPlayed = false;
+            break;
     
-    
+    }
 };
 
 

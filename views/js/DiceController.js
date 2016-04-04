@@ -8,8 +8,8 @@ DiceController = function (game) {
         
 };
 
-DiceController.prototype.rollDice = function(currentPlayer, pusher){
-    currentPlayer.rollDice(this.dice, pusher);
+DiceController.prototype.rollDice = function(currentPlayer, pusher, diceObjects){
+    currentPlayer.rollDice(this.dice, pusher, diceObjects);
 };
 
 DiceController.prototype.setDiceValue = function(currentPlayer){

@@ -38,6 +38,7 @@ Ludo.Game.prototype = {
         this.saveFlag;
         this.gameId = this.getUuid();
         this.socket;
+        this.diceObjects = [];
         
         
         
@@ -195,13 +196,22 @@ Ludo.Game.prototype = {
         	this.createNewGame();
         }
         
-        this.gameio = new Socket(this.socket, this.ludo, this.controller);
+        this.gameio = new Socket(this);
         this.game.stage.disableVisibilityChange = true;
     },
     
+    rollDiceEmission : function(diceObject){
+    	this.diceObjects.push(diceObject);
+    	
+    	if (this.diceObjects.length > 1){
+    		this.controller.rollDice(this.currentPlayer, false, this.diceObjects);
+    		this.diceObjects = [];
+    	}
+    },
     
-    rollDice : function(){
-        this.controller.rollDice(this.currentPlayer, true);
+    
+    rollDice : function(diceObject){
+    	this.controller.rollDice(this.currentPlayer, true, diceObject);
     },
     
     playDice : function(){
@@ -210,8 +220,6 @@ Ludo.Game.prototype = {
     
     restart: function(){
       
-    	var name = 200;
-    	var t;
     	
     	/*
         if (confirm("Restart game?") == true) {

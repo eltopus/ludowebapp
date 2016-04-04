@@ -19,15 +19,12 @@ exports.initGame = function(gameio, socket){
 	gameSocket.on('pieceSelection', pieceSelection);
 	gameSocket.on('tryConnecting', tryConnecting);
 	gameSocket.on('diceRoll', diceRoll);
-	gameSocket.on('diceRollCompleted', diceRollCompleted);
 	
 	gameSocket.on('disconnect', disconnected);
 };
 
 
 function pieceSelection(data){
-	//console.log('--------------------------------------------------------');
-	//console.log(data + ' is selected. ');
 	io.sockets.in(gameId).emit('pieceSelection', data);
 };
 
@@ -56,20 +53,11 @@ function tryConnecting(data, callback){
 };
 
 
-function diceRoll(uniqueIds){
+function diceRoll(diceObject){
 	var sock = this;
-	//console.log('id: ' + uniqueIds[0].uniqueId + ' ,' + uniqueIds[1].uniqueId);
-	sock.broadcast.emit('diceRoll', uniqueIds);
+	console.log('id: ' + diceObject.uniqueId + ' frame: ' + diceObject.frame);
+	sock.broadcast.emit('diceRoll', diceObject);
 
-};
-
-
-function diceRollCompleted(diceObject){
-	var sock = this;
-	
-	//console.log('Dice Completed: ' + diceObject[0].uniqueId + ' value: ' + diceObject[0].value + ' playerName: ' + diceObject[0].playerName);
-	//console.log('Dice Completed: ' + diceObject[1].uniqueId + ' value: ' + diceObject[1].value + ' playerName: ' + diceObject[1].playerName);
-	sock.broadcast.emit('diceRollCompletedReturn', diceObject);
 };
 
 
