@@ -31,6 +31,7 @@ Piece = function (game, x, y, name, imageId, uniqueId, isMovable, state, index, 
     this.exitState = 3;
     this.moving = false;
     this.path = null;
+    this.gameio = null;
 };
 
 this.Piece.prototype = Object.create(Phaser.Sprite.prototype);
@@ -395,4 +396,10 @@ Piece.prototype.onCompleteMovement = function()
 Piece.prototype.onContinueMovement = function()
 {
     this.moveForward(this.path);
+};
+
+Piece.prototype.update = function() {
+    if (this.isMoving()) {
+        console.log('x: ' + this.x_home + ' y: ' + this.y);
+    }
 };

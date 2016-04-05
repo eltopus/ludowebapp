@@ -25,7 +25,6 @@ Ludo.Game.prototype = {
         this.dieValueOne = 1;
         this.dieValueTwo = 1;
         this.playerMode;
-        this.queue = new Queue;
         this.filter;
         this.alertDisplay;
         this.playerOne = ["red", "blue"];
@@ -373,7 +372,6 @@ Ludo.Game.prototype = {
                 this.shadow.visible = true;
                 this.shadow.x = piece.x;
                 this.shadow.y = piece.y;
-                this.currentPlayer.setSelectedPiece(piece);
                 this.game.world.bringToTop(piece.group);
                 this.game.world.bringToTop(this.shadowGroup);
                 
@@ -402,6 +400,23 @@ Ludo.Game.prototype = {
                 }  
             }
         } 
+    },
+    
+    
+
+    selectPieceEmissionById: function(pieceId) {
+        var currentSelectedPiece = this.currentPlayer.getSelectedPieceById(pieceId);
+        if (currentSelectedPiece != null){
+        	this.select(currentSelectedPiece, null);
+        }
+    },
+    
+    setSelectedDieById : function(diceObject) {
+    	this.currentPlayer.setSelectedDieById(diceObject.uniqueId);
+    },
+    
+    setUnSelectedDieById : function(diceObject) {
+    	this.currentPlayer.setUnSelectedDieById(diceObject.uniqueId);
     },
     
     over: function(p){

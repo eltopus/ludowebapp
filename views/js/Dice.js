@@ -33,7 +33,7 @@ Dice = function (game, x, y, group) {
     this.diceValueIsSet = false;
     this.gameio;
     this.randValue = 0;
-    this.diceArr = [0,1,2,4,5,6];
+    this.diceArr = [5,1,6,2,0,4];
 
     game.add.existing(this);
 };
@@ -51,9 +51,9 @@ Dice.prototype.roll = function(diceObjects) {
 	if (this.pusher)
 	{
 		//this.randValue = this.game.rnd.pick([0,1,2,4,5,6]);
-		var rand = this.game.rnd.pick([1,2,3,4,5,6]);
-		var index = ((Math.floor((Math.random() * rand) + 1)) - 1);
-		this.randValue = this.diceArr[index];
+		var rand = Math.floor(Math.random() * 6);
+		this.randValue = this.diceArr[rand];
+		console.log("id: " + this.uniqueId + ' value: ' + this.randValue);
 		
 		
 		this.gameio.emitDiceRoll({uniqueId :  this.uniqueId, frame : this.randValue});
@@ -61,14 +61,17 @@ Dice.prototype.roll = function(diceObjects) {
 	    this.isPlayed = false;
 	    this.filters = [this.blurX, this.blurY];
 	    this.animations.play("roll", 20);
-		console.log("Pusher: " + this.uniqueId + ' value: ' + this.value());
+		//console.log("Pusher: " + this.uniqueId + ' value: ' + this.value());
     }else
     {
     	
     	var randValue = this.getDiceObject(diceObjects);
-    	if (randValue < 0){
+    	if (randValue < 0)
+    	{
     		return;
-    	}else{
+    	}
+    	else
+    	{
     		this.randValue = randValue;
     		this.alpha = 1;
     	    this.isPlayed = false;
@@ -153,9 +156,11 @@ Dice.prototype.selectDie = function() {
     
     if (this.player != null && !this.player.hasMovingPiece()){   
         if (this.selected() && !this.isPlayed){
-            this.unSelect();    
+            this.unSelect();
+            this.gameio.emitDiceUnSelection({uniqueId :  this.uniqueId});
         }else if (this.unSelected()){  
             this.select(); 
+            this.gameio.emitDiceSelection({uniqueId :  this.uniqueId});
         }   
     }
 };
@@ -190,7 +195,7 @@ Dice.prototype.value = function() {
 Dice.prototype.setValue = function(diceObject) {
     
     if (diceObject.value == 0){
-        return;
+        //return;
     }
     switch(diceObject.value) 
     {

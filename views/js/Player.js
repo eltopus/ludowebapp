@@ -51,6 +51,7 @@ Player.prototype.setPieces = function(game, pieces, playername){
 		piece.x_home = pieces[i].x_home;         
 		piece.y_home = pieces[i].y_home; 
 		piece.homeIndex = pieces[i].homeIndex;
+		piece.gameio = this.gameio;
 		this.playerPieces.push(piece);
 	}
 
@@ -75,6 +76,8 @@ Player.prototype.getPieces = function(game, name){
 		for (var i = 0; i < 4; ++i){
 
 			var piece = new Piece(game, redConfig.x[i], redConfig.y[i], redConfig.name, redConfig.imageId, this.game.getUuid(), redConfig.isMovable, redConfig.state, redConfig.index, redConfig.isMovable, getNextGroup(), this.playerName);
+			piece.uniqueId = createUUID();
+			piece.gameio = this.gameio;
 			this.playerPieces.push(piece);
 		}
 		break;
@@ -85,6 +88,7 @@ Player.prototype.getPieces = function(game, name){
 
 			var piece = new Piece(game, blueConfig.x[i], blueConfig.y[i], blueConfig.name, blueConfig.imageId, this.game.getUuid(), blueConfig.isMovable, blueConfig.state, blueConfig.index, blueConfig.isMovable, getNextGroup(), this.playerName); 
 			piece.uniqueId = createUUID();
+			piece.gameio = this.gameio;
 			this.playerPieces.push(piece);
 		} 
 		break;
@@ -93,6 +97,7 @@ Player.prototype.getPieces = function(game, name){
 
 			var piece = new Piece(game, yellowConfig.x[i], yellowConfig.y[i], yellowConfig.name, yellowConfig.imageId, this.game.getUuid(), yellowConfig.isMovable, yellowConfig.state, yellowConfig.index, yellowConfig.isMovable, getNextGroup(), this.playerName);
 			piece.uniqueId = createUUID();
+			piece.gameio = this.gameio;
 			this.playerPieces.push(piece);
 		} 
 		break;
@@ -101,6 +106,7 @@ Player.prototype.getPieces = function(game, name){
 
 			var piece = new Piece(game, greenConfig.x[i], greenConfig.y[i], greenConfig.name, greenConfig.imageId, this.game.getUuid(), greenConfig.isMovable, greenConfig.state, greenConfig.index, greenConfig.isMovable, getNextGroup(), this.playerName);
 			piece.uniqueId = createUUID();
+			piece.gameio = this.gameio;
 			this.playerPieces.push(piece);
 		}
 		break;
@@ -368,8 +374,22 @@ Player.prototype.setSelectedPieceById = function(id){
 	return false;
 };
 
+
+Player.prototype.getSelectedPieceById = function(id){
+	for (var i = 0; i < this.playerPieces.length; ++i){
+		if (this.playerPieces[i].uniqueId == id){
+			return this.playerPieces[i];
+		}
+	}
+	return null;
+};
+
 Player.prototype.setSelectedDieById = function(uniqueId){
 	return (this.controller.selectDieById(uniqueId));
+};
+
+Player.prototype.setUnSelectedDieById = function(uniqueId){
+	return (this.controller.unSelectDieById(uniqueId));
 };
 
 
