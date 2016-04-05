@@ -1,6 +1,5 @@
 Piece = function (game, x, y, name, imageId, uniqueId, isMovable, state, index, isSelectable, group, playerName) {
 
-        
     Phaser.Sprite.call(this, game, x, y, imageId);
     this.piecePath = activePath;
     this.redHomePath =  redPath;
@@ -15,7 +14,7 @@ Piece = function (game, x, y, name, imageId, uniqueId, isMovable, state, index, 
     this.isMovable = isMovable;      
     this.state = state;   
     this.index = index;      
-    this.homeIndex = index     
+    this.homeIndex = index;     
     this. i = 0;      
     this.graph = null;     
     this.bmd = null;      
@@ -134,7 +133,7 @@ Piece.prototype.plotPath = function(dieValue){
     if (stop > 52){
                 
         remainder = (stop % 52);   
-        for (k = start; k < 52; ++k){
+        for (var k = start; k < 52; ++k){
             pathX.push(this.piecePath.x[k]);  
             pathY.push(this.piecePath.y[k]);   
         }    
@@ -148,7 +147,7 @@ Piece.prototype.plotPath = function(dieValue){
 
     this.index = stop - 1;
  
-    for (k = start; k < stop; ++k){
+    for (var k = start; k < stop; ++k){
         pathX.push(this.piecePath.x[k]);    
         pathY.push(this.piecePath.y[k]);   
     }
@@ -399,7 +398,8 @@ Piece.prototype.onContinueMovement = function()
 };
 
 Piece.prototype.update = function() {
-    if (this.isMoving()) {
-        console.log('x: ' + this.x_home + ' y: ' + this.y);
+    if (this.isMoving()) 
+    {
+    	//this.gameio.emitPiecePosition({uniqueId : this.uniqueId, x : this.x, y : this.y});
     }
 };

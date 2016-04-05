@@ -12,7 +12,7 @@ Ludo.Boot.prototype = {
         this.load.image('dice', 'images/flick.jpg');
         this.load.image('play', 'images/playbutton.png');
         this.load.image('display', 'images/display.png');
-        this.load.image('alertDisplay', 'images/alert.png');
+        this.load.image('error', 'images/alert.png');
         this.load.image('rolldisplay', 'images/rolldisplay.png');
         this.load.image('savebutton', 'images/savebutton.png');
         this.load.image('four-player', 'images/four-player.png');
@@ -28,9 +28,10 @@ Ludo.Boot.prototype = {
         this.load.script('diceCintroller', 'js/DiceController.js');
         this.load.script("BlurX", "js/BlurX.js");
         this.load.script("BlurY", "js/BlurY.js");
-        this.load.script("BlurY", "js/queue.js");
+        this.load.script("queue", "js/Queue.js");
         this.load.script("rules", "js/Rules.js");
-        this.load.script("rules", "js/Action.js");
+        this.load.script("err", "js/Error.js");
+        this.load.script("actions", "js/Action.js");
         this.load.script("underscore", "js/underscore.js");
         this.load.script("jquery", "js/jquery-1.12.2.min.js");
         this.load.script("gamedef", "js/Gamedef.js");

@@ -94,14 +94,14 @@ Ludo.Game.prototype = {
         this.dice = this.make.button(760, 450, 'dice', this.rollDice, this, 2, 1, 0);
         this.dice.alpha = 0.5;
         this.play = this.make.button(760, 560, 'play', this.playDice, this, 2, 1, 0);
-        this.play.alpha = 0.5
+        this.play.alpha = 0.5;
         this.play.visible = false;
         this.savebutton = this.make.button(760, 320, 'savebutton', this.saveGame, this, 2, 1, 0);
-        this.savebutton.alpha = 0.5
+        this.savebutton.alpha = 0.5;
         this.savebutton.scale.x = 0.4;
         this.savebutton.scale.y = 0.4;
         this.restartBtn = this.make.button(750, 670, 'restart', this.restart, this, 2, 1, 0);
-        this.restartBtn.alpha = 0.5
+        this.restartBtn.alpha = 0.5;
         this.restartBtn.scale.x = 0.7;
         this.restartBtn.scale.y = 0.7;
         
@@ -194,9 +194,18 @@ Ludo.Game.prototype = {
         {
         	this.createNewGame();
         }
+        this.error = new Error(this, 800, 150);
+        
+        
         
         this.gameio = new Socket(this);
         this.game.stage.disableVisibilityChange = true;
+    },
+    
+    
+    showError : function(){
+    	this.error.resetAlpha(this.game);
+    	this.error.showError(this.game);
     },
     
     rollDiceEmission : function(diceObject){
@@ -213,8 +222,13 @@ Ludo.Game.prototype = {
     	this.controller.rollDice(this.currentPlayer, true, diceObject);
     },
     
+    
     playDice : function(){
-        this.currentPlayer.play();
+        this.currentPlayer.play(null);
+    },
+    
+    playDiceEmission : function(playerPlayed){
+        this.currentPlayer.play(playerPlayed);
     },
     
     restart: function(){

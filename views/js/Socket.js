@@ -8,6 +8,7 @@ Socket = function(game){
 	this.gameio = game.socket;
 	var dice = game.controller.dice;
 	var players = game.ludo;
+	this.queue = new Queue();
 	
 	for (var i = 0; i < players.length; ++i){
 		players[i].setGameIO(this);
@@ -38,6 +39,17 @@ Socket = function(game){
 		
     });
 	
+	this.gameio.on('piecePosition', function(pieceObject){
+		console.log('Id: ' + pieceObject.uniqueId + ' x: ' + pieceObject.x + ' y: ' + pieceObject.y);
+		
+    });
+	
+	this.gameio.on('play', function(playerName){
+		console.log('Playing: ' + playerName);
+		game.playDiceEmission(playerName);
+		
+    });
+	
 };
 
 
@@ -61,4 +73,12 @@ Socket.prototype.emitDiceSelection = function(diceObject){
 
 Socket.prototype.emitDiceUnSelection = function(diceObject){
 	this.gameio.emit('diceUnSelection', diceObject);
+};
+
+Socket.prototype.emitPiecePosition = function(pieceObject){
+	this.gameio.emit('piecePosition', pieceObject);
+};
+
+Socket.prototype.emitPlay = function(playerName){
+	this.gameio.emit('play', playerName);
 };

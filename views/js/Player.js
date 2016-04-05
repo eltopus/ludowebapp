@@ -40,6 +40,9 @@ Player.prototype.buildPieces = function(game){
 
 Player.prototype.setGameIO = function(gameio){
 	this.gameio = gameio;
+	for (var i = 0; i < this.playerPieces.length; ++i){
+		this.playerPieces[i].gameio =  this.gameio;
+	}
 };
 
 Player.prototype.setPieces = function(game, pieces, playername){
@@ -51,7 +54,6 @@ Player.prototype.setPieces = function(game, pieces, playername){
 		piece.x_home = pieces[i].x_home;         
 		piece.y_home = pieces[i].y_home; 
 		piece.homeIndex = pieces[i].homeIndex;
-		piece.gameio = this.gameio;
 		this.playerPieces.push(piece);
 	}
 
@@ -77,7 +79,6 @@ Player.prototype.getPieces = function(game, name){
 
 			var piece = new Piece(game, redConfig.x[i], redConfig.y[i], redConfig.name, redConfig.imageId, this.game.getUuid(), redConfig.isMovable, redConfig.state, redConfig.index, redConfig.isMovable, getNextGroup(), this.playerName);
 			piece.uniqueId = createUUID();
-			piece.gameio = this.gameio;
 			this.playerPieces.push(piece);
 		}
 		break;
@@ -88,7 +89,6 @@ Player.prototype.getPieces = function(game, name){
 
 			var piece = new Piece(game, blueConfig.x[i], blueConfig.y[i], blueConfig.name, blueConfig.imageId, this.game.getUuid(), blueConfig.isMovable, blueConfig.state, blueConfig.index, blueConfig.isMovable, getNextGroup(), this.playerName); 
 			piece.uniqueId = createUUID();
-			piece.gameio = this.gameio;
 			this.playerPieces.push(piece);
 		} 
 		break;
@@ -97,7 +97,6 @@ Player.prototype.getPieces = function(game, name){
 
 			var piece = new Piece(game, yellowConfig.x[i], yellowConfig.y[i], yellowConfig.name, yellowConfig.imageId, this.game.getUuid(), yellowConfig.isMovable, yellowConfig.state, yellowConfig.index, yellowConfig.isMovable, getNextGroup(), this.playerName);
 			piece.uniqueId = createUUID();
-			piece.gameio = this.gameio;
 			this.playerPieces.push(piece);
 		} 
 		break;
@@ -106,7 +105,6 @@ Player.prototype.getPieces = function(game, name){
 
 			var piece = new Piece(game, greenConfig.x[i], greenConfig.y[i], greenConfig.name, greenConfig.imageId, this.game.getUuid(), greenConfig.isMovable, greenConfig.state, greenConfig.index, greenConfig.isMovable, getNextGroup(), this.playerName);
 			piece.uniqueId = createUUID();
-			piece.gameio = this.gameio;
 			this.playerPieces.push(piece);
 		}
 		break;
@@ -117,8 +115,12 @@ Player.prototype.getPieces = function(game, name){
 
 //**********************************************Move Operation*****************************************
 
-Player.prototype.play = function(){
+Player.prototype.play = function(playerPlayed){
 
+	if (playerPlayed == null){
+		this.gameio.emitPlay(this.playerName);
+	}
+	
 	if (this.hasSelectedPiece())
 	{
 		var state = this.pieceMovement(this.selectedPiece);
@@ -126,7 +128,8 @@ Player.prototype.play = function(){
 		{
 		case 0:
 			this.controller.unSelectUnplayedDie();
-			alert("Error! Rule does not apply!");
+			//alert("Error! Rule does not apply!");
+			this.game.showError();
 			break;
 		case 1:
 			//consume dice
@@ -148,7 +151,8 @@ Player.prototype.play = function(){
 		case 4:
 			var value = this.getSelectedDieValue();
 			if (value == 0){
-				alert("Case 4! Dice not selected");
+				//alert("Case 4! Dice not selected");
+				this.game.showError();
 			}
 			else{
 				var path = this.selectedPiece.plotPath(value);
@@ -167,7 +171,8 @@ Player.prototype.play = function(){
 		case 7:
 			var value = this.getSelectedDieValue();
 			if (value == 0){
-				alert("Case 7! Dice not selected");
+				//alert("Case 7! Dice not selected");
+				this.game.showError();
 			}
 			else{
 				var path = this.selectedPiece.plotExitpath(value);
@@ -200,7 +205,8 @@ Player.prototype.play = function(){
 };
 
 Player.prototype.diceSelectionError = function(){
-	alert("Error! Piece not selected!");
+	//alert("Error! Piece not selected!");
+	this.game.showError();
 };
 
 Player.prototype.pieceMovement = function(selectedPiece){
@@ -442,15 +448,15 @@ Player.prototype.updateDiceObject = function(diceObject){
 
 
 Player.prototype.rolledSix = function(){
-	return (this.diceObject[0].value == this.SIX || this.diceObject[1].value == this.SIX);
+	return (this.diceObject.length > 0 && (this.diceObject[0].value == this.SIX || this.diceObject[1].value == this.SIX));
 };
 
 Player.prototype.rolledDoubleSix = function(){
-	return (this.diceObject[0].value == this.SIX && this.diceObject[1].value == this.SIX);
+	return (this.diceObject.length > 0 && this.diceObject[0].value == this.SIX && this.diceObject[1].value == this.SIX);
 };
 
 Player.prototype.hasUnplayedDice = function(){
-	return (this.diceObject[0].value > 0 || this.diceObject[1].value > 0);
+	return (this.diceObject.length > 0 && (this.diceObject[0].value > 0 || this.diceObject[1].value > 0));
 };
 
 
@@ -766,7 +772,7 @@ Player.prototype.hasAllPiecesExited = function(){
 };
 
 Player.prototype.hasExactlyOneUnplayedDie = function(){
-	return ( (this.diceObject[0].value > 0 && this.diceObject[1].value == 0) || (this.diceObject[1].value > 0 && this.diceObject[0].value == 0) );
+	return ( (this.diceObject.length > 0) && (this.diceObject[0].value > 0 && this.diceObject[1].value == 0) || ( this.diceObject.length > 0) && (this.diceObject[1].value > 0 && this.diceObject[0].value == 0));
 };
 
 Player.prototype.playerTurn = function(){

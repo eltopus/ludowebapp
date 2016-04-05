@@ -21,6 +21,9 @@ exports.initGame = function(gameio, socket){
 	gameSocket.on('diceRoll', diceRoll);
 	gameSocket.on('diceSelection', diceSelection);
 	gameSocket.on('diceUnSelection', diceUnSelection);
+	gameSocket.on('piecePosition', piecePosition);
+	gameSocket.on('play', emitPlay);
+	
 	
 	
 	gameSocket.on('disconnect', disconnected);
@@ -46,14 +49,11 @@ function createNewGame(data){
 
 
 function tryConnecting(data, callback){
-	
 	var sock = this;
 	sock.join(gameId);
-	
 	console.log('user is attempting to connect');
  	callback({ok : true, gameData : gameData});
  	sock.emit('conn', 'connected');
-
 };
 
 
@@ -64,6 +64,12 @@ function diceSelection(diceObject){
 
 };
 
+function piecePosition(pieceObject){
+	var sock = this;
+	console.log('Piece: ' + pieceObject.uniqueId + ' x: ' + pieceObject.x + ' y: ' + pieceObject.y);
+	sock.broadcast.emit('piecePosition', pieceObject);
+
+};
 
 function diceUnSelection(diceObject){
 	var sock = this;
@@ -76,6 +82,12 @@ function diceRoll(diceObject){
 	var sock = this;
 	console.log('id: ' + diceObject.uniqueId + ' frame: ' + diceObject.frame);
 	sock.broadcast.emit('diceRoll', diceObject);
+
+};
+
+function emitPlay(playerName){
+	var sock = this;
+	sock.broadcast.emit('play', playerName);
 
 };
 
