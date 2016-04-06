@@ -45,7 +45,7 @@ Socket = function(game){
     });
 	
 	this.gameio.on('play', function(playerName){
-		console.log('Playing: ' + playerName);
+		//console.log('Playing: ' + playerName);
 		game.playDiceEmission(playerName);
 		
     });

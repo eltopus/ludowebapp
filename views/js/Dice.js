@@ -53,7 +53,7 @@ Dice.prototype.roll = function(diceObjects) {
 		//this.randValue = this.game.rnd.pick([0,1,2,4,5,6]);
 		var rand = Math.floor(Math.random() * 6);
 		this.randValue = this.diceArr[rand];
-		console.log("id: " + this.uniqueId + ' value: ' + this.randValue);
+		//console.log("id: " + this.uniqueId + ' value: ' + this.randValue);
 		
 		
 		this.gameio.emitDiceRoll({uniqueId :  this.uniqueId, frame : this.randValue});
@@ -77,7 +77,7 @@ Dice.prototype.roll = function(diceObjects) {
     	    this.isPlayed = false;
     	    this.filters = [this.blurX, this.blurY];
     	    this.animations.play("roll", 20);
-    	    console.log("Reciever: " + this.uniqueId + ' value: ' + this.value());
+    	    //console.log("Reciever: " + this.uniqueId + ' value: ' + this.value());
     	}
 
     }
