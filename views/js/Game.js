@@ -306,22 +306,28 @@ Ludo.Game.prototype = {
             {
                 case 2:
                     var playerOne = new Player(this, "Player One", false, this.playerOne, 0, this.playerMode, controller); 
+                    playerOne.error = new Error(this, 800, 150);
                     playerOne.buildPieces(this);
                     var playerTwo = new Player(this, "Player Two", false, this.playerTwo, 1, this.playerMode, controller);
+                    playerTwo.error = new Error(this, 800, 150);
                     playerTwo.buildPieces(this);
                     players.push(playerOne);
                     players.push(playerTwo);
                     break;
             
                 case 4:
-                    var playerRed = new Player(this, "Player Red", false, this.playerRed, 0, this.playerMode, controller); 
+                    var playerRed = new Player(this, "Player Red", false, this.playerRed, 0, this.playerMode, controller);
+                    playerRed.error = new Error(this, 800, 150);
                     playerRed.buildPieces(this);
                     var playerBlue = new Player(this, "Player Blue", false, this.playerBlue, 1, this.playerMode, controller);
+                    playerBlue.error = new Error(this, 800, 150);
                     playerBlue.buildPieces(this);
                     
                     var playerYellow = new Player(this, "Player Yellow", false, this.playerYellow, 2, this.playerMode, controller); 
+                    playerYellow.error = new Error(this, 800, 150);
                     playerYellow.buildPieces(this);
                     var playerGreen = new Player(this, "Player Green", false, this.playerGreen, 3, this.playerMode, controller);
+                    playerGreen.error = new Error(this, 800, 150);
                     playerGreen.buildPieces(this);
                     
                     players.push(playerRed);
@@ -343,6 +349,7 @@ Ludo.Game.prototype = {
                 player.setDice(obj[i].diceObject);
                 player.setSelectedPieceById(obj[i].selectedPieceId);
                 player.exitingGraphicsPositions = obj[i].exitingGraphicsPositions;
+                player.error = new Error(this, 800, 150);
                 players.push(player);
             } 
             

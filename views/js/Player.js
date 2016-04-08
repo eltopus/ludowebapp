@@ -21,6 +21,7 @@ Player = function(game, name, turn, piecesNames, index, playerMode, controller, 
 	this.greenGraphicsIndex = -1;
 	this.gameio = null;
 	this.pusher = false;
+	this.error;
 
 
 };
@@ -128,7 +129,7 @@ Player.prototype.play = function(playerPlayed){
 		{
 		case 0:
 			this.controller.unSelectUnplayedDie();
-			this.game.showError("Rule does not apply.");
+			this.error.showError("Rule does not apply.");
 			break;
 		case 1:
 			//consume dice
@@ -150,7 +151,7 @@ Player.prototype.play = function(playerPlayed){
 		case 4:
 			var value = this.getSelectedDieValue();
 			if (value == 0){
-				this.game.showError("Please select dice.");
+				this.error.showError("Please select dice.");
 			}
 			else{
 				var path = this.selectedPiece.plotPath(value);
@@ -169,7 +170,7 @@ Player.prototype.play = function(playerPlayed){
 		case 7:
 			var value = this.getSelectedDieValue();
 			if (value == 0){
-				this.game.showError("Please select dice.");
+				this.error.showError("Please select dice.");
 			}
 			else{
 				var path = this.selectedPiece.plotExitpath(value);
@@ -202,7 +203,7 @@ Player.prototype.play = function(playerPlayed){
 };
 
 Player.prototype.diceSelectionError = function(){
-	this.game.showError("Please select piece.");
+	this.error.showError("Please select piece.");
 };
 
 Player.prototype.pieceMovement = function(selectedPiece){

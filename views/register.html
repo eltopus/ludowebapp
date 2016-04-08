@@ -1,0 +1,138 @@
+<html>
+<head>
+<title>Register</title>
+
+<!-- Bootstrap -->
+<link href="css/bootstrap.min.css" rel="stylesheet">
+
+<script src="js/jquery-1.12.2.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/html5shiv.min.js"></script>
+<script src="js/respond.min.js"></script>
+
+<style>
+body,html {
+	 background: url(images/welcomepage.png) 
+	 no-repeat center center fixed; 
+  	-webkit-background-size: cover;
+  	-moz-background-size: cover;
+  	-o-background-size: cover;
+  	background-size: cover;
+}
+
+.well{
+background-color: rgba(255,255,255,0.7);
+}
+</style>
+
+
+</head>
+
+<body>
+
+	<div class="container">
+		<div class="well">
+			<div>
+			</div>
+			<form class="form-horizontal" method="POST" action="/ludo">
+				<fieldset>
+
+					<!-- Form Name -->
+					<legend>Ludo Registration Form</legend>
+
+					<!-- Text input-->
+					<div class="form-group">
+						<label class="col-md-4 control-label" for="email">Email</label>
+						<div class="col-md-4">
+							<input id="email" name="email" type="text"
+								placeholder="me@example.com" class="form-control input-md"
+								required="">
+
+						</div>
+					</div>
+
+					<!-- Password input-->
+					<div class="form-group">
+						<label class="col-md-4 control-label" for="password">Password</label>
+						<div class="col-md-4">
+							<input id="password" name="password" type="password"
+								placeholder="password" class="form-control input-md" required>
+
+						</div>
+					</div>
+
+					<!-- Password input-->
+					<div class="form-group">
+						<label class="col-md-4 control-label" for="repeatpassword">Repeat
+							password</label>
+						<div class="col-md-4">
+							<input id="repeatpassword" name="repeatpassword" type="password"
+								placeholder="repeat password" class="form-control input-md"
+								required="">
+
+						</div>
+					</div>
+
+
+					<!-- Text input-->
+					<div class="form-group">
+						<label class="col-md-4 control-label" for="phone">Phone #</label>
+						<div class="col-md-4">
+							<input id="phone" name="phone" type="text"
+								placeholder="###-###-###" class="form-control input-md">
+
+						</div>
+					</div>
+
+					<!-- Multiple Radios -->
+					<div class="form-group">
+						<label class="col-md-4 control-label" for="gender">Gender</label>
+						<div class="col-md-4">
+							<div class="radio">
+								<label for="gender-0"> <input type="radio" name="gender"
+									id="gender-0" value="1" checked="checked"> Male
+								</label>
+							</div>
+							<div class="radio">
+								<label for="gender-1"> <input type="radio" name="gender"
+									id="gender-1" value="2"> Female
+								</label>
+							</div>
+						</div>
+					</div>
+
+					<!-- Multiple Radios -->
+					<div class="form-group">
+						<label class="col-md-4 control-label" for="agreement">Agreement</label>
+						<div class="col-md-4">
+							<div class="radio">
+								<label for="agreement-0"> <input type="radio"
+									name="agreement" id="agreement-0" value="1" checked="checked">
+									I Disagree
+								</label>
+							</div>
+							<div class="radio">
+								<label for="agreement-1"> <input type="radio"
+									name="agreement" id="agreement-1" value="2"> I Agree
+								</label>
+							</div>
+						</div>
+					</div>
+
+					<!-- Button -->
+					<div class="form-group">
+						<label class="col-md-4 control-label" for="register">Register</label>
+						<div class="col-md-4">
+							<button id="register" name="register" class="btn btn-primary">Register</button>
+							<a href="/login" type="button" class="btn btn-danger"  >Cancel</a>
+						</div>
+					</div>
+					
+
+				</fieldset>
+			</form>
+
+
+		</div>
+	</div>
+</html>

@@ -8,14 +8,39 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var ldx = require('./ludo');
 var debug = require('debug');
+var cookieParser = require('cookie-parser');
+var bodyParser = require('body-parser');
+
+
 
 app.use(logger('dev'));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(cookieParser());
+
 app.use('/', express.static(__dirname + '/views'));
 
 
 app.get('/', function(req, res){
     res.sendFile(__dirname + '/views/index.html');
 });
+
+app.get('/login', function(req, res){
+    res.sendFile(__dirname + '/views/login.html');
+});
+
+app.get('/register', function(req, res){
+    res.sendFile(__dirname + '/views/register.html');
+});
+
+app.get('/setup', function(req, res){
+    res.sendFile(__dirname + '/views/setup.html');
+});
+
+app.post('/ludo', function (req, res) {
+	res.sendFile(__dirname + '/views/index.html');
+});
+
 
 
 
