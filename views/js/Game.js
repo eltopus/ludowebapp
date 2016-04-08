@@ -26,7 +26,6 @@ Ludo.Game.prototype = {
         this.dieValueTwo = 1;
         this.playerMode;
         this.filter;
-        this.alertDisplay;
         this.playerOne = ["red", "blue"];
         this.playerTwo = ["yellow", "green"];
         this.playerRed = ["red"];
@@ -124,9 +123,6 @@ Ludo.Game.prototype = {
         buttonGroup.add(this.restartBtn);
         
         this.rule = new Rules(this, this.play);
-        this.alertDisplay = this.add.sprite(750, 150, 'alertDisplay');
-        this.alertDisplay.alpha = 0.7;
-        this.alertDisplay.visible = false;
         this.buildWorld();
         this.controller = new DiceController(this.game);
         this.ludo = this.buildPlayers(this.playerMode, this.controller, this.saveFlag);
@@ -204,9 +200,8 @@ Ludo.Game.prototype = {
     },
     
     
-    showError : function(){
-    	this.error.resetAlpha(this.game);
-    	this.error.showError(this.game);
+    showError : function(errorType){
+    	this.error.showError(errorType);
     },
     
     rollDiceEmission : function(diceObject){
