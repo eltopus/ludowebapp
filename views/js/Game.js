@@ -196,6 +196,7 @@ Ludo.Game.prototype = {
         
         this.gameio = new Socket(this);
         this.game.stage.disableVisibilityChange = true;
+        
     },
     
     

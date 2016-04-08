@@ -1,6 +1,7 @@
 <html>
     <head>
         <title>Ludo Africa</title>
+        <link href="/jquery-ui/jquery-ui.min.css" rel="stylesheet">
         <script src="js/phaser.js"></script>
         <script src="js/Boot.js"></script>
         <script src="js/Preloader.js"></script>
@@ -15,7 +16,6 @@
         <script src="js/Game.js"></script>
         <script src="js/DiceController.js"></script>
         <script src="js/Rules.js"></script>
-        <script src="js/Fire.js"></script>
         <script src="js/Gamedef.js"></script>
         <script src="js/Action.js"></script>
         <script src="js/jquery-1.12.2.min.js"></script>
@@ -23,20 +23,74 @@
         <script src="js/Socket.js"></script>
         <script src="js/Error.js"></script>
         <script src="js/phaser-state-transition-plugin.min.js"></script>
+		<script src="jquery-ui/jquery-ui.min.js"></script>
         <style>
             body{
                 padding: 0;
                 margin: 0;
                 background-color: #171642
             }
+            
+            .demoHeaders {
+				margin-top: 2em;
+				float: left
+			}
+			#dialog-link {
+				padding: .4em 1em .4em 20px;
+				text-decoration: none;
+				position: relative;
+			}
+			#dialog-link span.ui-icon {
+				margin: 0 5px 0 0;
+				position: absolute;
+				left: .2em;
+				top: 50%;
+				margin-top: -8px;
+			}
+			#icons {
+				margin: 0;
+				padding: 0;
+			}
+			#icons li {
+				margin: 2px;
+				position: relative;
+				padding: 4px 0;
+				cursor: pointer;
+				float: left;
+				list-style: none;
+			}
+			#icons span.ui-icon {
+				float: left;
+				margin: 0 4px;
+			}
+			.fakewindowcontain .ui-widget-overlay {
+				position: absolute;
+			}
+			select {
+				width: 200px;
+			}
+			
+			
+			
+			#selectmenu {
+				padding:10;
+				margin:10;
+				position:absolute;
+				top:10;
+				left:10;
+				display:none
+			}
         
         </style>
     </head>
     <body>
             
         <div id="gameContainer">
+			
         </div>
         <script type="text/javascript">
+        
+        
             window.onload = function() {
                 var game = new Phaser.Game(900, 720, Phaser.Auto, 'gameContainer');
                 game.state.add('Boot', Ludo.Boot);
@@ -46,6 +100,8 @@
                 game.state.start('Boot');
                 
             }
+            
+            $( "#selectmenu" ).selectmenu();
         
         </script>
         <div id="displayContainer">

@@ -37,9 +37,9 @@ Ludo.Boot.prototype = {
         this.load.script("gamedef", "js/Gamedef.js");
         this.load.script("socketio", "js/socket.io.js");
         this.load.script("Socket", "js/Socket.js");
-        
+        this.load.script("jquery-ui", "jquery-ui/jquery-ui.min.js");
         this.load.script('webfont', '//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js');
-        this.load.json('save', 'js/save.json');
+        //this.load.json('save', 'js/save.json');
         
     },
     
