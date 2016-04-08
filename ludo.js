@@ -59,28 +59,28 @@ function tryConnecting(data, callback){
 
 function diceSelection(diceObject){
 	var sock = this;
-	//console.log('Dice: ' + diceObject.uniqueId + ' Selected ');
+	console.log('Dice: ' + diceObject.uniqueId + ' Selected ');
 	sock.broadcast.emit('diceSelection', diceObject);
 
 };
 
 function piecePosition(pieceObject){
 	var sock = this;
-	//console.log('Piece: ' + pieceObject.uniqueId + ' x: ' + pieceObject.x + ' y: ' + pieceObject.y);
+	console.log('Piece: ' + pieceObject.uniqueId + ' x: ' + pieceObject.x + ' y: ' + pieceObject.y);
 	sock.broadcast.emit('piecePosition', pieceObject);
 
 };
 
 function diceUnSelection(diceObject){
 	var sock = this;
-	//console.log('Dice: ' + diceObject.uniqueId + ' UnSelected ');
+	console.log('Dice: ' + diceObject.uniqueId + ' UnSelected ');
 	sock.broadcast.emit('diceUnSelection', diceObject);
 };
 
 
 function diceRoll(diceObject){
 	var sock = this;
-	//console.log('id: ' + diceObject.uniqueId + ' frame: ' + diceObject.frame);
+	console.log('id: ' + diceObject.uniqueId + ' frame: ' + diceObject.frame);
 	sock.broadcast.emit('diceRoll', diceObject);
 
 };
