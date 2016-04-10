@@ -24,6 +24,8 @@ app.use(cookieParser());
 
 app.use('/phaser-input', express.static(path.join(__dirname, 'node_modules/phaser-input/build/')));
 app.use('/phaser-nineslice', express.static(path.join(__dirname, 'node_modules/phaser-nineslice/build/')));
+app.use('/angular-ui-router', express.static(path.join(__dirname, 'node_modules/angular-ui-router/release/')));
+app.use('/angular', express.static(path.join(__dirname, 'node_modules/angular/')));
 app.use('/', express.static(path.join(__dirname, '/views')));
 
 

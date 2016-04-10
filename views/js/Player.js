@@ -806,6 +806,7 @@ Player.prototype.exitAll = function(){
         setGreenParameter2(this.playerPieces[7]);
     }
     */
+  
 	 
 };
 

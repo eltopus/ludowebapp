@@ -181,7 +181,7 @@ Ludo.StartMenu.prototype = {
     					game.game.state.states['Game'].playerMode = gameMode;
     					game.game.state.states['Game'].saveFlag = loadGame;
     					game.game.state.states['Game'].socket = socket;
-    					game.game.state.states['Game'].existingGameId = gameId;
+    					game.game.state.states['Game'].savedGameId = gameId.toString();
     					sprite.destroy();
     					gameCodeBg.destroy();
     			        gameCode.destroy();

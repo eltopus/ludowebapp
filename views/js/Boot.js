@@ -51,16 +51,75 @@ Ludo.Boot.prototype = {
     
     create: function() {
         
-        this.input.maxPointers = 1;
-        this.game.add.plugin(Fabrique.Plugins.InputField);
-        this.game.stage.disableVisibilityChange = true;
-        this.game.stage.smoothed = true; 
-        this.game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
-        this.scale.pageAlignHorizontally = true;
-        this.scale.pageAlignVertically = true;
-        this.stage.forcePortrait = true;
-        this.input.addPointer();
+    	 
+    	if (this.game.device.desktop) {
+    		this.input.maxPointers = 1;
+    		this.game.add.plugin(Fabrique.Plugins.InputField);
+   		 	this.game.stage.disableVisibilityChange = true;
+   		 	this.game.stage.smoothed = true; 
+   		 	this.game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
+   		 	this.scale.pageAlignHorizontally = true;
+   		 	this.scale.pageAlignVertically = true;
+   		 	this.stage.forcePortrait = true;
+   		 	this.input.addPointer();
+    		
+    	 }else
+    	 {
+    		 
+    		 this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+    		 this.game.add.plugin(Fabrique.Plugins.InputField);
+    		 this.game.stage.smoothed = true;
+    	     this.scale.pageAlignHorizontally = true;
+    	     this.stage.forcePortrait = true;
+    	     this.game.orientated = true;
+    	     this.game.scale.minWidth = this.game.width /2.7;
+    	     this.game.scale.minHeight = this.game.height /2.7;
+    	     this.game.scale.pageAlignHorizontally = true;
+    	     this.game.scale.pageAlignVertically = true;
+     		 this.game.scale.maxWidth = this.game.width * 2.5;
+  			 this.game.scale.maxHeight = this.game.height * 2.5;
+  			 this.game.scale.forceOrientation(false, true);
+    	     
+    		 
+    		 /*
+    		this.game.add.plugin(Fabrique.Plugins.InputField);
+    		this.input.maxPointers = 1;
+    		this.stage.disableVisibilityChange = true;
+    		this.game.orientated = true;
+    		this.game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+    		this.game.scale.minWidth = this.game.width /2.7;
+    		this.game.scale.minHeight = this.game.height /2.7;
+    		this.game.scale.pageAlignHorizontally = true;
+    		this.game.scale.pageAlignVertically = true;
+    		this.game.scale.maxWidth = this.game.width * 2.5;
+ 			this.game.scale.maxHeight = this.game.height * 2.5;
+ 			this.game.scale.forceOrientation(false, true);
+ 			this.game.scale.enterIncorrectOrientation.add(this.enterIncorrectOrientation, this);
+ 			this.game.scale.leaveIncorrectOrientation.add(this.leaveIncorrectOrientation, this);
+ 			this.game.scale.setScreenSize = true;
+ 			*/
+
+    		 
+    	 }
+        
         this.state.start('Preloader');
     },
+    
+    
+    enterIncorrectOrientation: function () {
+
+		this.game.orientated = false;
+		document.getElementById('orientation').style.display = 'block';
+
+	},
+
+	leaveIncorrectOrientation: function () {
+
+		this.game.orientated = true;
+		document.getElementById('orientation').style.display = 'none';
+		this.game.scale.setScreenSize = true;
+
+	}
+
     
 };

@@ -17,6 +17,7 @@ Ludo.Game.prototype = {
     
     create: function(){
     	
+    	this.savedGameId;
     	this.save;
         this.iddleState = 0;
         this.activeState = 1;
@@ -49,7 +50,8 @@ Ludo.Game.prototype = {
         this.gameId = this.getUuid();
         this.socket;
         this.diceObjects = [];
-        this.existingGameId;
+        this.errorX = 810;
+        this.errorY = 600;
         
         
         
@@ -144,7 +146,7 @@ Ludo.Game.prototype = {
         this.gameIdText = null;
         this.currentPlayer = null;
         if (this.saveFlag){
-        	this.gameIdText = this.add.text(725, 420, "Game ID: " + this.existingGameId, playerTurnDisplayStyle);
+        	this.gameIdText = this.add.text(725, 420, "Game ID: " + this.savedGameId, playerTurnDisplayStyle);
             this.gameId = this.save.gameId;
             var diceUniqueIds = this.save.diceIds;
             this.controller.setDiceUniqueId(diceUniqueIds);
@@ -201,15 +203,15 @@ Ludo.Game.prototype = {
             }
         }
         
+    
+        this.gameio = new Socket(this);
+        this.game.input.onTap.add(this.onTap, this);
+        this.newGameId;
         
         if (!this.saveFlag)
         {
         	this.createNewGame();
         }
-    
-        this.gameio = new Socket(this);
-        this.game.input.onTap.add(this.onTap, this);
-        
     },
     
     
@@ -286,30 +288,22 @@ Ludo.Game.prototype = {
         var gamedef = new Gamedef(this.controller, this.gameId);
         gamedef.savedef(this.ludo);
         var data = JSON.stringify(gamedef);
-        
-        this.socket.emit('saveNewGame', {data : data, gameId : this.existingGameId});
-        
-        this.socket.on('saveNewGame', function(data){
-            alert(data);
-        });
+        this.socket.emit('saveNewGame', {data : data, gameId : this.newGameId});
     },
     
     
     createNewGame : function(){
         var gamedef = new Gamedef(this.controller, this.gameId);
         gamedef.savedef(this.ludo);
-        var existingGameId = null;
         var gameIdText = this.gameIdText;
-        var data = JSON.stringify(gamedef);
-        this.socket.emit('createNewGame', data, function (data){	
-        	gameIdText.setText("Game ID: " + data.gameId);
-        	existingGameId = data.gameId;
+        var gameData = JSON.stringify(gamedef);
+        this.newGameId = this.randomString(5);
+        var preparedData = {gameData : gameData, gameId : this.newGameId};
+        this.socket.emit('createNewGame', preparedData, function (data){	
+        	gameIdText.setText("Game ID: " + data.gameId.toString());
         });
         
-        this.existingGameId = existingGameId;
-        
     },
-    
     
     buildWorld: function(world) {
         
@@ -354,10 +348,10 @@ Ludo.Game.prototype = {
             {
                 case 2:
                     var playerOne = new Player(this, "Player One", false, this.playerOne, 0, this.playerMode, controller); 
-                    playerOne.error = new Error(this, 800, 150);
+                    playerOne.error = new Error(this, this.errorX, this.errorY);
                     playerOne.buildPieces(this);
                     var playerTwo = new Player(this, "Player Two", false, this.playerTwo, 1, this.playerMode, controller);
-                    playerTwo.error = new Error(this, 800, 150);
+                    playerTwo.error = new Error(this, this.errorX, this.errorY);
                     playerTwo.buildPieces(this);
                     players.push(playerOne);
                     players.push(playerTwo);
@@ -365,17 +359,17 @@ Ludo.Game.prototype = {
             
                 case 4:
                     var playerRed = new Player(this, "Player Red", false, this.playerRed, 0, this.playerMode, controller);
-                    playerRed.error = new Error(this, 800, 150);
+                    playerRed.error = new Error(this, this.errorX, this.errorY);
                     playerRed.buildPieces(this);
                     var playerBlue = new Player(this, "Player Blue", false, this.playerBlue, 1, this.playerMode, controller);
-                    playerBlue.error = new Error(this, 800, 150);
+                    playerBlue.error = new Error(this, this.errorX, this.errorY);
                     playerBlue.buildPieces(this);
                     
                     var playerYellow = new Player(this, "Player Yellow", false, this.playerYellow, 2, this.playerMode, controller); 
-                    playerYellow.error = new Error(this, 800, 150);
+                    playerYellow.error = new Error(this, this.errorX, this.errorY);
                     playerYellow.buildPieces(this);
                     var playerGreen = new Player(this, "Player Green", false, this.playerGreen, 3, this.playerMode, controller);
-                    playerGreen.error = new Error(this, 800, 150);
+                    playerGreen.error = new Error(this, this.errorX, this.errorY);
                     playerGreen.buildPieces(this);
                     
                     players.push(playerRed);
@@ -397,7 +391,7 @@ Ludo.Game.prototype = {
                 player.setDice(obj[i].diceObject);
                 player.setSelectedPieceById(obj[i].selectedPieceId);
                 player.exitingGraphicsPositions = obj[i].exitingGraphicsPositions;
-                player.error = new Error(this, 800, 150);
+                player.error = new Error(this, this.errorX, this.errorY);
                 players.push(player);
             } 
             
@@ -541,6 +535,7 @@ Ludo.Game.prototype = {
         
         if (this.currentPlayer.hasAllPiecesExited()){
             alert("Winner is " + this.currentPlayer.playerName);
+            this.socket.emit('endOfGame', {gameId : this.savedGameId});
             this.currentPlayer.resetAllPiecesExited();
         }
         
@@ -570,7 +565,10 @@ Ludo.Game.prototype = {
        var uuid = s.join("");
        return uuid;
    },
-    
+   
+   randomString : function (length) {
+	   return Math.round((Math.pow(36, length + 1) - Math.random() * Math.pow(36, length))).toString(36).slice(1);
+   },
     
     update: function() {
         

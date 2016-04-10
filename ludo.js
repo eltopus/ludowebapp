@@ -12,6 +12,9 @@ var gameCodeStart = 1000;
 var redisIsReady = false;
 var redis = require('redis');
 var client = redis.createClient("6379", "192.168.1.21"); 
+client.on("error", function (err) {
+    console.log(err);
+});
 client.on('connect', function() {
     console.log('connected to redis server');
 });
@@ -35,10 +38,25 @@ exports.initGame = function(gameio, socket){
 	gameSocket.on('diceUnSelection', diceUnSelection);
 	gameSocket.on('piecePosition', piecePosition);
 	gameSocket.on('play', emitPlay);
+	gameSocket.on('endOfGame', endOfGame);
 	
 	
 	
 	gameSocket.on('disconnect', disconnected);
+};
+
+function endOfGame(data){
+	client.exists(data.gameId, function(err, reply) {
+	    if (reply === 1) {
+	        console.log('exists');
+	        client.del(data.gameId, function(err, reply) {
+	            console.log(reply);
+	        });
+	        
+	    } else {
+	        console.log('doesn\'t exist');
+	    }
+	});
 };
 
 
@@ -48,21 +66,23 @@ function pieceSelection(data){
 };
 
 
-function createNewGame(data, callback){
-	gameData = data;
+function createNewGame(preparedData, callback){
+	gameData = preparedData.gameData;
 	socketId = this.id;
-	console.log(data);
-	var gameId = randomString(5);
-	var status = false;
+	gameId = preparedData.gameId;
+	console.log('GameId: ' + gameId + ' GameData: ' + gameData);
+	var status = true;
 	if (redisIsReady){
-		console.log(gameId);
 		
-		client.set(gameId, data, function(err, reply) {
+		/*
+		client.set(preparedData.gameId, preparedData.gameData, function(err, reply) {
 			  console.log(reply);
 			  if (reply == 'OK'){
 				  status = true;
 			  }
 		});
+		
+		*/
 	}
 	
 	if (status){
