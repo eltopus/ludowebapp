@@ -2,9 +2,21 @@ Ludo.Game = function(game){};
 
 
 Ludo.Game.prototype = {
+		
+	init: function(){
+		//this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL; 
+		//this.scale.maxWidth = 800;
+		//this.scale.maxHeight = 768;
+		//this.scale.pageAlignHorizontally = true;
+		//this.scale.pageAlignVertically = true;
+		//this.scale.updateLayout();
+		//this.scale = this.scale.fullScreenScaleMode = Phaser.ScaleManager.EXACT_FIT;
+		  
+	},
     
     
     create: function(){
+    	
     	this.save;
         this.iddleState = 0;
         this.activeState = 1;
@@ -37,6 +49,7 @@ Ludo.Game.prototype = {
         this.gameId = this.getUuid();
         this.socket;
         this.diceObjects = [];
+        this.existingGameId;
         
         
         
@@ -128,8 +141,10 @@ Ludo.Game.prototype = {
         this.ludo = this.buildPlayers(this.playerMode, this.controller, this.saveFlag);
         this.action = new Action(this, this.controller);
         this.populateWorld(this.ludo);
+        this.gameIdText = null;
         this.currentPlayer = null;
         if (this.saveFlag){
+        	this.gameIdText = this.add.text(725, 420, "Game ID: " + this.existingGameId, playerTurnDisplayStyle);
             this.gameId = this.save.gameId;
             var diceUniqueIds = this.save.diceIds;
             this.controller.setDiceUniqueId(diceUniqueIds);
@@ -147,6 +162,7 @@ Ludo.Game.prototype = {
             }
         }else{
             this.currentPlayer = this.ludo[0];
+            this.gameIdText = this.add.text(725, 420, "Game ID: ", playerTurnDisplayStyle);
         }
         
         
@@ -190,19 +206,30 @@ Ludo.Game.prototype = {
         {
         	this.createNewGame();
         }
-        this.error = new Error(this, 800, 150);
-        
-        
-        
+    
         this.gameio = new Socket(this);
-        this.game.stage.disableVisibilityChange = true;
+        this.game.input.onTap.add(this.onTap, this);
         
     },
     
     
-    showError : function(errorType){
-    	this.error.showError(errorType);
+    onTap : function(pointer, doubleTap) {
+
+        if (doubleTap)
+        {
+        	if (this.scale.isFullScreen)
+            {
+                this.scale.stopFullScreen();
+            }
+            else
+            {
+                this.scale.startFullScreen(false);
+            }
+            
+        }
+        
     },
+    
     
     rollDiceEmission : function(diceObject){
     	this.diceObjects.push(diceObject);
@@ -229,6 +256,22 @@ Ludo.Game.prototype = {
     
     restart: function(){
       
+    	this.scale.pageAlignVertically = true;
+        this.scale.pageAlignHorizontally = true;
+        this.scale.setShowAll();
+        this.scale.refresh();
+    	
+    	
+    	
+    	
+    	if (this.scale.isFullScreen)
+        {
+            this.scale.stopFullScreen();
+        }
+        else
+        {
+            this.scale.startFullScreen(false);
+        }
     	
     	/*
         if (confirm("Restart game?") == true) {
@@ -243,7 +286,8 @@ Ludo.Game.prototype = {
         var gamedef = new Gamedef(this.controller, this.gameId);
         gamedef.savedef(this.ludo);
         var data = JSON.stringify(gamedef);
-        this.socket.emit('saveNewGame', data);
+        
+        this.socket.emit('saveNewGame', {data : data, gameId : this.existingGameId});
         
         this.socket.on('saveNewGame', function(data){
             alert(data);
@@ -254,12 +298,16 @@ Ludo.Game.prototype = {
     createNewGame : function(){
         var gamedef = new Gamedef(this.controller, this.gameId);
         gamedef.savedef(this.ludo);
+        var existingGameId = null;
+        var gameIdText = this.gameIdText;
         var data = JSON.stringify(gamedef);
-        this.socket.emit('createNewGame', data);
-        
-        this.socket.on('connected', function(data){
-            console.log('User created new game: ' + data);
+        this.socket.emit('createNewGame', data, function (data){	
+        	gameIdText.setText("Game ID: " + data.gameId);
+        	existingGameId = data.gameId;
         });
+        
+        this.existingGameId = existingGameId;
+        
     },
     
     

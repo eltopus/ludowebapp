@@ -787,6 +787,7 @@ Player.prototype.myTurn = function(){
 
 
 Player.prototype.exitAll = function(){
+	
 	/*
     for (var i = 0; i < this.playerPieces.length-2; ++i){
         this.playerPieces[i].exit();
@@ -804,7 +805,8 @@ Player.prototype.exitAll = function(){
     if (this.playerPieces[7].piece == "green"){
         setGreenParameter2(this.playerPieces[7]);
     }
-	 */
+    */
+	 
 };
 
 Player.prototype.resetAllPiecesExited = function(){ 

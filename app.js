@@ -10,6 +10,7 @@ var ldx = require('./ludo');
 var debug = require('debug');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var path = require('path');
 
 
 
@@ -18,7 +19,12 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-app.use('/', express.static(__dirname + '/views'));
+
+
+
+app.use('/phaser-input', express.static(path.join(__dirname, 'node_modules/phaser-input/build/')));
+app.use('/phaser-nineslice', express.static(path.join(__dirname, 'node_modules/phaser-nineslice/build/')));
+app.use('/', express.static(path.join(__dirname, '/views')));
 
 
 app.get('/', function(req, res){

@@ -3,6 +3,10 @@ var Ludo = {};
 Ludo.Boot = function(game){};
 
 Ludo.Boot.prototype = {
+		
+	init : function(){
+		this.game.plugins.add(Fabrique.Plugins.NineSlice);	
+	},
     preload: function() {
         this.load.image('board', 'images/ludo.jpg');
         this.load.image('red_piece', 'images/red_button.png');
@@ -19,6 +23,7 @@ Ludo.Boot.prototype = {
         this.load.image('two-player', 'images/two-player.png');
         this.load.image('start-game', 'images/start-game.png');
         this.load.image('load-game', 'images/load_game.png');
+        this.load.nineSlice('input', 'images/inputfield.png', 15);
         this.load.image('restart', 'images/restart.png');
         this.load.spritesheet("die", "images/diceRed.png", 64, 64);
         this.load.script('helpher', 'js/Utility.js');
@@ -38,6 +43,7 @@ Ludo.Boot.prototype = {
         this.load.script("socketio", "js/socket.io.js");
         this.load.script("Socket", "js/Socket.js");
         this.load.script("jquery-ui", "jquery-ui/jquery-ui.min.js");
+        this.load.script("index", "js/index.js");
         this.load.script('webfont', '//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js');
         //this.load.json('save', 'js/save.json');
         
@@ -46,9 +52,10 @@ Ludo.Boot.prototype = {
     create: function() {
         
         this.input.maxPointers = 1;
-        this.stage.disableVisibilityChange = false;
+        this.game.add.plugin(Fabrique.Plugins.InputField);
+        this.game.stage.disableVisibilityChange = true;
         this.game.stage.smoothed = true; 
-        this.game.scale.fullScreenScaleMode = Phaser.ScaleManager.EXACT_FIT;
+        this.game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
         this.scale.pageAlignHorizontally = true;
         this.scale.pageAlignVertically = true;
         this.stage.forcePortrait = true;
@@ -56,4 +63,4 @@ Ludo.Boot.prototype = {
         this.state.start('Preloader');
     },
     
-}
+};

@@ -14,6 +14,12 @@
     "express": "~4.13.1",
     "jade": "~1.11.0",
     "morgan": "~1.6.1",
+    "redis": "^2.6.0-1",
     "socket.io": "^1.3.5"
+  },
+  "devDependencies": {
+    "path": "^0.12.7",
+    "phaser-input": "^1.1.2",
+    "phaser-nineslice": "^1.0.0"
   }
 }

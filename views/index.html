@@ -24,6 +24,8 @@
         <script src="js/Error.js"></script>
         <script src="js/phaser-state-transition-plugin.min.js"></script>
 		<script src="jquery-ui/jquery-ui.min.js"></script>
+		<script src="/phaser-input/phaser-input.js"></script>
+		<script src="/phaser-nineslice/phaser-nineslice.js"></script>
         <style>
             body{
                 padding: 0;
@@ -84,27 +86,10 @@
         </style>
     </head>
     <body>
-            
+        
         <div id="gameContainer">
-			
         </div>
-        <script type="text/javascript">
+        <script src="js/index.js"></script>
         
-        
-            window.onload = function() {
-                var game = new Phaser.Game(900, 720, Phaser.Auto, 'gameContainer');
-                game.state.add('Boot', Ludo.Boot);
-                game.state.add('Preloader', Ludo.Preloader);
-                game.state.add('StartMenu', Ludo.StartMenu);
-                game.state.add('Game', Ludo.Game);
-                game.state.start('Boot');
-                
-            }
-            
-            $( "#selectmenu" ).selectmenu();
-        
-        </script>
-        <div id="displayContainer">
-        </div>
     </body>
 </html>
