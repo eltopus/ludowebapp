@@ -74,7 +74,7 @@ function createNewGame(preparedData, callback){
 	var status = true;
 	if (redisIsReady){
 		
-		/*
+		
 		client.set(preparedData.gameId, preparedData.gameData, function(err, reply) {
 			  console.log(reply);
 			  if (reply == 'OK'){
@@ -82,7 +82,6 @@ function createNewGame(preparedData, callback){
 			  }
 		});
 		
-		*/
 	}
 	
 	if (status){
@@ -154,9 +153,13 @@ function disconnected(){
 };
 
 function saveNewGame(data){
-	gameData = data.data;
 	var sock = this;
 	console.log(data.data);
+	
+	if (data.gameId === undefined ||  data.gameId === null){
+		sock.emit('saveNewGame', 'Game ID: ' + data.gameId + ' Not Saved!!!');
+		return;
+	}
 	client.set(data.gameId, data.data, function(err, reply) {
 		  console.log(reply);
 		  if (reply == 'OK'){

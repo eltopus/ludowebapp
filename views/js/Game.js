@@ -145,7 +145,9 @@ Ludo.Game.prototype = {
         this.populateWorld(this.ludo);
         this.gameIdText = null;
         this.currentPlayer = null;
+        this.newGameId;
         if (this.saveFlag){
+        	this.newGameId = this.savedGameId;
         	this.gameIdText = this.add.text(725, 420, "Game ID: " + this.savedGameId, playerTurnDisplayStyle);
             this.gameId = this.save.gameId;
             var diceUniqueIds = this.save.diceIds;
@@ -206,12 +208,12 @@ Ludo.Game.prototype = {
     
         this.gameio = new Socket(this);
         this.game.input.onTap.add(this.onTap, this);
-        this.newGameId;
         
         if (!this.saveFlag)
         {
         	this.createNewGame();
         }
+        
     },
     
     
@@ -287,8 +289,13 @@ Ludo.Game.prototype = {
     saveGame : function(){
         var gamedef = new Gamedef(this.controller, this.gameId);
         gamedef.savedef(this.ludo);
-        var data = JSON.stringify(gamedef);
-        this.socket.emit('saveNewGame', {data : data, gameId : this.newGameId});
+        var gameData = JSON.stringify(gamedef);
+        var newGameId = this.newGameId;
+        this.socket.emit('saveNewGame', {data : gameData, gameId : newGameId});
+        
+        this.socket.on('saveNewGame', function(data){
+            alert(data);
+        });
     },
     
     
