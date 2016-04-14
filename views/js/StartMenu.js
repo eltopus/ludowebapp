@@ -89,7 +89,158 @@ Ludo.StartMenu.prototype = {
         this.screenNameBg.alpha = 0.0;
         this.screenName.alpha = 0.0;
         
+        this.twoPlayerScreenNameBg = this.game.add.nineSlice((this.game.width / 2) - 275, 450, 'input', 170, 40);
+        this.twoPlayerScreenNameBg.anchor.set(0.5);
+        this.twoPlayerScreenName = this.game.add.inputField((this.game.width / 2) - 340  ,450 - 17, {
+            font: '18px Arial',
+            fill: '#212121',
+            fillAlpha: 0,
+            fontWeight: 'bold',
+            width: 150,
+            max: 10,
+            padding: 8,
+            borderWidth: 1,
+            borderColor: '#000',
+            borderRadius: 6,
+            placeHolder: 'Screen Name',
+            textAlign: 'left'
+        });
         
+        this.twoPlayerScreenNameBg.alpha  = 0.0;
+        this.twoPlayerScreenName.alpha = 0.0;
+ 
+        this.twoPlayerGameCodeBg = this.game.add.nineSlice((this.game.width / 2)  - 275, (this.game.height /2) + 150, 'input', 170, 40);
+        this.twoPlayerGameCodeBg.anchor.set(0.5);
+        this.twoPlayerGameCode = this.game.add.inputField((this.game.width / 2) - 340 , (this.game.height /2) + 130, {
+            font: '18px Arial',
+            fill: '#212121',
+            fillAlpha: 0,
+            fontWeight: 'bold',
+            width: 150,
+            max: 10,
+            padding: 8,
+            borderWidth: 1,
+            borderColor: '#000',
+            borderRadius: 6,
+            placeHolder: 'Game Code',
+            textAlign: 'left'
+        });
+
+        this.twoPlayerGameCodeBg.alpha = 0.0;
+        this.twoPlayerGameCode.alpha = 0.0;
+        
+        this.fourPlayerScreenNameBg = this.game.add.nineSlice((this.game.width / 2) + 265, 450, 'input', 170, 40);
+        this.fourPlayerScreenNameBg.anchor.set(0.5);
+        this.fourPlayerScreenName = this.game.add.inputField((this.game.width / 2) + 200  ,450 - 17, {
+            font: '18px Arial',
+            fill: '#212121',
+            fillAlpha: 0,
+            fontWeight: 'bold',
+            width: 150,
+            max: 10,
+            padding: 8,
+            borderWidth: 1,
+            borderColor: '#000',
+            borderRadius: 6,
+            placeHolder: 'Screen Name',
+            textAlign: 'left'
+        });
+
+        this.fourPlayerScreenNameBg.alpha = 0.0;
+        this.fourPlayerScreenName.alpha = 0.0;
+        
+        this.fourPlayerGameCodeBg = this.game.add.nineSlice((this.game.width / 2)  + 265, (this.game.height /2) + 150, 'input', 170, 40);
+        this.fourPlayerGameCodeBg.anchor.set(0.5);
+        this.fourPlayerGameCode = this.game.add.inputField((this.game.width / 2) + 200 , (this.game.height /2) + 130, {
+            font: '18px Arial',
+            fill: '#212121',
+            fillAlpha: 0,
+            fontWeight: 'bold',
+            width: 150,
+            max: 10,
+            padding: 8,
+            borderWidth: 1,
+            borderColor: '#000',
+            borderRadius: 6,
+            placeHolder: 'Game Code',
+            textAlign: 'left'
+        });
+        
+        this.fourPlayerGameCodeBg.alpha = 0.0;
+        this.fourPlayerGameCode.alpha = 0.0;
+        
+        /*
+        var guiObj = {
+        		
+        		component: 'Window',
+        		padding: 4,
+        		position: { x: 100, y: 0 },
+        		width: 700,
+        		height: 550,
+
+
+        		layout: [1, 1],
+        		children: [
+        		{
+        			id: 'tabsObj',
+        			component: 'Tabs',
+
+        	        //Tabs bar height
+        			tabHeight: 40,
+
+        			padding: 1,
+        			position: {x:0, y:0},
+        			width: 590,
+        			height: 450,
+        			
+
+        	        //tabs components
+        			children: [
+        	            //titles are used in tabs
+        				{ 
+        					id: 'lvl1', 
+        					text: 'tab 1', 
+        					title: 't1', 
+        					userData: 'level 1', 
+        					component: 'Button',
+        					position: 'center', 
+        					width: "100%", 
+        					height: "100%", 
+        					skin: 'levelBtn', 
+        					active : true ,
+        					layout: [2, 5],
+        		            children: [
+        		              { id: 'radio1', text: 'radio #1', component: 'Radio', group: 'odd', position: { x: 40, y: 100 }, width: 40, height: 40 },
+        		              { id: 'radio2', text: 'radio #1', component: 'Radio', group: 'even', position: { x: 200, y: 100 }, width: 40, height: 40 },
+        		              { id: 'radio1', text: 'radio #1', component: 'Radio', group: 'odd', position: { x: 40, y: 100 }, width: 40, height: 40 },
+        		              { id: 'radio2', text: 'radio #1', component: 'Radio', group: 'even', position: { x: 200, y: 100 }, width: 40, height: 40 },
+
+
+        		             
+        		             
+        		            ]
+        				},
+        				{ id: 'lvl2', text: 'tab 2', title: 't2', userData: 'level 2', component: 'Button', position: 'center',
+        						width: "100%", height: "100%", skin: 'levelBtn' },
+        				{ id: 'lvl3', text: 'tab 3', title: 't3', userData: 'level 3', component: 'Button', position: 'center',
+        							width: "100%", height: "100%", skin: 'levelBtn' },
+        			]
+        		}
+        		]
+        	};
+
+    	
+      //Set EZGUI renderer
+        EZGUI.renderer = this.game.renderer;
+    	
+    	
+    	EZGUI.Theme.load(['/assets/kenney-theme/kenney-theme.json'], function () {
+    		var guiContainer = EZGUI.create(guiObj, 'kenney');
+    		//guiContainer.alpha = 0.5;
+
+    	});
+        
+        */
     },
     
     twoPlayer : function(){
@@ -102,6 +253,16 @@ Ludo.StartMenu.prototype = {
         this.gameCode.alpha = 0.0;
         this.screenNameBg.alpha = 0.0;
         this.screenName.alpha = 0.0;
+        
+        this.twoPlayerScreenNameBg.alpha  = 0.5;
+        this.twoPlayerScreenName.alpha = 0.5;
+        this.twoPlayerGameCodeBg.alpha = 0.5;
+        this.twoPlayerGameCode.alpha = 0.5;
+        
+        this.fourPlayerScreenNameBg.alpha = 0.0;
+        this.fourPlayerScreenName.alpha = 0.0;
+        this.fourPlayerGameCodeBg.alpha = 0.0;
+        this.fourPlayerGameCode.alpha = 0.0;
     },
     
     fourPlayer : function(){
@@ -114,6 +275,18 @@ Ludo.StartMenu.prototype = {
         this.gameCode.alpha = 0.0;
         this.screenNameBg.alpha = 0.0;
         this.screenName.alpha = 0.0;
+        this.twoPlayerScreenNameBg.alpha  = 0.0;
+        this.twoPlayerScreenName.alpha = 0.0;
+        
+        this.fourPlayerScreenNameBg.alpha = 0.5;
+        this.fourPlayerScreenName.alpha = 0.5;
+        this.fourPlayerGameCodeBg.alpha = 0.5;
+        this.fourPlayerGameCode.alpha = 0.5;
+        
+        this.twoPlayerScreenNameBg.alpha  = 0.0;
+        this.twoPlayerScreenName.alpha = 0.0;
+        this.twoPlayerGameCodeBg.alpha = 0.0;
+        this.twoPlayerGameCode.alpha = 0.0;
     },
     
     retrieveGame : function(){
@@ -125,6 +298,18 @@ Ludo.StartMenu.prototype = {
         this.gameCode.alpha = 1.0;
         this.screenNameBg.alpha = 0.5;
         this.screenName.alpha = 1.0;
+        this.twoPlayerScreenNameBg.alpha  = 0.0;
+        this.twoPlayerScreenName.alpha = 0.0;
+        
+        this.fourPlayerScreenNameBg.alpha = 0.0;
+        this.fourPlayerScreenName.alpha = 0.0;
+        this.fourPlayerGameCodeBg.alpha = 0.0;
+        this.fourPlayerGameCode.alpha = 0.0;
+        
+        this.twoPlayerScreenNameBg.alpha  = 0.0;
+        this.twoPlayerScreenName.alpha = 0.0;
+        this.twoPlayerGameCodeBg.alpha = 0.0;
+        this.twoPlayerGameCode.alpha = 0.0;
     },
     
     
@@ -153,9 +338,7 @@ Ludo.StartMenu.prototype = {
     	var sprite = this.sprite;
     	var gameCodeBg = this.gameCodeBg;
         var gameCode = this.gameCode;
-        var gameId = this.gameCode.value;
-        
-    	
+        var gameId = this.gameCode.value.toString().trim();
         
         if (loadGame){
         	
