@@ -1,6 +1,6 @@
-DiceController = function (game) {
+DiceController = function (game, gameId) {
     
-    this.dice = this.getNewDice(game);
+    this.dice = this.getNewDice(game, gameId);
     for (var i = 0; i < this.dice.length; ++i){
         var uuid = this.getUuid();
         this.dice[i].uniqueId = uuid;
@@ -118,15 +118,15 @@ DiceController.prototype.getUuid = function(){
 };
 
 
-DiceController.prototype.getNewDice = function(game) {
+DiceController.prototype.getNewDice = function(game, gameId) {
     
     var diceList = [];
-    var die1 = new Dice(game, 330, 390);
+    var die1 = new Dice(game, 330, 390, gameId);
     var group = game.add.group();
     group.add(die1);
     die1.group = group;
     diceList.push(die1);
-    var die2 = new Dice(game, 390, 330);
+    var die2 = new Dice(game, 390, 330, gameId);
     group = game.add.group();
     group.add(die2);
     die2.group = group;

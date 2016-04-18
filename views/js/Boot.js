@@ -105,7 +105,7 @@ Ludo.Boot.prototype = {
     		 
     	 }
         
-        this.state.start('Preloader');
+        this.state.start('StartMenu');
     },
     
     

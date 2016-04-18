@@ -44,9 +44,8 @@ Socket = function(game){
 		
     });
 	
-	this.gameio.on('play', function(playerName){
-		//console.log('Playing: ' + playerName);
-		game.playDiceEmission(playerName);
+	this.gameio.on('play', function(playObject){
+		game.playDiceEmission(playObject.playerName);
 		
     });
 	
@@ -55,15 +54,13 @@ Socket = function(game){
 };
 
 
-Socket.prototype.emitPieceSelection = function(uniqueId){
-	this.gameio.emit('pieceSelection', uniqueId);
+Socket.prototype.emitPieceSelection = function(pieceSelectionObject){
+	this.gameio.emit('pieceSelection', pieceSelectionObject);
 };
 
 Socket.prototype.emitDiceRoll = function(diceObject){
 	this.gameio.emit('diceRoll', diceObject);
 };
-
-
 
 Socket.prototype.emitDiceRollCompleted = function(diceObject){
 	this.gameio.emit('diceRollCompleted', diceObject);
@@ -81,6 +78,6 @@ Socket.prototype.emitPiecePosition = function(pieceObject){
 	this.gameio.emit('piecePosition', pieceObject);
 };
 
-Socket.prototype.emitPlay = function(playerName){
-	this.gameio.emit('play', playerName);
+Socket.prototype.emitPlay = function(playObject){
+	this.gameio.emit('play', playObject);
 };

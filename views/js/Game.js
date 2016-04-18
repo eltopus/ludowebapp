@@ -3,22 +3,18 @@ Ludo.Game = function(game){};
 
 Ludo.Game.prototype = {
 		
-	init: function(){
-		//this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL; 
-		//this.scale.maxWidth = 800;
-		//this.scale.maxHeight = 768;
-		//this.scale.pageAlignHorizontally = true;
-		//this.scale.pageAlignVertically = true;
-		//this.scale.updateLayout();
-		//this.scale = this.scale.fullScreenScaleMode = Phaser.ScaleManager.EXACT_FIT;
-		  
+	init: function(save, saveFlag, socket){
+		this.savedGameId = save.gameId;
+		this.save = save;
+		this.saveFlag = saveFlag;
+		this.socket = socket;
+		this.newGameId = save.gameId;
+		this.playerMode = save.playerMode;
 	},
     
     
     create: function(){
     	
-    	this.savedGameId;
-    	this.save;
         this.iddleState = 0;
         this.activeState = 1;
         this.awaitingExitState = 2;
@@ -37,7 +33,6 @@ Ludo.Game.prototype = {
         this.bmd = null;
         this.dieValueOne = 1;
         this.dieValueTwo = 1;
-        this.playerMode;
         this.filter;
         this.playerOne = ["red", "blue"];
         this.playerTwo = ["yellow", "green"];
@@ -46,9 +41,7 @@ Ludo.Game.prototype = {
         this.playerGreen = ["green"];
         this.playerYellow = ["yellow"];
         //this.save = this.cache.getJSON('save');
-        this.saveFlag;
         this.gameId = this.getUuid();
-        this.socket;
         this.diceObjects = [];
         this.errorX = 810;
         this.errorY = 600;
@@ -139,14 +132,15 @@ Ludo.Game.prototype = {
         
         this.rule = new Rules(this, this.play);
         this.buildWorld();
-        this.controller = new DiceController(this.game);
+        this.controller = new DiceController(this.game, this.savedGameId);
         this.ludo = this.buildPlayers(this.playerMode, this.controller, this.saveFlag);
         this.action = new Action(this, this.controller);
         this.populateWorld(this.ludo);
         this.gameIdText = null;
         this.currentPlayer = null;
-        this.newGameId;
-        if (this.saveFlag){
+    
+        if (this.saveFlag)
+        {
         	this.newGameId = this.savedGameId;
         	this.gameIdText = this.add.text(725, 420, "Game ID: " + this.savedGameId, playerTurnDisplayStyle);
             this.gameId = this.save.gameId;
@@ -164,7 +158,8 @@ Ludo.Game.prototype = {
                     }
                 }  
             }
-        }else{
+        }else
+        {
             this.currentPlayer = this.ludo[0];
             this.gameIdText = this.add.text(725, 420, "Game ID: ", playerTurnDisplayStyle);
         }
@@ -390,10 +385,10 @@ Ludo.Game.prototype = {
         }
         else
         {
-            var obj = this.save.players;
+            var obj = this.save.players; 
             for (var i = 0; i < obj.length; ++i)
             {
-                var player = new Player(this.game, obj[i].playerName, obj[i].turn, obj[i].piecesNames, obj[i].index, obj[i].playerMode, controller);
+                var player = new Player(this.game, obj[i].playerName, obj[i].turn, obj[i].piecesNames, obj[i].index, obj[i].playerMode, controller, this.save.gameId);
                 player.setPieces(this, obj[i].pieces, obj[i].playerName);
                 player.setDice(obj[i].diceObject);
                 player.setSelectedPieceById(obj[i].selectedPieceId);
@@ -620,4 +615,4 @@ Ludo.Game.prototype = {
         }
     }
         
-}
+};

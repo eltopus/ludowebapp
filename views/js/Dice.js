@@ -1,7 +1,7 @@
 // Extended Phaser.Sprite (check out the examples Sprites -> extending sprite demo 1 & 2)
 // Added a function to animate rolling.
 
-Dice = function (game, x, y, group) {
+Dice = function (game, x, y, gameId) {
     Phaser.Sprite.call(this, game, x, y, 'die');
     
     this.tween;
@@ -11,13 +11,14 @@ Dice = function (game, x, y, group) {
     this.game = game;
     this.dieValue = 0;
     this.isPlayed = true;
-    this.group = group;
+    this.group = null;
     this.player;
     this.anchor.setTo(0.5, 0.5);
     this.inputEnabled = true;
     this.events.onInputDown.add(this.selectDie, this);
     this.uniqueId = null;
     this.pusher = true;
+    this.gameId = gameId;
 
     var i;
     this.pix = [];
@@ -56,7 +57,7 @@ Dice.prototype.roll = function(diceObjects) {
 		//console.log("id: " + this.uniqueId + ' value: ' + this.randValue);
 		
 		
-		this.gameio.emitDiceRoll({uniqueId :  this.uniqueId, frame : this.randValue});
+		this.gameio.emitDiceRoll({uniqueId :  this.uniqueId, frame : this.randValue, gameId : this.gameId});
 	    this.alpha = 1;
 	    this.isPlayed = false;
 	    this.filters = [this.blurX, this.blurY];
@@ -157,10 +158,10 @@ Dice.prototype.selectDie = function() {
     if (this.player != null && !this.player.hasMovingPiece()){   
         if (this.selected() && !this.isPlayed){
             this.unSelect();
-            this.gameio.emitDiceUnSelection({uniqueId :  this.uniqueId});
+            this.gameio.emitDiceUnSelection({uniqueId :  this.uniqueId, gameId : this.gameId});
         }else if (this.unSelected()){  
             this.select(); 
-            this.gameio.emitDiceSelection({uniqueId :  this.uniqueId});
+            this.gameio.emitDiceSelection({uniqueId :  this.uniqueId, gameId : this.gameId});
         }   
     }
 };

@@ -1,4 +1,4 @@
-Player = function(game, name, turn, piecesNames, index, playerMode, controller, exitingGraphicsPositions){
+Player = function(game, name, turn, piecesNames, index, playerMode, controller, gameId){
 
 	this.game = game;
 	this.controller = controller;
@@ -22,6 +22,7 @@ Player = function(game, name, turn, piecesNames, index, playerMode, controller, 
 	this.gameio = null;
 	this.pusher = false;
 	this.error;
+	this.gameId = gameId;
 
 
 };
@@ -119,7 +120,7 @@ Player.prototype.getPieces = function(game, name){
 Player.prototype.play = function(playerPlayed){
 
 	if (playerPlayed == null){
-		this.gameio.emitPlay(this.playerName);
+		this.gameio.emitPlay({playerName : this.playerName, gameId : this.gameId});
 	}
 	
 	if (this.hasSelectedPiece())
@@ -358,7 +359,7 @@ Player.prototype.setSelectedPiece = function(piece){
 	for (var i = 0; i < this.playerPieces.length; ++i){
 		if (this.playerPieces[i] == piece){
 			this.selectedPiece = this.playerPieces[i];
-			this.gameio.emitPieceSelection(this.selectedPiece.uniqueId);
+			this.gameio.emitPieceSelection({uniqueId : this.selectedPiece.uniqueId, gameId : this.gameId});
 			return true;
 		}
 	}
