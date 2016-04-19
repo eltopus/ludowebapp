@@ -1,7 +1,7 @@
 // Extended Phaser.Sprite (check out the examples Sprites -> extending sprite demo 1 & 2)
 // Added a function to animate rolling.
 
-Dice = function (game, x, y, gameId) {
+Dice = function (game, x, y, gameId, myTurn) {
     Phaser.Sprite.call(this, game, x, y, 'die');
     
     this.tween;
@@ -19,6 +19,7 @@ Dice = function (game, x, y, gameId) {
     this.uniqueId = null;
     this.pusher = true;
     this.gameId = gameId;
+    this.myTurn = myTurn;
 
     var i;
     this.pix = [];
@@ -154,16 +155,18 @@ Dice.prototype.setSavedCurrentPlayer = function(currentPlayer){
 };
 
 Dice.prototype.selectDie = function() {
-    
-    if (this.player != null && !this.player.hasMovingPiece()){   
-        if (this.selected() && !this.isPlayed){
-            this.unSelect();
-            this.gameio.emitDiceUnSelection({uniqueId :  this.uniqueId, gameId : this.gameId});
-        }else if (this.unSelected()){  
-            this.select(); 
-            this.gameio.emitDiceSelection({uniqueId :  this.uniqueId, gameId : this.gameId});
-        }   
+    if (this.myTurn){
+    	if (this.player != null && !this.player.hasMovingPiece()){   
+            if (this.selected() && !this.isPlayed){
+                this.unSelect();
+                this.gameio.emitDiceUnSelection({uniqueId :  this.uniqueId, gameId : this.gameId});
+            }else if (this.unSelected()){  
+                this.select(); 
+                this.gameio.emitDiceSelection({uniqueId :  this.uniqueId, gameId : this.gameId});
+            }   
+        }
     }
+    
 };
 
 Dice.prototype.value = function() {

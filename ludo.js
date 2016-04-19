@@ -49,11 +49,17 @@ exports.initGame = function(gameio, socket){
 	gameSocket.on('connectMultiplayerGame', connectMultiplayerGame);
 	gameSocket.on('startGame', startGame);
 	gameSocket.on('awaitingStartGame', awaitingStartGame);
+	gameSocket.on('nextTurn', nextTurn);
 	
 	
 	
 	
 	gameSocket.on('disconnect', disconnected);
+};
+
+
+function nextTurn(data){
+	
 };
 
 function endOfGame(data){
@@ -261,8 +267,6 @@ function connectMultiplayerGame(playerInfo, callback){
 	});
 	
 };
-
-
 
 
 function createNewGame(preparedData, callback){

@@ -202,10 +202,6 @@ Ludo.StartMenu.prototype = {
     
     startGame: function(pointer){
     	
-    	if (this.socket === null){
-    		this.socket = io();
-    	}
-    	var socket = this.socket;
     	var loadGame = this.loadGame;
         var gameId = this.gameCode.value.toString().trim();
         var twoPlayerScreenName = this.twoPlayerScreenName.value.toString().trim();
@@ -221,10 +217,21 @@ Ludo.StartMenu.prototype = {
     			return;
     		}
         	
-        	if (!loadScreenName  || 0 === loadScreenName .length){
-            	alert('Please Enter Screen Name');
+        	if (loadScreenName === 'twoplayer' || loadScreenName === 'fourplayer'){
+            	alert('Please Enter Valid Screen Name');
     			return;
     		}
+        	
+        	if (loadScreenName.length < 1 ){
+            	alert('Please Enter Valid Screen Name');
+    			return;
+    		}
+        	
+        	if (this.socket === null){
+        		this.socket = io();
+        	}
+        	
+        	var socket = this.socket;
         	
         	socket.emit('connectMultiplayerGame', {screenName :  loadScreenName, gameId : gameId}, function (data){
 
@@ -255,9 +262,15 @@ Ludo.StartMenu.prototype = {
         {
         	if (this.validateTextInput() == false)
         	{
-        		alert('Please Enter Screen Name!');
+        		alert('Please Valid Enter Screen Name!');
         		return;
         	}
+        	
+        	if (this.socket === null){
+        		this.socket = io();
+        	}
+        	
+        	var socket = this.socket;
         	
         	switch (this.gameMode){
         		case 2:
@@ -290,8 +303,25 @@ Ludo.StartMenu.prototype = {
 		}
     },
     
-    validateTextInput : function(){
-    	return (this.twoPlayerScreenName.value.toString().trim().length > 1 || this.fourPlayerScreenName.value.toString().trim().length > 1);
+    validateTextInput : function()
+    {
+    	
+    	var str1 = this.twoPlayerScreenName.value.toString().trim();
+    	var str2 = this.fourPlayerScreenName.value.toString().trim();
+    	
+    	
+    	if (str1.length > 1 || str2.length > 1)
+    	{
+    		if (str1 === 'twoplayer' || str1 === 'fourplayer' || str2 === 'twoplayer' || str2 === 'fourplayer') {
+        		 return false;
+        	}
+        	
+        	return true;
+    		
+    	}
+    	
+    	return false;
+    	
     },
     
     

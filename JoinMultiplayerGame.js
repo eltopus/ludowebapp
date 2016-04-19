@@ -38,7 +38,7 @@ exports.JoinMultiplayerGame = function(gameData, screenName, callback){
 	function validatePlayerName(playerName, players, callback){
 		for (var i = 0; i < players.length; ++i){
 			if (playerName == players[i].playerName){
-				playerName  = playerName.concat('-01');
+				playerName  = playerName.concat('1');
 				break;
 			}
 		}

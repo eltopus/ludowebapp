@@ -10,6 +10,7 @@ Ludo.Game.prototype = {
 		this.socket = socket;
 		this.newGameId = save.gameId;
 		this.playerMode = save.playerMode;
+		this.myTurn = false;
 	},
     
     
@@ -132,7 +133,7 @@ Ludo.Game.prototype = {
         
         this.rule = new Rules(this, this.play);
         this.buildWorld();
-        this.controller = new DiceController(this.game, this.savedGameId);
+        this.controller = new DiceController(this.game, this.savedGameId, this.myTurn);
         this.ludo = this.buildPlayers(this.playerMode, this.controller, this.saveFlag);
         this.action = new Action(this, this.controller);
         this.populateWorld(this.ludo);
@@ -241,12 +242,18 @@ Ludo.Game.prototype = {
     
     
     rollDice : function(diceObject){
-    	this.controller.rollDice(this.currentPlayer, true, diceObject);
+    	if (true){
+    		this.controller.rollDice(this.currentPlayer, true, diceObject);
+    	}
     },
     
     
     playDice : function(){
-        this.currentPlayer.play(null);
+    	if (this.myTurn){
+    		this.currentPlayer.play(null);
+    	}
+    	
+        
     },
     
     playDiceEmission : function(playerPlayed){
@@ -282,6 +289,8 @@ Ludo.Game.prototype = {
     },
     
     saveGame : function(){
+    	
+    	/*
         var gamedef = new Gamedef(this.controller, this.gameId);
         gamedef.savedef(this.ludo);
         var gameData = JSON.stringify(gamedef);
@@ -291,10 +300,12 @@ Ludo.Game.prototype = {
         this.socket.on('saveNewGame', function(data){
             alert(data);
         });
+        */
     },
     
     
     createNewGame : function(){
+    	/*
         var gamedef = new Gamedef(this.controller, this.gameId);
         gamedef.savedef(this.ludo);
         var gameIdText = this.gameIdText;
@@ -304,6 +315,7 @@ Ludo.Game.prototype = {
         this.socket.emit('createNewGame', preparedData, function (data){	
         	gameIdText.setText("Game ID: " + data.gameId.toString());
         });
+        */
         
     },
     
@@ -427,40 +439,43 @@ Ludo.Game.prototype = {
     },
     
     select: function(piece, pointer) {
-        
-        if (this.currentPlayer.selectedPiece == null){
-            if (this.currentPlayer.setSelectedPiece(piece)){
-                this.shadow.visible = true;
-                this.shadow.x = piece.x;
-                this.shadow.y = piece.y;
-                this.game.world.bringToTop(piece.group);
-                this.game.world.bringToTop(this.shadowGroup);
+    	
+    	if (this.myTurn){
+    		if (this.currentPlayer.selectedPiece == null){
+                if (this.currentPlayer.setSelectedPiece(piece)){
+                    this.shadow.visible = true;
+                    this.shadow.x = piece.x;
+                    this.shadow.y = piece.y;
+                    this.game.world.bringToTop(piece.group);
+                    this.game.world.bringToTop(this.shadowGroup);
+                    
+                }
                 
             }
-            
-        }
-        else{
-            
-            if (this.currentPlayer.selectedPiece.parent == piece.parent){
-                this.shadow.visible = true;
-                this.shadow.x = piece.x;
-                this.shadow.y = piece.y; 
-                this.game.world.bringToTop(this.currentPlayer.selectedPiece.group);
-                this.game.world.bringToTop(this.shadowGroup);
-            }else{
+            else{
                 
-                if (piece.key != "board"){
-                    if (this.currentPlayer.setSelectedPiece(piece)){
-                        this.shadow.visible = true;
-                        this.shadow.x = piece.x;
-                        this.shadow.y = piece.y;
-                
-                        this.game.world.bringToTop(this.currentPlayer.selectedPiece.group);
-                        this.game.world.bringToTop(this.shadowGroup);
+                if (this.currentPlayer.selectedPiece.parent == piece.parent){
+                    this.shadow.visible = true;
+                    this.shadow.x = piece.x;
+                    this.shadow.y = piece.y; 
+                    this.game.world.bringToTop(this.currentPlayer.selectedPiece.group);
+                    this.game.world.bringToTop(this.shadowGroup);
+                }else{
+                    
+                    if (piece.key != "board"){
+                        if (this.currentPlayer.setSelectedPiece(piece)){
+                            this.shadow.visible = true;
+                            this.shadow.x = piece.x;
+                            this.shadow.y = piece.y;
+                    
+                            this.game.world.bringToTop(this.currentPlayer.selectedPiece.group);
+                            this.game.world.bringToTop(this.shadowGroup);
+                        }  
                     }  
-                }  
-            }
-        } 
+                }
+            } 
+    	}
+        
     },
     
     
