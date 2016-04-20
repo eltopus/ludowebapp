@@ -3,14 +3,15 @@ Ludo.Game = function(game){};
 
 Ludo.Game.prototype = {
 		
-	init: function(save, saveFlag, socket){
+	init: function(save, saveFlag, socket, myTurn){
 		this.savedGameId = save.gameId;
 		this.save = save;
 		this.saveFlag = saveFlag;
 		this.socket = socket;
 		this.newGameId = save.gameId;
 		this.playerMode = save.playerMode;
-		this.myTurn = false;
+		this.myTurn = myTurn;
+		this.myTurn = true;
 	},
     
     
@@ -23,7 +24,7 @@ Ludo.Game.prototype = {
         this.cursors;
         this.playerTurnText;
         this.display;
-        this.dice;
+        this.diceBtn;
         this.dieValueOne;
         this.dieValueTwo;
         this.play;
@@ -99,8 +100,8 @@ Ludo.Game.prototype = {
         this.sprite.filters = [ this.filter ];
        
         
-        this.dice = this.make.button(760, 450, 'dice', this.rollDice, this, 2, 1, 0);
-        this.dice.alpha = 0.5;
+        this.diceBtn = this.make.button(760, 450, 'dice', this.rollDice, this, 2, 1, 0);
+        this.diceBtn.alpha = 0.5;
         this.play = this.make.button(760, 560, 'play', this.playDice, this, 2, 1, 0);
         this.play.alpha = 0.5;
         this.play.visible = false;
@@ -119,14 +120,14 @@ Ludo.Game.prototype = {
         this.play.onInputDown.add(this.down, this);
         this.play.onInputDown.add(this.down, this);
 
-        this.dice.onInputOver.add(this.over, this);
-        this.dice.onInputOut.add(this.out, this);
-        this.dice.onInputUp.add(this.up, this);
+        this.diceBtn.onInputOver.add(this.over, this);
+        this.diceBtn.onInputOut.add(this.out, this);
+        this.diceBtn.onInputUp.add(this.up, this);
         //this.restartBtn.onInputDown.add(this.restart, this);
             
         //Play Button and Text display group
         buttonGroup = this.add.group();
-        buttonGroup.add(this.dice);
+        buttonGroup.add(this.diceBtn);
         buttonGroup.add(this.play);
         buttonGroup.add(this.savebutton);
         buttonGroup.add(this.restartBtn);
@@ -233,7 +234,7 @@ Ludo.Game.prototype = {
     
     rollDiceEmission : function(diceObject){
     	this.diceObjects.push(diceObject);
-    	
+    	this.diceBtn.visible = false;
     	if (this.diceObjects.length > 1){
     		this.controller.rollDice(this.currentPlayer, false, this.diceObjects);
     		this.diceObjects = [];
@@ -242,8 +243,9 @@ Ludo.Game.prototype = {
     
     
     rollDice : function(diceObject){
-    	if (true){
+    	if (this.myTurn){
     		this.controller.rollDice(this.currentPlayer, true, diceObject);
+    		this.diceBtn.visible = false;
     	}
     },
     
@@ -260,8 +262,20 @@ Ludo.Game.prototype = {
         this.currentPlayer.play(playerPlayed);
     },
     
+    restartEmission : function(){
+    	if (this.currentPlayer != null){
+    		this.currentPlayer.releasePlay();
+    	}
+    },
+    
     restart: function(){
-      
+    
+    	if (this.myTurn && this.currentPlayer != null){
+    		this.currentPlayer.releasePlay();
+    		this.socket.emit('releaseGame', {gameId : this.savedGameId});
+    	}
+    	
+    	/*
     	this.scale.pageAlignVertically = true;
         this.scale.pageAlignHorizontally = true;
         this.scale.setShowAll();
@@ -479,11 +493,52 @@ Ludo.Game.prototype = {
     },
     
     
+    selectEmiision: function(piece, pointer) {
+    	
+    	
+    	if (this.currentPlayer.selectedPiece == null){
+    		if (this.currentPlayer.setSelectedPiece(piece)){
+    			this.shadow.visible = true;
+    			this.shadow.x = piece.x;
+    			this.shadow.y = piece.y;
+    			this.game.world.bringToTop(piece.group);
+    			this.game.world.bringToTop(this.shadowGroup);
+
+    		}
+
+    	}
+    	else{
+
+    		if (this.currentPlayer.selectedPiece.parent == piece.parent){
+    			this.shadow.visible = true;
+    			this.shadow.x = piece.x;
+    			this.shadow.y = piece.y; 
+    			this.game.world.bringToTop(this.currentPlayer.selectedPiece.group);
+    			this.game.world.bringToTop(this.shadowGroup);
+    		}else{
+
+    			if (piece.key != "board"){
+    				if (this.currentPlayer.setSelectedPiece(piece)){
+    					this.shadow.visible = true;
+    					this.shadow.x = piece.x;
+    					this.shadow.y = piece.y;
+
+    					this.game.world.bringToTop(this.currentPlayer.selectedPiece.group);
+    					this.game.world.bringToTop(this.shadowGroup);
+    				}  
+    			}  
+    		}
+    	} 
+    	
+        
+    },
+    
+    
 
     selectPieceEmissionById: function(pieceId) {
         var currentSelectedPiece = this.currentPlayer.getSelectedPieceById(pieceId);
         if (currentSelectedPiece != null){
-        	this.select(currentSelectedPiece, null);
+        	this.selectEmiision(currentSelectedPiece, null);
         }
     },
     
@@ -501,8 +556,8 @@ Ludo.Game.prototype = {
             this.play.scale.y = 1.1;
         }
         else if (p.key == "dice"){
-            this.dice.scale.x = 1.1;
-            this.dice.scale.y = 1.1;
+        	this.diceBtn.scale.x = 1.1;
+        	this.diceBtn.scale.y = 1.1;
         }
         
     },
@@ -513,8 +568,8 @@ Ludo.Game.prototype = {
             this.play.scale.y = 1;
         }
         else if (p.key == "dice"){
-            this.dice.scale.x = 1;
-            this.dice.scale.y = 1;
+        	this.diceBtn.scale.x = 1;
+        	this.diceBtn.scale.y = 1;
         }
     },
     
@@ -523,7 +578,7 @@ Ludo.Game.prototype = {
             this.play.alpha = 0.5;
         }
         else if (p.key == "dice"){
-            this.dice.alpha = 0.5;
+        	this.diceBtn.alpha = 0.5;
         }
     },
     
@@ -533,7 +588,7 @@ Ludo.Game.prototype = {
             this.play.alpha = 1;
         }
         else if (p.key == "dice"){
-            this.dice.alpha = 1;
+        	this.diceBtn.alpha = 1;
         }
     },
     
@@ -602,6 +657,9 @@ Ludo.Game.prototype = {
         
         if (this.currentPlayer.diceCompleted()){
             this.currentPlayer = this.rule.applyDiceRules(this.currentPlayer);
+            if (this.myTurn){
+            	this.currentPlayer.emitNextPlayer();
+            }
             this.currentPlayer.diceCompletionReset();
         } 
         

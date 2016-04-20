@@ -29,6 +29,7 @@ Rules.prototype.nextPlayer = function(currentPlayer){
     currentPlayer = this.game.ludo[this.getNextPlayerIndex(currentPlayer.index)];
     currentPlayer.selectAll();
     currentPlayer.playerTurn();
+    this.game.diceBtn.visible = true;
     return currentPlayer;
 };
 
@@ -48,7 +49,11 @@ Rules.prototype.applyDiceRules = function(currentPlayer){
 };
 
 Rules.prototype.applyDiceRollRule = function(currentPlayer){
-    return (this.applyCheckingHasActive(currentPlayer));
+	if (currentPlayer.diceIsEmpty()){
+		return false;
+	}else{
+		return (this.applyCheckingHasActive(currentPlayer));
+	}
 };
 
 Rules.prototype.applyCheckingHasActive = function(currentPlayer){

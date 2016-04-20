@@ -4,7 +4,7 @@ Ludo.WaitMenu = function(game) {
 
 Ludo.WaitMenu.prototype = {
 		
-	init : function(data, loadGame, socket){
+	init : function(data, loadGame, socket, myTurn){
 		this.ready = false;
 		this.whoJoined = data.whoJoined;
 		this.screenName = data.screenName;
@@ -14,6 +14,7 @@ Ludo.WaitMenu.prototype = {
 		this.socket = socket;
 		this.data = data;
 		this.joinNotification = false;
+		this.myTurn = myTurn;
 		
 		this.gameCodeBg = this.game.add.nineSlice((this.game.width / 2), (this.game.height /2) - 200, 'input', 600, 100);
         this.gameCodeBg.anchor.set(0.5);
@@ -120,14 +121,12 @@ Ludo.WaitMenu.prototype = {
         
 		var saveFlag = loadGame;
 		var state = this.game.state;
+		var turn = this.myTurn;
 		
 		this.socket.on('startGame', function(gameData){
-        	state.start('Game', true, false, gameData, saveFlag, socket);
+        	state.start('Game', true, false, gameData, saveFlag, socket, turn);
         });
 		
-		this.socket.on('disconnected', function(message){
-        	alert(message);
-        });
         
         this.socket.on('connectMultiplayerGame', function(gameData){
         

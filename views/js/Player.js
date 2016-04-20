@@ -28,6 +28,16 @@ Player = function(game, name, turn, piecesNames, index, playerMode, controller, 
 };
 
 
+
+
+Player.prototype.releasePlay = function(game){
+	this.consumeDice();
+	this.controller.consumeDice();
+	this.endOfPlay = 2;
+};
+
+
+
 Player.prototype.buildPieces = function(game){
 	switch(this.playerMode){
 	case 2:
@@ -365,6 +375,11 @@ Player.prototype.setSelectedPiece = function(piece){
 	}
 
 	return false;
+};
+
+
+Player.prototype.emitNextPlayer = function(){
+	this.gameio.emitNextPlayer({playerName : this.playerName, gameId : this.gameId});
 };
 
 

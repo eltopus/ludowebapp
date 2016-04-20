@@ -13,7 +13,7 @@ var s;
 var gameCodeStart = 1000;
 var redisIsReady = false;
 var redis = require('redis');
-var client = redis.createClient("6379", "192.168.1.21"); 
+var client = redis.createClient("6379", "192.168.198.141"); 
 client.on("error", function (err) {
     console.log(err);
 });
@@ -50,6 +50,8 @@ exports.initGame = function(gameio, socket){
 	gameSocket.on('startGame', startGame);
 	gameSocket.on('awaitingStartGame', awaitingStartGame);
 	gameSocket.on('nextTurn', nextTurn);
+	gameSocket.on('emitNextPlayer', emitNextPlayer);
+	gameSocket.on('releaseGame', releaseGame);
 	
 	
 	
@@ -57,6 +59,20 @@ exports.initGame = function(gameio, socket){
 	gameSocket.on('disconnect', disconnected);
 };
 
+function releaseGame(data){
+	var sock = this;
+	sock.broadcast.to(data.gameId).emit('releaseGame', data);
+};
+
+
+function emitNextPlayer(nextPlayerObject){
+	var sock = this;
+	var gameId = nextPlayerObject.gameId;
+	var playerName = nextPlayerObject.playerName;
+	
+	console.log('gameId: ' + gameId + ' playerName: ' + playerName + ' sockId: ' + sock.id);
+	
+};
 
 function nextTurn(data){
 	
@@ -116,7 +132,7 @@ function createTwoPlayerMultiplayerGame(preparedData, callback){
 					if (reply === 'OK'){ 
 						status = true;
 						sock.join(gameId);
-						client.set(sock.id, JSON.stringify({gameId : gameId,  s : false, screenName : screenName}), function(err, reply) { 
+						client.set(sock.id, JSON.stringify({gameId : gameId,  turn : true, screenName : screenName}), function(err, reply) { 
 							console.log('saving socket id' + reply);
 						});
 						callback(augmentedData);
@@ -166,7 +182,7 @@ function createFourPlayerMultiplayerGame(preparedData, callback){
 					if (reply === 'OK'){ 
 						status = true;
 						sock.join(gameId);
-						client.set(sock.id, JSON.stringify({gameId : gameId, s : true, screenName : screenName}), function(err, reply) { 
+						client.set(sock.id, JSON.stringify({gameId : gameId, turn : true, screenName : screenName}), function(err, reply) { 
 							console.log('saving socket id' + reply);
 						});  
 						callback(augmentedData);
@@ -209,7 +225,7 @@ function connectMultiplayerGame(playerInfo, callback){
 					console.log(augmentedData.gameId + ' ' + sock.id );
 					sock.join(playerInfo.gameId);
 					
-					client.set(sock.id, JSON.stringify({gameId : playerInfo.gameId, s : true, screenName : playerInfo.screenName}), function(err, reply) {
+					client.set(sock.id, JSON.stringify({gameId : playerInfo.gameId, turn : false, screenName : playerInfo.screenName}), function(err, reply) {
 						  console.log('saving socket id' + reply);
 					  });
 					

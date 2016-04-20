@@ -49,6 +49,11 @@ Socket = function(game){
 		
     });
 	
+	this.gameio.on('releaseGame', function(data){
+		game.restartEmission();
+    });
+
+	
 	
 	
 };
@@ -80,4 +85,8 @@ Socket.prototype.emitPiecePosition = function(pieceObject){
 
 Socket.prototype.emitPlay = function(playObject){
 	this.gameio.emit('play', playObject);
+};
+
+Socket.prototype.emitNextPlayer = function(nextPlayerObject){
+	this.gameio.emit('emitNextPlayer', nextPlayerObject);
 };

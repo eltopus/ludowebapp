@@ -229,6 +229,9 @@ Ludo.StartMenu.prototype = {
         	
         	if (this.socket === null){
         		this.socket = io();
+        		this.socket.on('disconnected', function(message){
+                	alert(message);
+                });
         	}
         	
         	var socket = this.socket;
@@ -242,14 +245,14 @@ Ludo.StartMenu.prototype = {
         				socket.emit('startGame', data, function (reply){
         					console.log(reply);
         				});
-        				state.start('Game', true, false, data, true, socket);
+        				state.start('Game', true, false, data, true, socket, false);
     				}
     				else
     				{
     					socket.emit('awaitingStartGame', data, function (reply){
         					console.log(reply);
         				});
-    					state.start('WaitMenu', true, false, data, true, socket);
+    					state.start('WaitMenu', true, false, data, true, socket, false);
     				}	
     			}
     			else
@@ -268,6 +271,9 @@ Ludo.StartMenu.prototype = {
         	
         	if (this.socket === null){
         		this.socket = io();
+        		this.socket.on('disconnected', function(message){
+                	alert(message);
+                });
         	}
         	
         	var socket = this.socket;
@@ -277,7 +283,7 @@ Ludo.StartMenu.prototype = {
         			socket.emit('createTwoPlayerMultiplayerGame', {screenName : twoPlayerScreenName}, function (data){
             			if (data.ok)
             			{
-            				state.start('WaitMenu', true, false, data, true, socket);
+            				state.start('WaitMenu', true, false, data, true, socket, true);
             			}
             			else
             			{
@@ -290,7 +296,7 @@ Ludo.StartMenu.prototype = {
         			socket.emit('createFourPlayerMultiplayerGame', {screenName : fourPlayerScreenName}, function (data){
             			if (data.ok)
             			{
-            				state.start('WaitMenu', true, false, data, true, socket);
+            				state.start('WaitMenu', true, false, data, true, socket, true);
             			}
             			else
             			{
