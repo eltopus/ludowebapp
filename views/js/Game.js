@@ -304,17 +304,23 @@ Ludo.Game.prototype = {
     
     saveGame : function(){
     	
-    	/*
+   
         var gamedef = new Gamedef(this.controller, this.gameId);
         gamedef.savedef(this.ludo);
-        var gameData = JSON.stringify(gamedef);
+        
+        gamedef.complete = false;
+        gamedef.whoJoined = 0;
+        gamedef.ok = true;
+        gamedef.message = "OK";
+        gamedef.playerNames = [];
+        var parsedData = JSON.stringify(gamedef);
         var newGameId = this.newGameId;
-        this.socket.emit('saveNewGame', {data : gameData, gameId : newGameId});
+        
+        this.socket.emit('saveNewGame', {data : parsedData, gameId : newGameId});
         
         this.socket.on('saveNewGame', function(data){
             alert(data);
         });
-        */
     },
     
     
