@@ -7,11 +7,6 @@
     "outline": {
       
     },
-    "phaser": {
-      
-    }
-  },
-  "libs": [
-    "browser"
-  ]
+    "doc_comment": null
+  }
 }

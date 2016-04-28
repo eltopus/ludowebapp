@@ -37,7 +37,6 @@ Ludo.Boot.prototype = {
         this.load.script("rules", "js/Rules.js");
         this.load.script("err", "js/Error.js");
         this.load.script("actions", "js/Action.js");
-        this.load.script("underscore", "js/underscore.js");
         this.load.script("jquery", "js/jquery-1.12.2.min.js");
         this.load.script("gamedef", "js/Gamedef.js");
         this.load.script("socketio", "js/socket.io.js");

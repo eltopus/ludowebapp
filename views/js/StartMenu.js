@@ -227,33 +227,28 @@ Ludo.StartMenu.prototype = {
     			return;
     		}
         	
+        	
+        	
         	if (this.socket === null){
         		this.socket = io();
         		this.socket.on('disconnected', function(message){
                 	alert(message);
                 });
+        		
         	}
-        	
         	var socket = this.socket;
         	
-        	socket.emit('connectMultiplayerGame', {screenName :  loadScreenName, gameId : gameId}, function (data){
+        	this.socket.on("disconnect", function(){
+        		socket.emit('disconnect', {gameId : gameId, screenName : loadScreenName});
+            });
+        	
+            
+        	this.socket.emit('connectMultiplayerGame', {screenName :  loadScreenName, gameId : gameId}, function (data){
 
     			if (data.ok)
     			{	
-    				if (data.complete)
-    				{
-        				socket.emit('startGame', data, function (reply){
-        					console.log(reply);
-        				});
-        				state.start('Game', true, false, data, true, socket, false);
-    				}
-    				else
-    				{
-    					socket.emit('awaitingStartGame', data, function (reply){
-        					console.log(reply);
-        				});
-    					state.start('WaitMenu', true, false, data, true, socket, false);
-    				}	
+    				
+    				state.start('WaitMenu', true, false, data, true, socket, false, false);
     			}
     			else
     			{
@@ -283,7 +278,7 @@ Ludo.StartMenu.prototype = {
         			socket.emit('createTwoPlayerMultiplayerGame', {screenName : twoPlayerScreenName}, function (data){
             			if (data.ok)
             			{
-            				state.start('WaitMenu', true, false, data, true, socket, true);
+            				state.start('WaitMenu', true, false, data, true, socket, true, true);
             			}
             			else
             			{
@@ -296,7 +291,7 @@ Ludo.StartMenu.prototype = {
         			socket.emit('createFourPlayerMultiplayerGame', {screenName : fourPlayerScreenName}, function (data){
             			if (data.ok)
             			{
-            				state.start('WaitMenu', true, false, data, true, socket, true);
+            				state.start('WaitMenu', true, false, data, true, socket, true, true);
             			}
             			else
             			{

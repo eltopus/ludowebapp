@@ -1,30 +1,67 @@
-function LudoGameInstance(gameid, socketId, owner, gameData, limit) {
+var playerInstance = require('./LudoPlayerInstance');
+var _ = require('underscore');
 
-	
-  this.gameId = gameId;
-  this.socketId = socketId;
-  this.owner = owner;
+function LudoGameInstance(gameId, socketId, owner, gameData) {
+
   this.ludoPlayers = [];
-  this.limit = limit;
-  this.gameData = gameData;
-  this.status = "available";
+  this.owner = owner;
+  this.numOfPlayers = 0;
+  gameData.gameId = gameId;
+  this.gameMode = gameData.gameMode;
+  this.ludoPlayers[owner] = new playerInstance(gameId, socketId, owner, gameData);
+  this.gameData = this.ludoPlayers[owner].gameData;
+  ++this.numOfPlayers;
 };
 
-LudoGameInstance.prototype.addPlayer = function(newPlayerObject) {
-  if (this.status === "available") {
-    this.ludoPlayers.push(newPlayerObject);
+LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName) {
+  if (this.isNotFull()) {
+	  screenName = this.validateScreenName(screenName);
+	  this.ludoPlayers[screenName] = new playerInstance(gameId, socketId, screenName, this.gameData);
+	  ++this.numOfPlayers;
+	  this.gameData = this.ludoPlayers[screenName].gameData;
+	  if (this.numOfPlayers === this.gameMode){
+		  this.gameData.complete = true;
+	  }
+	  return {gameData : this.gameData, screenName, screenName};
   }
+  return null;
 };
 
-LudoGameInstance.prototype.removePlayer = function(newPlayerObject) {
-  var playerIndex = -1;
-  for(var i = 0; i < this.ludoPlayers.length; i++){
-    if(this.ludoPlayers[i].socketId === newPlayerObject.socketId){
-    	playerIndex = i;
-      break;
-    }
-  }
-  this.ludoPlayers.remove(playerIndex);
+
+LudoGameInstance.prototype.validateScreenName = function(screenName) {
+	
+	for (var i = 0; i < this.gameData.players.length; ++i){
+		if (this.gameData.players[i].playerName === screenName)
+		{
+			  screenName = screenName.concat('-1');
+			  console.log(screenName + " Has been Changed ");
+			  this.validateScreenName(screenName);
+		 }
+	}
+	
+	 return screenName;
+};
+
+LudoGameInstance.prototype.isNotFull = function() {
+	return (this.numOfPlayers < this.gameMode);
+};
+
+LudoGameInstance.prototype.isEmpty = function() {
+	return (this.numOfPlayers < 0 || this.numOfPlayers === 0 );
+};
+
+LudoGameInstance.prototype.removePlayer = function(screenName) {
+	
+	_.without(this.ludoPlayers, screenName);
+	--this.numOfPlayers;
+	 _.any(this.gameData.players, function(player){
+		  if (player.playerName === screenName){
+			  player.playerName = null;
+			  player.complete = false;
+			  return {};
+		  }
+	  });
+	 //console.log("After screenName: " + JSON.stringify(this.gameData));
 };
 
 LudoGameInstance.prototype.getPlayer = function(socketId) {
@@ -37,10 +74,5 @@ LudoGameInstance.prototype.getPlayer = function(socketId) {
   }
   return player;
 };
-
-LudoGameInstance.prototype.isAvailable = function() {
-  return this.available === "available";
-};
-
 
 module.exports = LudoGameInstance;

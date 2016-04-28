@@ -4,17 +4,15 @@ Ludo.WaitMenu = function(game) {
 
 Ludo.WaitMenu.prototype = {
 		
-	init : function(data, loadGame, socket, myTurn){
+	init : function(data, loadGame, socket, myTurn, owner){
 		this.ready = false;
-		this.whoJoined = data.whoJoined;
 		this.screenName = data.screenName;
 		this.gameId = data.gameId;
-		this.gameMode = data.playerMode;
 		this.loadGame = loadGame;
 		this.socket = socket;
 		this.data = data;
-		this.joinNotification = false;
 		this.myTurn = myTurn;
+		this.owner = owner;
 		
 		this.gameCodeBg = this.game.add.nineSlice((this.game.width / 2), (this.game.height /2) - 200, 'input', 600, 100);
         this.gameCodeBg.anchor.set(0.5);
@@ -122,15 +120,22 @@ Ludo.WaitMenu.prototype = {
 		var saveFlag = loadGame;
 		var state = this.game.state;
 		var turn = this.myTurn;
+		var owner = this.owner;
 		
 		this.socket.on('startGame', function(gameData){
-        	state.start('Game', true, false, gameData, saveFlag, socket, turn);
+        	state.start('Game', true, false, gameData, saveFlag, socket, turn, owner);
         });
 		
         
         this.socket.on('connectMultiplayerGame', function(gameData){
         
         });
+        
+        
+        if (this.owner){
+        	this.userOne.value =  this.data.players[0].playerName + ' created game. Waiting for other players...';
+    		this.userOne.updateText();
+        }
         
         
 	},
@@ -153,107 +158,106 @@ Ludo.WaitMenu.prototype = {
         this.start_game.visible = false;
         this.buttonGroup = this.add.group();
         this.buttonGroup.add(this.start_game);
-    	
-    	var data = this.data;
         var userOne = this.userOne;
         var userTwo = this.userTwo;
         var userThree = this.userThree;
         var userFour = this.userFour;
         var start_game = this.start_game;
+        var owner = this.owner;
         
-        switch (data.whoJoined)
-    	{
-        	case 1:
-        		userOne.value =  data.playerNames[0] + ' created game. Waiting for other players..';
-        		userOne.updateText();
-        		break;
-        	case 2:
-        		userOne.value =  data.playerNames[0] + ' created game. Waiting for other players..';
-        		userOne.updateText();
-        		if (data.complete)
-        		{
-        			start_game.visible = true;
-        			userTwo.value =  data.playerNames[1] + ' joined game. Waiting for game creator to start game';
-        			userTwo.updateText();
-        		}
-        		else
-        		{
-        			userTwo.value =  data.playerNames[1] + ' joined game. Waiting for other players..';
-        			userTwo.updateText();
-        		}
-        		
-        		break;
-        	case 3:
-        		userOne.value =  data.playerNames[0] + ' created game. Waiting for other players...';
-        		userOne.updateText();
-        		userTwo.value =  data.playerNames[1] + ' joined game. Waiting for other players...';
-        		userTwo.updateText();
-        		userThree.value =  data.playerNames[2] + ' joined game. Waiting for other players...';
-        		userThree.updateText();
-        		break;
-        	case 4:
-        		start_game.visible = true;
-        		userOne.value =  data.playerNames[0] + ' created game. Waiting for other players...';
-        		userOne.updateText();
-        		userTwo.value =  data.playerNames[1] + ' joined game. Waiting for other players...';
-        		userTwo.updateText();
-        		userThree.value =  data.playerNames[2] + ' joined game. Waiting for other players...';
-        		userThree.updateText();
-        		userFour.value =  data.playerNames[3] + ' joined game. Waiting for game creator to start game...';
-        		userFour.updateText();
-        		break;
-        	
-    	} 
+        this.socket.on('disconnected', function(message){
+    		start_game.visible = false;
+    		userOne.value =  message;
+    		userOne.updateText();
+        });
         
-        this.socket.on('awaitingStartGame', function(data){
+        
+        updatePlayerActivity = function(data)
+        {
         	
-        	switch (data.whoJoined)
+        	var numOfPlayers = 0;
+        	
+        	for (var i = 0; i < data.players.length; ++i){
+        		if (data.players[i].playerName != null){
+        			++numOfPlayers;
+        		}
+        	}
+        	
+        	switch (numOfPlayers)
         	{
             	case 1:
-            		userOne.value =  data.playerNames[0] + ' created game. Waiting for other players...';
+            		userOne.value =  data.players[0].playerName + ' created game. Waiting for other players...';
             		userOne.updateText();
             		break;
             	case 2:
-            		userOne.value =  data.playerNames[0] + ' created game. Waiting for other players...';
+            		userOne.value =  data.players[0].playerName + ' created game. Waiting for other players...';
             		userOne.updateText();
             		if (data.complete)
             		{
-            			start_game.visible = true;
-            			userTwo.value =  data.playerNames[1] + ' joined game. Waiting for game creator to start game...';
+            			userTwo.value =  data.players[1].playerName + ' joined game. Waiting for game creator to start game...';
             			userTwo.updateText();
+            			if (owner){
+            				start_game.visible = true;
+            			}
             		}
             		else
             		{
-            			userTwo.value =  data.playerNames[1] + ' joined game. Waiting for other players...';
+            			userTwo.value =  data.players[1].playerName + ' joined game. Waiting for other players...';
             			userTwo.updateText();
             		}
             		break;
             	case 3:
-            		userOne.value =  data.playerNames[0] + ' created game. Waiting for other players..';
+            		userOne.value =  data.players[0].playerName + ' created game. Waiting for other players..';
             		userOne.updateText();
-            		userTwo.value =  data.playerNames[1] + ' joined game. Waiting for other players..';
+            		userTwo.value =  data.players[1].playerName + ' joined game. Waiting for other players..';
             		userTwo.updateText();
-            		userThree.value =  data.playerNames[2] + ' joined game. Waiting for other players..';
+            		userThree.value =  data.players[2].playerName + ' joined game. Waiting for other players..';
             		userThree.updateText();
             		break;
             	case 4:
-            		start_game.visible = true;
-            		userOne.value =  data.playerNames[0] + ' created game. Waiting for other players..';
+            		userOne.value =  data.players[0].playerName + ' created game. Waiting for other players..';
             		userOne.updateText();
-            		userTwo.value =  data.playerNames[1] + ' joined game. Waiting for other players..';
+            		userTwo.value =  data.players[1].playerName + ' joined game. Waiting for other players..';
             		userTwo.updateText();
-            		userThree.value =  data.playerNames[2] + ' joined game. Waiting for other players..';
+            		userThree.value =  data.players[2].playerName + ' joined game. Waiting for other players..';
             		userThree.updateText();
-            		userFour.value =  data.playerNames[3] + ' joined game. Waiting for game creator to start game.';
+            		userFour.value =  data.players[3].playerName + ' joined game. Waiting for game creator to start game.';
             		userFour.updateText();
+            		if (owner){
+        				start_game.visible = true;
+        			}
             		break;
+            	default :
+            		break;	
         	}  
+        	
+        };
+        
+        this.socket.on('awaitingStartGame', function(data){
+        	userOne.value = " ";
+        	userTwo.value = " ";
+        	userThree.value = " ";
+        	userFour.value = " ";
+        	updatePlayerActivity(data);
+        	
         });
+        
+        if (this.owner === false){
+        	updatePlayerActivity(this.data);
+        }
+        
         
     },
      
     startGame : function(){
-    	
+    	var saveFlag = this.loadGame;
+		var state = this.game.state;
+		var turn = this.myTurn;
+		var owner = this.owner;
+		var socket = this.socket;
+    	this.socket.emit('startGame', this.gameId, function (gameData){
+			state.start('Game', true, false, gameData, saveFlag, socket, turn, owner);
+		});
     },
     
     update: function() {

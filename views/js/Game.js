@@ -3,7 +3,7 @@ Ludo.Game = function(game){};
 
 Ludo.Game.prototype = {
 		
-	init: function(save, saveFlag, socket, myTurn){
+	init: function(save, saveFlag, socket, myTurn, owner){
 		this.savedGameId = save.gameId;
 		this.save = save;
 		this.saveFlag = saveFlag;
@@ -12,6 +12,7 @@ Ludo.Game.prototype = {
 		this.playerMode = save.playerMode;
 		this.myTurn = myTurn;
 		this.myTurn = true;
+		this.owner = owner;
 	},
     
     
@@ -167,12 +168,6 @@ Ludo.Game.prototype = {
         }
         
         
-        //Underscore**************************************************************************************
-        var result = _.filter(this.ludo, function(something) {
-            //console.log(something.playerName);
-        });
-        
-        
         if (this.currentPlayer == null){
             this.currentPlayer = this.ludo[0];
         }
@@ -304,7 +299,7 @@ Ludo.Game.prototype = {
     
     saveGame : function(){
     	
-   
+    	/*
         var gamedef = new Gamedef(this.controller, this.gameId);
         gamedef.savedef(this.ludo);
         
@@ -321,6 +316,7 @@ Ludo.Game.prototype = {
         this.socket.on('saveNewGame', function(data){
             alert(data);
         });
+        */
     },
     
     
