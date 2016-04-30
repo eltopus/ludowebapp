@@ -84,6 +84,7 @@ function startGame(gameId, callback){
 	var sock = this;
 	var gameData = games[gameId.toString()].gameData;
 	sock.broadcast.to(gameId).emit('startGame', gameData);
+	//console.log("Start: " + JSON.stringify(gameData));
 	callback(gameData);
 };
 
@@ -101,6 +102,7 @@ function createTwoPlayerMultiplayerGame(preparedData, callback){
 		twoPlayer.ok = true;
 		twoPlayer.message = 'OK';
 		twoPlayer.complete = false;
+		twoPlayer.inprogress = false;
 		var ludoInstance = new ludoGameInstance(gameId, sock.id, screenName, twoPlayer);
 		games[gameId] = ludoInstance;
 		socketIds[sock.id] = {gameId : gameId, screenName : screenName};
@@ -112,26 +114,31 @@ function createTwoPlayerMultiplayerGame(preparedData, callback){
 function connectMultiplayerGame(newPlayer, callback){
 	var sock = this;
 	var screenName = newPlayer.screenName.toString().trim().toUpperCase();
-	if (games[newPlayer.gameId]){
+	var gameId = newPlayer.gameId.toString().trim().toLowerCase();
+	var game = games[gameId];
+	
+	if (game){
 		
-		var data = games[newPlayer.gameId].addPlayer(newPlayer.gameId, sock.id, screenName);
+		if (game.gameData.inprogress){
+			console.log("AVAILABLE SCREENAME: in progress");
+		}else{
+			console.log("AVAILABLE SCREENAME: game not in progress");
+		}
+		var data = games[gameId].addPlayer(gameId, sock.id, screenName);
 		var gameData = data.gameData;
 		var updatedScreenName = data.screenName;
 		if (gameData === null){
-			callback({ok : false, message : "Error!!! Game ID: " + newPlayer.gameId + " may be full"});
+			callback({ok : false, message : "Error!!! Game ID: " + gameId + " may be full"});
 		}else{
-			socketIds[sock.id] = {gameId : newPlayer.gameId, screenName : updatedScreenName};
-			sock.broadcast.to(newPlayer.gameId).emit('awaitingStartGame', gameData);
-			this.join(newPlayer.gameId.toString());
+			socketIds[sock.id] = {gameId : gameId, screenName : updatedScreenName};
+			sock.broadcast.to(gameId).emit('awaitingStartGame', gameData);
+			this.join(gameId);
 			callback(gameData);
 		}
 		
 	}else{
 		callback({ok : false, message : "Game Id " + newPlayer.gameId + " does not exist" });
 	}
-	
-	
-	
 	
 	
 };
@@ -145,6 +152,7 @@ function createFourPlayerMultiplayerGame(preparedData, callback){
 		fourPlayer.ok = true;
 		fourPlayer.message = 'OK';
 		fourPlayer.complete = false;
+		fourPlayer.inprogress = false;
 		var ludoInstance = new ludoGameInstance(gameId, sock.id, screenName, fourPlayer);
 		games[gameId] = ludoInstance;
 		socketIds[sock.id] = {gameId : gameId, screenName : screenName};
@@ -220,7 +228,22 @@ function disconnected(data){
 };
 
 
-function saveNewGame(data){
+function saveNewGame(data, callback){
+	var sock = this;
+	if  (games[data.gameId]){
+		var gameData = games[data.gameId].gameData;
+		data.complete = gameData.complete;
+		data.ok = gameData.ok;
+		data.message = gameData.message;
+		data.gameMode = gameData.gameMode;
+		data.inprogress = true;
+		games[data.gameId].gameData = data;
+		console.log("Save Data: " + JSON.stringify(games[data.gameId].gameData));
+		
+	}else{
+		
+	}
+	callback("Game ID: " + data.gameId + " saved");
 	
 };
 

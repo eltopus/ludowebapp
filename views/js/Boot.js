@@ -6,6 +6,7 @@ Ludo.Boot.prototype = {
 		
 	init : function(){
 		this.game.plugins.add(Fabrique.Plugins.NineSlice);	
+		this.isMobile = false;
 	},
     preload: function() {
         this.load.image('board', 'images/ludo.jpg');
@@ -25,6 +26,7 @@ Ludo.Boot.prototype = {
         this.load.image('load-game', 'images/load_game.png');
         this.load.nineSlice('input', 'images/inputfield.png', 15);
         this.load.image('restart', 'images/restart.png');
+        //this.load.image('welcomepage', 'images/welcomepage.png');
         this.load.spritesheet("die", "images/diceRed.png", 64, 64);
         this.load.script('helpher', 'js/Utility.js');
         this.load.script('piece', 'js/Piece.js');
@@ -81,6 +83,7 @@ Ludo.Boot.prototype = {
      		 this.game.scale.maxWidth = this.game.width * 2.5;
   			 this.game.scale.maxHeight = this.game.height * 2.5;
   			 this.game.scale.forceOrientation(false, true);
+  			 this.isMobile = true;
     	     
     		 
     		 /*
@@ -104,7 +107,7 @@ Ludo.Boot.prototype = {
     		 
     	 }
         
-        this.state.start('StartMenu');
+        this.state.start('StartMenu', true, false, this.isMobile);
     },
     
     

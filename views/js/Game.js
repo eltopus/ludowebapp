@@ -3,7 +3,7 @@ Ludo.Game = function(game){};
 
 Ludo.Game.prototype = {
 		
-	init: function(save, saveFlag, socket, myTurn, owner){
+	init: function(save, saveFlag, socket, myTurn, owner, isMobile){
 		this.savedGameId = save.gameId;
 		this.save = save;
 		this.saveFlag = saveFlag;
@@ -13,6 +13,7 @@ Ludo.Game.prototype = {
 		this.myTurn = myTurn;
 		this.myTurn = true;
 		this.owner = owner;
+		this.isMobile = isMobile;
 	},
     
     
@@ -92,13 +93,15 @@ Ludo.Game.prototype = {
             "}"
         ];
      
-        this.filter = new Phaser.Filter(this.game, null, this.sideFragmentSrc);
-        this.filter.setResolution(220, 720);
-        this.sprite = this.game.add.sprite();
-        this.sprite.width = 220;
-        this.sprite.height = 720;
-        this.sprite.x = 720;
-        this.sprite.filters = [ this.filter ];
+        if (this.isMobile === false){
+        	this.filter = new Phaser.Filter(this.game, null, this.sideFragmentSrc);
+            this.filter.setResolution(220, 720);
+            this.sprite = this.game.add.sprite();
+            this.sprite.width = 220;
+            this.sprite.height = 720;
+            this.sprite.x = 720;
+            this.sprite.filters = [ this.filter ];
+        }
        
         
         this.diceBtn = this.make.button(760, 450, 'dice', this.rollDice, this, 2, 1, 0);
@@ -299,24 +302,13 @@ Ludo.Game.prototype = {
     
     saveGame : function(){
     	
-    	/*
-        var gamedef = new Gamedef(this.controller, this.gameId);
+        var gamedef = new Gamedef(this.controller, this.save.gameId);
         gamedef.savedef(this.ludo);
-        
-        gamedef.complete = false;
-        gamedef.whoJoined = 0;
-        gamedef.ok = true;
-        gamedef.message = "OK";
-        gamedef.playerNames = [];
-        var parsedData = JSON.stringify(gamedef);
-        var newGameId = this.newGameId;
-        
-        this.socket.emit('saveNewGame', {data : parsedData, gameId : newGameId});
-        
-        this.socket.on('saveNewGame', function(data){
-            alert(data);
+        gamedef.gameMode = this.save.gameMode;
+        this.socket.emit('saveNewGame', gamedef, function(message){
+        	alert(message);
         });
-        */
+        
     },
     
     
@@ -646,7 +638,10 @@ Ludo.Game.prototype = {
     
     update: function() {
         
-        this.filter.update();
+    	if (this.isMobile === false){
+    		this.filter.update();
+    	}
+        
         if (this.currentPlayer.selectedPiece != null && this.currentPlayer.selectedPiece.visible && !this.currentPlayer.selectedPiece.isExited()){
             this.shadow.visible = true;
             this.shadow.x = this.currentPlayer.selectedPiece.x;

@@ -3,22 +3,31 @@ Ludo.StartMenu = function(game){
 
 Ludo.StartMenu.prototype = {
 		
-	init : function(){
+	init : function(isMobile){
 		this.startBG;
 	    this.gameMode = 2;
 	    this.loadGame = false;
 	    this.socket = null;
+	    this.isMobile = isMobile;
 	},
     
     create: function() {
         this.filter;
         this.sprite;
-        this.sprite = this.game.add.sprite();
-        this.sprite.width = 900;
-        this.sprite.height = 720;
-        this.filter = this.game.add.filter('Fire', 900, 720);
-	    this.filter.alpha = 0.0;
-        this.sprite.filters = [ this.filter ];
+ 
+        if (this.isMobile === false){
+        	this.sprite = this.game.add.sprite();
+            this.sprite.width = 900;
+            this.sprite.height = 720;
+        	this.filter = this.game.add.filter('Fire', 900, 720);
+        	this.filter.alpha = 0.0;
+        	this.sprite.filters = [ this.filter ];
+        }else{
+        	
+        	this.game.stage.backgroundColor = "#171642";
+        }
+        
+	    
         
         this.two_player = this.make.button((this.game.width / 2) - 360, (this.game.height /2) - 5, 'two-player', this.twoPlayer, this, 2, 1, 0);
         this.four_player = this.make.button((this.game.width / 2) + 180, (this.game.height /2) - 5, 'four-player', this.fourPlayer, this, 2, 1, 0);
@@ -208,6 +217,7 @@ Ludo.StartMenu.prototype = {
         var fourPlayerScreenName = this.fourPlayerScreenName.value.toString().trim();
         var loadScreenName = this.screenName.value.toString().trim();
         var state = this.game.state;
+        var isMobile = this.isMobile;
         
         if (loadGame)
         {
@@ -247,8 +257,15 @@ Ludo.StartMenu.prototype = {
 
     			if (data.ok)
     			{	
+    				if (data.inprogress)
+    				{
+    					state.start('Game', true, false, data, true, socket, false, false, isMobile);
+    				}
+    				else
+    				{
+    					state.start('WaitMenu', true, false, data, true, socket, false, false, isMobile);
+    				}
     				
-    				state.start('WaitMenu', true, false, data, true, socket, false, false);
     			}
     			else
     			{
@@ -278,7 +295,7 @@ Ludo.StartMenu.prototype = {
         			socket.emit('createTwoPlayerMultiplayerGame', {screenName : twoPlayerScreenName}, function (data){
             			if (data.ok)
             			{
-            				state.start('WaitMenu', true, false, data, true, socket, true, true);
+            				state.start('WaitMenu', true, false, data, true, socket, true, true, isMobile);
             			}
             			else
             			{
@@ -291,7 +308,7 @@ Ludo.StartMenu.prototype = {
         			socket.emit('createFourPlayerMultiplayerGame', {screenName : fourPlayerScreenName}, function (data){
             			if (data.ok)
             			{
-            				state.start('WaitMenu', true, false, data, true, socket, true, true);
+            				state.start('WaitMenu', true, false, data, true, socket, true, true, isMobile);
             			}
             			else
             			{
@@ -327,7 +344,9 @@ Ludo.StartMenu.prototype = {
     
     
     update: function(){
-        this.filter.update();
+    	if (this.isMobile === false){
+    		this.filter.update();
+    	}
     }
     
 };

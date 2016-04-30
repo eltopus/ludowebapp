@@ -4,7 +4,7 @@ Ludo.WaitMenu = function(game) {
 
 Ludo.WaitMenu.prototype = {
 		
-	init : function(data, loadGame, socket, myTurn, owner){
+	init : function(data, loadGame, socket, myTurn, owner, isMobile){
 		this.ready = false;
 		this.screenName = data.screenName;
 		this.gameId = data.gameId;
@@ -13,11 +13,12 @@ Ludo.WaitMenu.prototype = {
 		this.data = data;
 		this.myTurn = myTurn;
 		this.owner = owner;
+		this.isMobile = isMobile;
 		
 		this.gameCodeBg = this.game.add.nineSlice((this.game.width / 2), (this.game.height /2) - 200, 'input', 600, 100);
         this.gameCodeBg.anchor.set(0.5);
         this.gameCode = this.game.add.inputField((this.game.width / 2) - 380  , (this.game.height /2) - 220, {
-            font: '25px Arial',
+            font: '35px Arial',
             fill: '#212121',
             fillAlpha: 0,
             fontWeight: 'bold',
@@ -34,7 +35,7 @@ Ludo.WaitMenu.prototype = {
         
         
         this.gameCodeBg.alpha = 0.5;
-        this.gameCode.value =  'Join Code: ' + this.gameId ;
+        this.gameCode.value =  this.gameId;
         this.gameCode.updateText();
         this.gameCodeBg.inputEnabled  = false;
         this.gameCode.inputEnabled = false;
@@ -121,9 +122,10 @@ Ludo.WaitMenu.prototype = {
 		var state = this.game.state;
 		var turn = this.myTurn;
 		var owner = this.owner;
+		var isMobile = this.isMobile;
 		
 		this.socket.on('startGame', function(gameData){
-        	state.start('Game', true, false, gameData, saveFlag, socket, turn, owner);
+        	state.start('Game', true, false, gameData, saveFlag, socket, turn, owner, isMobile);
         });
 		
         
@@ -147,12 +149,20 @@ Ludo.WaitMenu.prototype = {
     	
     	this.filter;
         this.sprite;
-        this.sprite = this.game.add.sprite();
-        this.sprite.width = 900;
-        this.sprite.height = 720;
-        this.filter = this.game.add.filter('Fire', 900, 720);
-	    this.filter.alpha = 0.0;
-        this.sprite.filters = [ this.filter ];
+        
+        
+        if (this.isMobile === false){
+        	this.sprite = this.game.add.sprite();
+        	this.sprite.width = 900;
+        	this.sprite.height = 720;
+        	this.filter = this.game.add.filter('Fire', 900, 720);
+        	this.filter.alpha = 0.0;
+        	this.sprite.filters = [ this.filter ];
+        }else{
+        	
+        	this.game.stage.backgroundColor = "#171642";
+        }
+        
         
         this.start_game = this.make.button((this.game.width / 2) - 90, (this.game.height/ 2) + 200, 'start-game', this.startGame, this, 2, 1, 0);
         this.start_game.visible = false;
@@ -255,12 +265,15 @@ Ludo.WaitMenu.prototype = {
 		var turn = this.myTurn;
 		var owner = this.owner;
 		var socket = this.socket;
+		var isMobile = this.isMobile;
     	this.socket.emit('startGame', this.gameId, function (gameData){
-			state.start('Game', true, false, gameData, saveFlag, socket, turn, owner);
+			state.start('Game', true, false, gameData, saveFlag, socket, turn, owner, isMobile);
 		});
     },
     
     update: function() {
-        this.filter.update();
+    	if (this.isMobile === false){
+    		this.filter.update();
+    	}
     }
 };
