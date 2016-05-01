@@ -3,13 +3,13 @@ Ludo.Game = function(game){};
 
 Ludo.Game.prototype = {
 		
-	init: function(save, saveFlag, socket, myTurn, owner, isMobile){
-		this.savedGameId = save.gameId;
-		this.save = save;
+	init: function(gameData, saveFlag, socket, myTurn, owner, isMobile){
+		this.savedGameId = gameData.gameId;
+		this.gameData = gameData;
 		this.saveFlag = saveFlag;
 		this.socket = socket;
-		this.newGameId = save.gameId;
-		this.playerMode = save.playerMode;
+		this.newGameId = gameData.gameId;
+		this.playerMode = gameData.playerMode;
 		this.myTurn = myTurn;
 		this.myTurn = true;
 		this.owner = owner;
@@ -44,7 +44,6 @@ Ludo.Game.prototype = {
         this.playerBlue = ["blue"];
         this.playerGreen = ["green"];
         this.playerYellow = ["yellow"];
-        //this.save = this.cache.getJSON('save');
         this.gameId = this.getUuid();
         this.diceObjects = [];
         this.errorX = 810;
@@ -138,7 +137,7 @@ Ludo.Game.prototype = {
         
         this.rule = new Rules(this, this.play);
         this.buildWorld();
-        this.controller = new DiceController(this.game, this.savedGameId, this.myTurn);
+        this.controller = new DiceController(this.game, this.savedGameId, this.myTurn, this.gameData.diceIds);
         this.ludo = this.buildPlayers(this.playerMode, this.controller, this.saveFlag);
         this.action = new Action(this, this.controller);
         this.populateWorld(this.ludo);
@@ -149,9 +148,7 @@ Ludo.Game.prototype = {
         {
         	this.newGameId = this.savedGameId;
         	this.gameIdText = this.add.text(725, 420, "Game ID: " + this.savedGameId, playerTurnDisplayStyle);
-            this.gameId = this.save.gameId;
-            var diceUniqueIds = this.save.diceIds;
-            this.controller.setDiceUniqueId(diceUniqueIds);
+            this.gameId = this.gameData.gameId;
             for (var i = 0; i < this.ludo.length; ++i)
             {
                 if (this.ludo[i].myTurn())
@@ -171,12 +168,12 @@ Ludo.Game.prototype = {
         }
         
         
-        if (this.currentPlayer == null){
+        if (this.currentPlayer === null){
             this.currentPlayer = this.ludo[0];
         }
         
         
-        if (this.currentPlayer.selectedPiece != null){
+        if (this.currentPlayer.selectedPiece !== null){
             this.select(this.currentPlayer.selectedPiece, this);
         }
         
@@ -268,9 +265,18 @@ Ludo.Game.prototype = {
     
     restart: function(){
     
-    	if (this.myTurn && this.currentPlayer != null){
+    	if (this.myTurn && this.currentPlayer != null)
+    	{
     		this.currentPlayer.releasePlay();
     		this.socket.emit('releaseGame', {gameId : this.savedGameId});
+    		/*
+    		var data = JSON.stringify(this.cache.getJSON('save'));
+    		var gameData = JSON.parse(data);
+            if (!this.currentPlayer.hasMovingPiece()){
+                this.updateGame(gameData);
+            }
+            */
+    		
     	}
     	
     	/*
@@ -302,9 +308,9 @@ Ludo.Game.prototype = {
     
     saveGame : function(){
     	
-        var gamedef = new Gamedef(this.controller, this.save.gameId);
+        var gamedef = new Gamedef(this.controller, this.gameData.gameId);
         gamedef.savedef(this.ludo);
-        gamedef.gameMode = this.save.gameMode;
+        gamedef.gameMode = this.gameData.gameMode;
         this.socket.emit('saveNewGame', gamedef, function(message){
         	alert(message);
         });
@@ -405,10 +411,10 @@ Ludo.Game.prototype = {
         }
         else
         {
-            var obj = this.save.players; 
+            var obj = this.gameData.players; 
             for (var i = 0; i < obj.length; ++i)
             {
-                var player = new Player(this.game, obj[i].playerName, obj[i].turn, obj[i].piecesNames, obj[i].index, obj[i].playerMode, controller, this.save.gameId);
+                var player = new Player(this.game, obj[i].playerName, obj[i].turn, obj[i].piecesNames, obj[i].index, obj[i].playerMode, controller, this.gameData.gameId);
                 player.setPieces(this, obj[i].pieces, obj[i].playerName);
                 player.setDice(obj[i].diceObject);
                 player.setSelectedPieceById(obj[i].selectedPieceId);
@@ -421,6 +427,20 @@ Ludo.Game.prototype = {
         
         return players;
     },
+    
+    updateGame : function(gameData){
+    	
+    	for (var i = 0; i < this.ludo.length; ++i){
+    		
+    		if (this.ludo[i].playerName === gameData.players[i].playerName){
+    			
+    		}
+    		
+    	}
+    	
+    	
+    },
+    
     
     populateWorld: function(players) {
         
@@ -634,6 +654,34 @@ Ludo.Game.prototype = {
    
    randomString : function (length) {
 	   return Math.round((Math.pow(36, length + 1) - Math.random() * Math.pow(36, length))).toString(36).slice(1);
+   },
+   
+   updateGame : function(gameData){
+	   
+   	for (var i = 0; i < this.ludo.length; ++i)
+       {
+           this.ludo[i].updatePlayer(gameData.players);
+           if (this.ludo[i].myTurn())
+           {
+               this.currentPlayer = this.ludo[i];
+               this.currentPlayer.selectAll();
+               if (this.controller.setDiceValue(this.currentPlayer)){
+                   this.play.visible = true;
+                   this.diceBtn.visible = false;
+                   this.currentPlayer.rolled();  
+               }    
+           }    
+           else
+           {
+               this.ludo[i].deSelectAll();
+           }  
+           
+   	}
+       
+       if (this.currentPlayer.selectedPiece != null){
+           this.select(this.currentPlayer.selectedPiece, this);
+       }
+       
    },
     
     update: function() {

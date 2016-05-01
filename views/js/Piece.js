@@ -50,6 +50,19 @@ Piece.prototype.moveForward = function(pointsArray)
     this.tween.onComplete.add(this.onCompleteMovement, this); 
 };
 
+Piece.prototype.updatePiece = function(pieces)
+{
+    for (var i = 0; i < pieces.length; ++i){
+        if (pieces[i].uniqueId === this.uniqueId){
+            this.index = pieces[i].index;
+            this.state = pieces[i].state;
+            this.x = pieces[i].x;
+            this.y = pieces[i].y;
+            break;
+        }
+    }
+};
+
 Piece.prototype.moveToStart = function(path)
 {
     switch(this.piece){

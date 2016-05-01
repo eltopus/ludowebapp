@@ -1,7 +1,7 @@
 // Extended Phaser.Sprite (check out the examples Sprites -> extending sprite demo 1 & 2)
 // Added a function to animate rolling.
 
-Dice = function (game, x, y, gameId, myTurn) {
+Dice = function (game, x, y, gameId, myTurn, uniqueId) {
     Phaser.Sprite.call(this, game, x, y, 'die');
     
     this.tween;
@@ -12,11 +12,11 @@ Dice = function (game, x, y, gameId, myTurn) {
     this.dieValue = 0;
     this.isPlayed = true;
     this.group = null;
-    this.player;
+    this.player = null;
     this.anchor.setTo(0.5, 0.5);
     this.inputEnabled = true;
     this.events.onInputDown.add(this.selectDie, this);
-    this.uniqueId = null;
+    this.uniqueId = uniqueId;
     this.pusher = true;
     this.gameId = gameId;
     this.myTurn = myTurn;
@@ -100,17 +100,25 @@ Dice.prototype.getDiceObject = function(diceObjects) {
 Dice.prototype.rollComplete = function(game, value) {
     this.filters = null;
     this.frame = this.randValue;
-    var diceObject = {uniqueId: this.uniqueId, value: this.value(), playerName : this.player.playerName};
+    var diceObject = {uniqueId: this.uniqueId, value: this.value(), playerName : this.player.playerNames, selected : this.selected()};
     this.player.updateDiceObject(diceObject);
     this.pusher = true;
 };
 
+
+
 Dice.prototype.select = function() {
     this.alpha = 0.6;
+    if (this.player !== null){
+    	this.player.updateDiceObjectSelection({uniqueId : this.uniqueId, selected : true});
+    }
 };
 
 Dice.prototype.unSelect = function() {
     this.alpha = 1;
+    if (this.player !== null){
+    	this.player.updateDiceObjectSelection({uniqueId : this.uniqueId, selected : false});
+    }
 };
 
 Dice.prototype.selected = function() {
@@ -146,7 +154,7 @@ Dice.prototype.setCurrentPlayer = function(currentPlayer){
 Dice.prototype.setSavedCurrentPlayer = function(currentPlayer){
     
     for (var i = 0; i < currentPlayer.diceObject.length; ++i){
-        if (currentPlayer.diceObject[i].uniqueId == this.uniqueId){
+        if (currentPlayer.diceObject[i].uniqueId === this.uniqueId){
             this.player = currentPlayer;
             this.setValue(currentPlayer.diceObject[i]);
             break;
@@ -159,10 +167,10 @@ Dice.prototype.selectDie = function() {
     	if (this.player != null && !this.player.hasMovingPiece()){   
             if (this.selected() && !this.isPlayed){
                 this.unSelect();
-                this.gameio.emitDiceUnSelection({uniqueId :  this.uniqueId, gameId : this.gameId});
+                this.gameio.emitDiceUnSelection({uniqueId :  this.uniqueId, gameId : this.gameId, selected : false});
             }else if (this.unSelected()){  
                 this.select(); 
-                this.gameio.emitDiceSelection({uniqueId :  this.uniqueId, gameId : this.gameId});
+                this.gameio.emitDiceSelection({uniqueId :  this.uniqueId, gameId : this.gameId, selected : true});
             }   
         }
     }
@@ -199,38 +207,63 @@ Dice.prototype.value = function() {
 Dice.prototype.setValue = function(diceObject) {
     
     if (diceObject.value == 0){
-        //return;
+        return;
     }
     switch(diceObject.value) 
     {
         case 6:
+        	if (diceObject.selected){
+            	this.select();
+            }else{
+            	this.unSelect();
+            }
+        	
             this.frame = 0;
-            this.unSelect();
             this.isPlayed = false;
             break;
         case 1:
+        	if (diceObject.selected){
+            	this.select();
+            }else{
+            	this.unSelect();
+            }
             this.frame = 1;
-            this.unSelect();
             this.isPlayed = false;
             break;
         case 2:
+        	if (diceObject.selected){
+            	this.select();
+            }else{
+            	this.unSelect();
+            }
             this.frame = 2;
-            this.unSelect();
             this.isPlayed = false;
             break;
         case 5:
+        	if (diceObject.selected){
+            	this.select();
+            }else{
+            	this.unSelect();
+            }
             this.frame = 4;
-            this.unSelect();
             this.isPlayed = false;
             break;
         case 3:
+        	if (diceObject.selected){
+            	this.select();
+            }else{
+            	this.unSelect();
+            }
             this.frame = 5;
-            this.unSelect();
             this.isPlayed = false;
             break;
         case 4:
+        	if (diceObject.selected){
+            	this.select();
+            }else{
+            	this.unSelect();
+            }
             this.frame = 6;
-            this.unSelect();
             this.isPlayed = false;
             break;
     

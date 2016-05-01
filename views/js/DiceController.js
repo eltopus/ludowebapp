@@ -1,9 +1,9 @@
-DiceController = function (game, gameId, myTurn) {
-    
-    this.dice = this.getNewDice(game, gameId, myTurn);
+DiceController = function (game, gameId, myTurn, diceIds) {
+  
+    this.dice = this.getNewDice(game, gameId, myTurn, diceIds);
     for (var i = 0; i < this.dice.length; ++i){
         var uuid = this.getUuid();
-        this.dice[i].uniqueId = uuid;
+        //this.dice[i].uniqueId = uuid;
     }
         
 };
@@ -13,7 +13,7 @@ DiceController.prototype.rollDice = function(currentPlayer, pusher, diceObjects)
 };
 
 DiceController.prototype.setDiceValue = function(currentPlayer){
-
+	this.consumeDice();
     if (currentPlayer.diceObject.length > 0){
         for (var i = 0; i < this.dice.length; ++i){
             this.dice[i].setSavedCurrentPlayer(currentPlayer);
@@ -43,8 +43,9 @@ DiceController.prototype.setDiceUniqueId = function(uniqueIds){
 };
 
 DiceController.prototype.selectDieById = function(uniqueId){
+	
     for (var i = 0; i < this.dice.length; ++i){
-        if (this.dice[i].uniqueId == uniqueId){
+        if (this.dice[i].uniqueId === uniqueId){
             this.dice[i].select();
             return true;
         }
@@ -118,15 +119,15 @@ DiceController.prototype.getUuid = function(){
 };
 
 
-DiceController.prototype.getNewDice = function(game, gameId, myTurn) {
+DiceController.prototype.getNewDice = function(game, gameId, myTurn, diceIds) {
     
     var diceList = [];
-    var die1 = new Dice(game, 330, 390, gameId, myTurn);
+    var die1 = new Dice(game, 330, 390, gameId, myTurn, diceIds[0].uniqueId);
     var group = game.add.group();
     group.add(die1);
     die1.group = group;
     diceList.push(die1);
-    var die2 = new Dice(game, 390, 330, gameId, myTurn);
+    var die2 = new Dice(game, 390, 330, gameId, myTurn, diceIds[1].uniqueId);
     group = game.add.group();
     group.add(die2);
     die2.group = group;

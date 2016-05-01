@@ -25,7 +25,7 @@ LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName) {
 	  if (this.numOfPlayers === this.gameMode){
 		  this.gameData.complete = true;
 	  }
-	  return {gameData : this.gameData, screenName, screenName};
+	  return {gameData : this.gameData, screenName: screenName};
   }
   return null;
 };

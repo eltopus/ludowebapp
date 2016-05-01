@@ -57,6 +57,10 @@ Player.prototype.setGameIO = function(gameio){
 	}
 };
 
+Player.prototype.setDice = function(diceObject){
+	this.diceObject = diceObject;
+};
+
 Player.prototype.setPieces = function(game, pieces, playername){
 
 	for (var i = 0; i < pieces.length; ++i)
@@ -68,6 +72,35 @@ Player.prototype.setPieces = function(game, pieces, playername){
 		piece.homeIndex = pieces[i].homeIndex;
 		this.playerPieces.push(piece);
 	}
+
+};
+
+Player.prototype.updatePlayer = function(players){
+
+    var player = null;
+    for (var i = 0; i < players.length; ++i){
+        if (players[i].playerName === this.playerName){
+            player = players[i];
+        }
+    }
+    
+    if (player !== null)
+    {
+        this.setDice(player.diceObject);
+        this.endOfPlay = player.endOfPlay;
+        this.hasRolled = player.hasRolled;
+        this.playerName = player.playerName;
+        if (player.selectedPieceId !== null){
+            this.setSelectedPieceById(player.selectedPieceId);
+        }
+        this.exitingGraphicsPositions = player.exitingGraphicsPositions;
+        this.turn = player.turn;
+    
+	    for (var i = 0; i < player.pieces.length; ++i)
+        {
+            this.playerPieces[i].updatePiece(player.pieces);   
+        }
+    }
 
 };
 
@@ -457,7 +490,15 @@ Player.prototype.updateDiceObject = function(diceObject){
 	this.diceCompletion();
 };
 
-
+Player.prototype.updateDiceObjectSelection = function(diceObject){
+	
+    for (var i = 0; i < this.diceObject.length; ++i){
+        if (this.diceObject[i].uniqueId === diceObject.uniqueId){
+            this.diceObject[i].selected = diceObject.selected;
+            break;
+        }
+    }
+};
 
 
 Player.prototype.rolledSix = function(){
@@ -547,9 +588,6 @@ Player.prototype.getNonConsumingSelectedDieValue = function(){
 	return value;
 };
 
-Player.prototype.setDice = function(diceObject){
-	this.diceObject = diceObject;
-};
 
 
 //****************************Get Operations********************************************
