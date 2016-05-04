@@ -103,7 +103,8 @@ function createTwoPlayerMultiplayerGame(preparedData, callback){
 		twoPlayer.message = 'OK';
 		twoPlayer.complete = false;
 		twoPlayer.inprogress = false;
-		var ludoInstance = new ludoGameInstance(gameId, sock.id, screenName, twoPlayer);
+		console.log(preparedData.colors);
+		var ludoInstance = new ludoGameInstance(gameId, sock.id, screenName, twoPlayer, preparedData.colors);
 		games[gameId] = ludoInstance;
 		socketIds[sock.id] = {gameId : gameId, screenName : screenName};
 		callback(ludoInstance.gameData);
