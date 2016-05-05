@@ -53,10 +53,11 @@ function LudoGameInstance(gameId, socketId, owner, gameData, colors) {
 	this.gameMode = gameData.gameMode;
 	this.ludoPlayers[owner] = new playerInstance(gameId, socketId, owner, gameData);
 	this.gameData = this.ludoPlayers[owner].gameData;
-	var playerPieces = this.getPlayerPieces(colors);
-	this.choicesLeft = this.processColorChoices(colors);
-	if (this.gameMode === 2){
-		
+	this.choicesLeft = null;
+	if (this.gameMode === 2)
+	{
+		var playerPieces = this.getPlayerPieces(colors);
+		this.choicesLeft = this.processColorChoices(colors);
 		this.addPlayerPieces(owner, playerPieces, colors);
 		//console.log(JSON.stringify(this.gameData));
 	}

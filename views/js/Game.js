@@ -14,11 +14,22 @@ Ludo.Game.prototype = {
 		this.myTurn = true;
 		this.owner = owner;
 		this.isMobile = isMobile;
+		
+		this.gameMusic = null;
+		if (this.isMobile === false){
+
+			this.gameMusic = this.game.add.audio('gameMusic', 1, true);
+			if (this.gameMusic.isPlaying == false){ 
+				this.gameMusic.play('',0,1,true); 
+			} 
+		}
 	},
     
     
     create: function(){
     	
+    	this.redneckRoll = this.game.add.audio('redneckRoll', 5, false);
+    	this.shakeAndroll = this.game.add.audio('shakeAndroll', 5, false);
         this.iddleState = 0;
         this.activeState = 1;
         this.awaitingExitState = 2;
@@ -156,6 +167,7 @@ Ludo.Game.prototype = {
                     this.currentPlayer = this.ludo[i];
                     if (this.controller.setDiceValue(this.currentPlayer)){
                         this.play.visible = true;
+                        this.diceBtn.visible = false;
                         this.currentPlayer.rolled();
                         break;
                     }
@@ -206,6 +218,15 @@ Ludo.Game.prototype = {
         	this.createNewGame();
         }
         
+        this.soundIcon = this.game.add.sprite(870, 30, "soundIcon");
+		this.soundIcon.anchor.set(0.5);
+		this.soundIcon.alpha = 0.7;
+		this.soundIcon.scale.x = 0.2;
+		this.soundIcon.scale.y = 0.2;
+		this.soundIcon.inputEnabled = true;
+		this.soundIcon.input.enableDrag();
+		this.soundIcon.events.onInputDown.add(this.muteMusic, this);
+        
     },
     
     
@@ -228,6 +249,7 @@ Ludo.Game.prototype = {
     
     
     rollDiceEmission : function(diceObject){
+    	this.redneckRoll.play();
     	this.diceObjects.push(diceObject);
     	this.diceBtn.visible = false;
     	if (this.diceObjects.length > 1){
@@ -239,6 +261,7 @@ Ludo.Game.prototype = {
     
     rollDice : function(diceObject){
     	if (this.myTurn){
+    		this.redneckRoll.play();
     		this.controller.rollDice(this.currentPlayer, true, diceObject);
     		this.diceBtn.visible = false;
     	}
@@ -683,6 +706,18 @@ Ludo.Game.prototype = {
        }
        
    },
+   
+   muteMusic : function(){
+		if (this.game.sound.mute === true){
+			this.game.sound.mute = false;
+			this.soundIcon.scale.x = 0.2;
+			this.soundIcon.scale.y = 0.2;
+		}else{
+			this.game.sound.mute = true;
+			this.soundIcon.scale.x = 0.1;
+			this.soundIcon.scale.y = 0.1;
+		}
+	},
     
     update: function() {
         

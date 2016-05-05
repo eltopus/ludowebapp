@@ -4,7 +4,7 @@ Ludo.WaitMenu = function(game) {
 
 Ludo.WaitMenu.prototype = {
 		
-	init : function(data, loadGame, socket, myTurn, owner, isMobile){
+	init : function(data, loadGame, socket, myTurn, owner, isMobile, menuMusic){
 		this.ready = false;
 		this.screenName = data.screenName;
 		this.gameId = data.gameId;
@@ -14,6 +14,7 @@ Ludo.WaitMenu.prototype = {
 		this.myTurn = myTurn;
 		this.owner = owner;
 		this.isMobile = isMobile;
+		this.menuMusic = menuMusic;
 		
 		this.gameCodeBg = this.game.add.nineSlice((this.game.width / 2), (this.game.height /2) - 200, 'input', 600, 100);
         this.gameCodeBg.anchor.set(0.5);
@@ -123,8 +124,10 @@ Ludo.WaitMenu.prototype = {
 		var turn = this.myTurn;
 		var owner = this.owner;
 		var isMobile = this.isMobile;
+		var menuMusic = this.menuMusic;
 		
 		this.socket.on('startGame', function(gameData){
+			menuMusic.destroy();
         	state.start('Game', true, false, gameData, saveFlag, socket, turn, owner, isMobile);
         });
 		
@@ -146,9 +149,15 @@ Ludo.WaitMenu.prototype = {
     },
     
     create: function() {
-    	
     	this.filter;
         this.sprite;
+        this.soundIcon = this.game.add.sprite(850, 30, "soundIcon");
+		this.soundIcon.anchor.set(0.5);
+		this.soundIcon.scale.x = 0.2;
+		this.soundIcon.scale.y = 0.2;
+		this.soundIcon.inputEnabled = true;
+		this.soundIcon.input.enableDrag();
+		this.soundIcon.events.onInputDown.add(this.muteMusic, this);
         
         
         if (this.isMobile === false){
@@ -266,10 +275,24 @@ Ludo.WaitMenu.prototype = {
 		var owner = this.owner;
 		var socket = this.socket;
 		var isMobile = this.isMobile;
+		this.menuMusic.destroy();
+		this.sprite.destroy();
     	this.socket.emit('startGame', this.gameId, function (gameData){
 			state.start('Game', true, false, gameData, saveFlag, socket, turn, owner, isMobile);
 		});
     },
+    
+    muteMusic : function(){
+		if (this.game.sound.mute === true){
+			this.game.sound.mute = false;
+			this.soundIcon.scale.x = 0.2;
+			this.soundIcon.scale.y = 0.2;
+		}else{
+			this.game.sound.mute = true;
+			this.soundIcon.scale.x = 0.1;
+			this.soundIcon.scale.y = 0.1;
+		}
+	},
     
     update: function() {
     	if (this.isMobile === false){

@@ -101,6 +101,7 @@ Ludo.Boot.prototype = {
         this.load.image('cblue', 'images/blue.png');
         this.load.image('cgreen', 'images/green.png');
         this.load.image('cyellow', 'images/yellow.png');
+        this.load.image('soundIcon', 'images/sound.ico');
         //this.load.image('welcomepage', 'images/welcomepage.png');
         this.load.spritesheet("die", "images/diceRed.png", 64, 64);
         this.load.script('helpher', 'js/Utility.js');
@@ -124,7 +125,10 @@ Ludo.Boot.prototype = {
         this.load.script("index", "js/index.js");
         this.load.script('webfont', '//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js');
         this.load.json('save', 'js/save.json');
-        
+        this.load.audio("menuMusic", "audio/Motivated.mp3");
+        this.load.audio("gameMusic", "audio/LittleSwansGame.wav");
+        this.load.audio("shakeAndroll", "audio/ShakeAndRollDice.mp3");
+        this.load.audio("redneckRoll", "audio/RedneckRollsDice.mp3");
         this.game.load.start();
         
         
