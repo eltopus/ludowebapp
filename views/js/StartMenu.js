@@ -450,7 +450,7 @@ Ludo.StartMenu.prototype = {
 					socket.emit('createTwoPlayerMultiplayerGame', {screenName : twoPlayerScreenName, colors : this.colors}, function (data){
 						if (data.ok)
 						{
-							console.log(JSON.stringify(data));
+							//console.log(JSON.stringify(data));
 							state.start('WaitMenu', true, false, data, true, socket, true, true, isMobile, menuMusic);
 						}
 						else

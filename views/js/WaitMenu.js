@@ -127,7 +127,10 @@ Ludo.WaitMenu.prototype = {
 		var menuMusic = this.menuMusic;
 		
 		this.socket.on('startGame', function(gameData){
-			menuMusic.destroy();
+			if (menuMusic != null){
+				menuMusic.destroy();
+			}
+			
         	state.start('Game', true, false, gameData, saveFlag, socket, turn, owner, isMobile);
         });
 		
@@ -275,8 +278,10 @@ Ludo.WaitMenu.prototype = {
 		var owner = this.owner;
 		var socket = this.socket;
 		var isMobile = this.isMobile;
-		this.menuMusic.destroy();
-		this.sprite.destroy();
+		if (this.menuMusic != null){
+			this.menuMusic.destroy();
+		}
+		
     	this.socket.emit('startGame', this.gameId, function (gameData){
 			state.start('Game', true, false, gameData, saveFlag, socket, turn, owner, isMobile);
 		});

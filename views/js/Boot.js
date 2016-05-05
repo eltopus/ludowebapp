@@ -153,7 +153,7 @@ Ludo.Boot.prototype = {
     
     loadComplete : function(){
     	this.text.setText("Load Complete")
-    	this.state.start('StartMenu', true, false, this.isMobile);
+    	this.state.start('StartMenu', true, false, true);
     },
     
     

@@ -218,6 +218,7 @@ Ludo.Game.prototype = {
         	this.createNewGame();
         }
         
+       
         this.soundIcon = this.game.add.sprite(870, 30, "soundIcon");
 		this.soundIcon.anchor.set(0.5);
 		this.soundIcon.alpha = 0.7;
@@ -226,6 +227,7 @@ Ludo.Game.prototype = {
 		this.soundIcon.inputEnabled = true;
 		this.soundIcon.input.enableDrag();
 		this.soundIcon.events.onInputDown.add(this.muteMusic, this);
+		
         
     },
     
