@@ -32,7 +32,7 @@ Ludo.StartMenu.prototype = {
 			this.soundIcon.inputEnabled = true;
 			this.soundIcon.input.enableDrag();
 			this.soundIcon.events.onInputDown.add(this.muteMusic, this);
-			
+
 
 			if (this.isMobile === false){
 				this.sprite = this.game.add.sprite();
@@ -215,6 +215,9 @@ Ludo.StartMenu.prototype = {
 
 			this.twoPlayerScreenNameBg.alpha  = 0.0;
 			this.twoPlayerScreenName.alpha = 0.0;
+			
+			this.verifyChosenColors();
+			
 
 		},
 
@@ -316,10 +319,20 @@ Ludo.StartMenu.prototype = {
 		},
 
 		verifyChosenColors : function(){
-			if (this.colors.length > 2)
+			if (this.gameMode === 2)
 			{
-				var color = this.colors[0];
-				this.unsetColor(color);
+				if (this.colors.length > 2)
+				{
+					var color = this.colors[0];
+					this.unsetColor(color);
+				}
+			}
+			else if (this.gameMode === 4){
+				if (this.colors.length > 1)
+				{
+					var color = this.colors[0];
+					this.unsetColor(color);
+				}
 			}
 		},
 
@@ -406,12 +419,15 @@ Ludo.StartMenu.prototype = {
 					{	
 						if (data.inprogress)
 						{
-							menuMusic.destroy();
-							state.start('Game', true, false, data, true, socket, false, false, isMobile);
+							if (menuMusic != null){
+								menuMusic.destroy();
+							}
+
+							state.start('Game', true, false, data, true, socket, data.setSessionTurn, false, isMobile, data.sockId);
 						}
 						else
 						{
-							state.start('WaitMenu', true, false, data, true, socket, false, false, isMobile, menuMusic);
+							state.start('WaitMenu', true, false, data, true, socket, data.setSessionTurn, false, isMobile, menuMusic);
 						}
 
 					}
@@ -435,6 +451,12 @@ Ludo.StartMenu.prototype = {
 					return;
 				}
 
+				if (this.colors.length < 1 && this.gameMode === 4)
+				{
+					alert('Please Choose at least 1 color!');
+					return;
+				}
+
 
 				if (this.socket === null){
 					this.socket = io();
@@ -451,7 +473,7 @@ Ludo.StartMenu.prototype = {
 						if (data.ok)
 						{
 							//console.log(JSON.stringify(data));
-							state.start('WaitMenu', true, false, data, true, socket, true, true, isMobile, menuMusic);
+							state.start('WaitMenu', true, false, data, true, socket, data.setSessionTurn, true, isMobile, menuMusic);
 						}
 						else
 						{
@@ -464,7 +486,7 @@ Ludo.StartMenu.prototype = {
 					socket.emit('createFourPlayerMultiplayerGame', {screenName : fourPlayerScreenName, colors : this.colors}, function (data){
 						if (data.ok)
 						{
-							state.start('WaitMenu', true, false, data, true, socket, true, true, isMobile, menuMusic);
+							state.start('WaitMenu', true, false, data, true, socket, data.setSessionTurn, true, isMobile, menuMusic);
 						}
 						else
 						{
@@ -497,7 +519,7 @@ Ludo.StartMenu.prototype = {
 			return false;
 
 		},
-		
+
 		muteMusic : function(){
 			if (this.game.sound.mute === true){
 				this.game.sound.mute = false;

@@ -1,6 +1,8 @@
-Rules = function (game, play) {
+var g = null;
+Rules = function (game, play, myTurn) {
     this.game = game;
     this.play = play;
+    this.myTurn = myTurn;
 };
 
 //this.Rules.prototype = Object.create(Phaser.Sprite.prototype);
@@ -297,4 +299,12 @@ Rules.prototype.applyCheckingAwaitingCanMoveSamePieceToExit = function(currentPl
          return currentIndex;
      }
      return ++currentIndex;
+};
+
+Rules.prototype.lockPlay = function(currentPlayer){
+    this.myTurn = false;
+};
+
+Rules.prototype.unlockPlay = function(currentPlayer){
+    this.myTurn = true;
 };

@@ -412,7 +412,7 @@ Player.prototype.setSelectedPiece = function(piece){
 
 
 Player.prototype.emitNextPlayer = function(){
-	this.gameio.emitNextPlayer({playerName : this.playerName, gameId : this.gameId});
+	this.gameio.emitNextPlayer({screenName : this.playerName, gameId : this.gameId, gameMode : this.playerMode});
 };
 
 

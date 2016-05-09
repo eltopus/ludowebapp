@@ -2,7 +2,7 @@
 // Added a function to animate rolling.
 
 Dice = function (game, x, y, gameId, myTurn, uniqueId) {
-    Phaser.Sprite.call(this, game, x, y, 'die');
+    Phaser.Sprite.call(this, game.game, x, y, 'die');
     
     this.tween;
     this.anim;
@@ -163,7 +163,7 @@ Dice.prototype.setSavedCurrentPlayer = function(currentPlayer){
 };
 
 Dice.prototype.selectDie = function() {
-    if (this.myTurn){
+    if (this.game.myTurn){
     	if (this.player != null && !this.player.hasMovingPiece()){   
             if (this.selected() && !this.isPlayed){
                 this.unSelect();

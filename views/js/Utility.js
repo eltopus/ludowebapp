@@ -1,7 +1,8 @@
 var groups = [];
 var groupIndex = -1;
 var diceDisplayStyle = { font: "25px Revalia", fill: "#00ffff", wordWrap: true, wordWrapWidth: 100, align: "center" };
-var playerTurnDisplayStyle = { font: "20px Revalia", fill: "#00ffff", wordWrap: true, wordWrapWidth: 200, align: "center" };
+var playerTurnDisplayStyle = { font: "20px Revalia", fill: "#F70C0C", wordWrap: true, wordWrapWidth: 200, align: "center" };
+var gameIdDisplayStyle = { font: "20px Revalia", fill: "#00ffff", wordWrap: true, wordWrapWidth: 200, align: "center" };
 
 createPieceGroups = function(game){
     

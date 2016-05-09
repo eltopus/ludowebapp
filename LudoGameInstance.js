@@ -3,6 +3,8 @@ var _ = require('underscore');
 
 function LudoGameInstance(gameId, socketId, owner, gameData, colors) {
 
+	this.colorsOptions = ["red", "blue", "green", "yellow"];
+	
 	this.redPieces = [{piece :"red", state : 0, index : 1, x :118, y:72, x_home:118, y_home:72, 
 		imageId:"red_piece", uniqueId :"8d4329e4-bb84-4ef5-97ec-593669ff197c", homeIndex:1 },
 		{piece:"red",state:0,index:1,x:72,y:118,x_home :72,y_home :118, 
@@ -46,21 +48,21 @@ function LudoGameInstance(gameId, socketId, owner, gameData, colors) {
 
 	this.ludoPlayers = [];
 	this.screenNames = [];
+	this.notifyEndOfPlay = [];
 
 	this.owner = owner;
 	this.numOfPlayers = 0;
 	gameData.gameId = gameId;
 	this.gameMode = gameData.gameMode;
-	this.ludoPlayers[owner] = new playerInstance(gameId, socketId, owner, gameData);
+	this.ludoPlayers[owner] = new playerInstance(gameId, socketId, owner, gameData, 1);
 	this.gameData = this.ludoPlayers[owner].gameData;
 	this.choicesLeft = null;
-	if (this.gameMode === 2)
-	{
-		var playerPieces = this.getPlayerPieces(colors);
-		this.choicesLeft = this.processColorChoices(colors);
-		this.addPlayerPieces(owner, playerPieces, colors);
-		//console.log(JSON.stringify(this.gameData));
-	}
+	
+	var playerPieces = this.getPlayerPieces(colors);
+	//this.processColorChoices(colors);
+	this.addPlayerPieces(owner, playerPieces, colors);
+	console.log(JSON.stringify(this.gameData));
+	
 
 	this.screenNames.push(owner);
 	++this.numOfPlayers;
@@ -71,24 +73,60 @@ LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName) {
 	if (this.isNotFull()) {
 		screenName = this.validateScreenName(screenName);
 		this.screenNames.push(screenName);
-		this.ludoPlayers[screenName] = new playerInstance(gameId, socketId, screenName, this.gameData);
 		++this.numOfPlayers;
+		this.gameData.setSessionTurn = false;
+		this.ludoPlayers[screenName] = new playerInstance(gameId, socketId, screenName, this.gameData, this.numOfPlayers);
+
 		this.gameData = this.ludoPlayers[screenName].gameData;
 		if (this.numOfPlayers === this.gameMode){
 			this.gameData.complete = true;
 		}
-		
+
 		if (this.gameMode === 2){
-			var playerPieces = this.getPlayerPieces(this.choicesLeft);
-			this.addPlayerPieces(screenName , playerPieces, this.choicesLeft);
-			//console.log(JSON.stringify(this.gameData));
+			var colorsLeft = this.colorsOptions;
+			var playerPieces = this.getPlayerPieces(this.colorsOptions);
+			this.addPlayerPieces(screenName , playerPieces, colorsLeft);
+			console.log(JSON.stringify(this.gameData));
 		}
-		
-		return {gameData : this.gameData, screenName: screenName};
+		else if (this.gameMode === 4 && this.colorsOptions.length > 0){
+			var colorsLeft = [];
+			colorsLeft.push(this.colorsOptions[0]);
+			var playerPieces = this.getPlayerPieces(colorsLeft);
+			this.addPlayerPieces(screenName , playerPieces, colorsLeft);
+			console.log(JSON.stringify(this.gameData));
+		}
+
+		return {gameData : this.gameData, screenName: screenName, index : this.numOfPlayers};
 	}
 	return null;
 };
 
+LudoGameInstance.prototype.getNextSocketId = function(screenName, callback){
+
+	if (this.ludoPlayers[screenName]){
+
+		var currentPlayer = this.ludoPlayers[screenName];
+		var index = (currentPlayer.index % this.gameMode) + 1;
+		
+		for (var key in this.ludoPlayers)
+		{
+			if (this.ludoPlayers[key].index === index)
+			{
+				if (this.updateNotifyEndOfPlay(screenName) >= this.gameMode){
+					this.notifyEndOfPlay = [];
+					callback(this.ludoPlayers[key].socketId);
+				}else{
+					callback(null);
+				}
+				return {};
+			}
+			
+		}
+	}
+	
+	console.log('ScreenName : ' + screenName + ' cannot be FOUND');
+	callback(null);
+};
 
 LudoGameInstance.prototype.validateScreenName = function(screenName) {
 
@@ -104,31 +142,44 @@ LudoGameInstance.prototype.validateScreenName = function(screenName) {
 };
 
 
+LudoGameInstance.prototype.updateNotifyEndOfPlay = function(screenName) {
+
+	if (this.notifyEndOfPlay.length < 1){
+		this.notifyEndOfPlay.push(screenName);
+		return this.notifyEndOfPlay.length;
+	}else{
+		for (var i = 0; i < this.notifyEndOfPlay.length; ++i){
+			if (this.notifyEndOfPlay[i] === screenName){
+				this.notifyEndOfPlay.push(screenName);
+				return this.notifyEndOfPlay.length;
+			}else{
+				this.notifyEndOfPlay.push(screenName);
+				console.log("A great error has occured!!!!!!!!");
+				return this.notifyEndOfPlay.length;
+			}
+		}
+	}
+};
+
+
 LudoGameInstance.prototype.addPlayerPieces = function(playerName, playerPieces, colorsChosen){
 
 	_.any(this.gameData.players, function(player){
-		  if (player.playerName === playerName){
-			  player.piecesNames = colorsChosen;
-			  player.pieces = playerPieces;
-			  return {};
-		  }
-	  });
-	
+		if (player.playerName === playerName){
+			player.piecesNames = colorsChosen;
+			player.pieces = playerPieces;
+			return {};
+		}
+	});
+
 };
 
 
 LudoGameInstance.prototype.processColorChoices = function(colors){
 
-	colorsOptions = ["red", "blue", "green", "yellow"];
-	_.each(colorsOptions, function(color){
-		for (var i = 0; i < colors.length; ++i){
-			if (color === colors[i])
-			{
-				colorsOptions = _.without(colorsOptions, color);
-			}
-		}
+	_.any(colors, function(color){
+		//colorsOptions = _.without(colorsOptions, color);
 	});
-	return colorsOptions;
 };
 
 
@@ -145,29 +196,35 @@ LudoGameInstance.prototype.getPlayerPieces = function(colors){
 			selectedPieces.push(this.redPieces[1]);
 			selectedPieces.push(this.redPieces[2]);
 			selectedPieces.push(this.redPieces[3]);
+			this.colorsOptions = _.without(this.colorsOptions, colors[i]);
 			break;
 		case "blue":
 			selectedPieces.push(this.bluePieces[0]);
 			selectedPieces.push(this.bluePieces[1]);
 			selectedPieces.push(this.bluePieces[2]);
 			selectedPieces.push(this.bluePieces[3]);
+			this.colorsOptions = _.without(this.colorsOptions, colors[i]);
 			break;
 		case "green":
 			selectedPieces.push(this.greenPieces[0]);
 			selectedPieces.push(this.greenPieces[1]);
 			selectedPieces.push(this.greenPieces[2]);
 			selectedPieces.push(this.greenPieces[3]);
+			this.colorsOptions =_.without(this.colorsOptions, colors[i]);
 			break;
 		case "yellow":
 			selectedPieces.push(this.yellowPieces[0]);
 			selectedPieces.push(this.yellowPieces[1]);
 			selectedPieces.push(this.yellowPieces[2]);
 			selectedPieces.push(this.yellowPieces[3]);
+			this.colorsOptions = _.without(this.colorsOptions, colors[i]);
 			break;
 		default:
 			break;
 		}
 	}
+	
+	console.log("Options: " + this.colorsOptions);
 	return selectedPieces;
 };
 

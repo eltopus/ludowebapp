@@ -9,6 +9,7 @@ Ludo.Boot.prototype = {
 		this.isMobile = false;
 		this.x = 32;
 		this.y = 80;
+		this.game.sound.mute = true;
 	},
 	
 	create: function() {
@@ -129,6 +130,7 @@ Ludo.Boot.prototype = {
         this.load.audio("gameMusic", "audio/LittleSwansGame.wav");
         this.load.audio("shakeAndroll", "audio/ShakeAndRollDice.mp3");
         this.load.audio("redneckRoll", "audio/RedneckRollsDice.mp3");
+        this.load.audio("ding", "audio/ding.mp3");
         this.game.load.start();
         
         
@@ -153,7 +155,7 @@ Ludo.Boot.prototype = {
     
     loadComplete : function(){
     	this.text.setText("Load Complete")
-    	this.state.start('StartMenu', true, false, true);
+    	this.state.start('StartMenu', true, false, this.isMobile);
     },
     
     
