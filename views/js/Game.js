@@ -184,6 +184,7 @@ Ludo.Game.prototype = {
 							this.play.visible = true;
 							this.diceBtn.visible = false;
 							this.currentPlayer.rolled();
+							this.currentPlayer.playerTurn();
 							break;
 						}
 					}  
@@ -200,7 +201,7 @@ Ludo.Game.prototype = {
 			}
 
 
-			if (this.currentPlayer.selectedPiece !== null){
+			if (this.currentPlayer.selectedPiece != null){
 				this.select(this.currentPlayer.selectedPiece, this);
 			}
 
@@ -247,7 +248,10 @@ Ludo.Game.prototype = {
 			
 			if (this.myTurn){
 				this.playDing();
+				this.currentPlayer.playerTurn();
 			}
+			
+			console.log("PlayerTurn: " + this.currentPlayer.turn);
 
 
 		},
@@ -739,10 +743,14 @@ Ludo.Game.prototype = {
 		playDing : function(){
 			this.ding.play();
 			this.playerTurnText.fill = '#00ffff';
+			this.gameIdText.fill = '#00ffff';
+			this.diceDisplayText.fill = '#00ffff';
 		},
 		
 		playDong : function(callback){
 			this.playerTurnText.fill = '#F70C0C';
+			this.gameIdText.fill = '#F70C0C';
+			this.diceDisplayText.fill = '#F70C0C';
 		},
 		
 		
@@ -793,7 +801,7 @@ Ludo.Game.prototype = {
 
 			if (tempPlayer != this.currentPlayer && !tempPlayer.hasMovingPiece())
 			{
-				tempPlayer.emitNextPlayer();
+				//tempPlayer.emitNextPlayer();
 				//console.log("Emmitting to server.... I am locked. " + this.sockId + " name: " + tempPlayer.playerName);
 				tempPlayer = this.currentPlayer;
 			}

@@ -418,7 +418,7 @@ Player.prototype.emitNextPlayer = function(){
 
 Player.prototype.setSelectedPieceById = function(id){
 	for (var i = 0; i < this.playerPieces.length; ++i){
-		if (this.playerPieces[i].uniqueId == id){
+		if (this.playerPieces[i].uniqueId === id){
 			this.selectedPiece = this.playerPieces[i];
 			return true;
 		}

@@ -66,18 +66,14 @@ function emitNextPlayer(data, callback)
 	var sock = this;
 	processNextTurn(data, sock.id, function(newId){
 		if (newId !== null){
-			
 			data.newId = newId;
 			callback(data);
 			console.log('Current ScreenName : ' + data.screenName + ' Emmiting new Id to : ' + newId);
 			io.sockets.in(data.gameId).emit('nextTurn', newId);
-			
 		}else{
 			callback(null);
 		}
 	});
-
-
 };
 
 function processNextTurn(data, id, callback){
@@ -86,6 +82,7 @@ function processNextTurn(data, id, callback){
 	{
 		var screenName = socketIds[id].screenName;
 		games[data.gameId].getNextSocketId(data.screenName, function(nextSocketId){
+			console.log('CurrentPlayerName: ' +games[data.gameId].currentPlayerName);
 			callback(nextSocketId);
 		});
 	}
@@ -151,17 +148,32 @@ function connectMultiplayerGame(newPlayer, callback){
 		}else{
 			console.log("Game NOT in progress");
 		}
-		var data = games[gameId].addPlayer(gameId, sock.id, screenName);
+		var data = games[gameId].addPlayer(gameId, sock.id, screenName, game.gameData.inprogress);
 		if (data === null){
 			callback({ok : false, message : "Error!!! Game ID: " + gameId + " may be full"});
 		}else{
-			var gameData = data.gameData;
-			var updatedScreenName = data.screenName;
-			socketIds[sock.id] = {gameId : gameId, screenName : updatedScreenName};
-			gameData.sockId = sock.id;
-			sock.broadcast.to(gameId).emit('awaitingStartGame', gameData);
-			this.join(gameId);
-			callback(gameData);
+
+			if (game.gameData.inprogress && data.index < 1){
+				var screenNames = [];
+				for (var i = 0; i <  data.availableScreenNames.length; ++i){
+					console.log("Names: " + data.availableScreenNames[i].screenName)
+					screenNames.push(data.availableScreenNames[i].screenName)
+				}
+				callback({ok : false, message : "Available ScreenNames are: " + screenNames});
+				
+			}else{
+
+				var gameData = data.gameData;
+				var updatedScreenName = data.screenName;
+				socketIds[sock.id] = {gameId : gameId, screenName : updatedScreenName};
+				gameData.sockId = sock.id;
+				sock.broadcast.to(gameId).emit('awaitingStartGame', gameData);
+				this.join(gameId.toString());
+				callback(gameData);
+			}
+
+
+
 		}
 
 	}else{

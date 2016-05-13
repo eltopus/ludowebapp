@@ -6,7 +6,6 @@ function LudoPlayerInstance(gameId, socketId, screenName, gameData, index){
 		 _.any(data.players, function(player){
 			  if (player.playerName === null){
 				  player.playerName = name;
-				  //player.piecesNames = colors;
 				  return {};
 			  }
 		  });

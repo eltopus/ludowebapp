@@ -1,10 +1,12 @@
 var playerInstance = require('./LudoPlayerInstance');
 var _ = require('underscore');
 
+
 function LudoGameInstance(gameId, socketId, owner, gameData, colors) {
 
 	this.colorsOptions = ["red", "blue", "green", "yellow"];
-	
+	this.disconnectedPlayers = [];
+
 	this.redPieces = [{piece :"red", state : 0, index : 1, x :118, y:72, x_home:118, y_home:72, 
 		imageId:"red_piece", uniqueId :"8d4329e4-bb84-4ef5-97ec-593669ff197c", homeIndex:1 },
 		{piece:"red",state:0,index:1,x:72,y:118,x_home :72,y_home :118, 
@@ -57,46 +59,83 @@ function LudoGameInstance(gameId, socketId, owner, gameData, colors) {
 	this.ludoPlayers[owner] = new playerInstance(gameId, socketId, owner, gameData, 1);
 	this.gameData = this.ludoPlayers[owner].gameData;
 	this.choicesLeft = null;
-	
+
 	var playerPieces = this.getPlayerPieces(colors);
-	//this.processColorChoices(colors);
 	this.addPlayerPieces(owner, playerPieces, colors);
 	console.log(JSON.stringify(this.gameData));
-	
+
 
 	this.screenNames.push(owner);
 	++this.numOfPlayers;
+	this.currentPlayerName = owner;
 
 };
 
-LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName) {
-	if (this.isNotFull()) {
-		screenName = this.validateScreenName(screenName);
-		this.screenNames.push(screenName);
-		++this.numOfPlayers;
-		this.gameData.setSessionTurn = false;
-		this.ludoPlayers[screenName] = new playerInstance(gameId, socketId, screenName, this.gameData, this.numOfPlayers);
+LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, inProgress) {
 
-		this.gameData = this.ludoPlayers[screenName].gameData;
-		if (this.numOfPlayers === this.gameMode){
-			this.gameData.complete = true;
+	if (this.isNotFull()) 
+	{
+		if (inProgress)
+		{
+
+			for (var i = 0; i < this.disconnectedPlayers.length; ++i)
+			{
+
+				if (this.disconnectedPlayers[i].screenName === screenName){
+
+					this.gameData.setSessionTurn = this.disconnectedPlayers[i].turn;
+					this.ludoPlayers[screenName] = new playerInstance(gameId, socketId, screenName, this.gameData, this.disconnectedPlayers[i].index);
+					this.gameData = this.ludoPlayers[screenName].gameData;
+					++this.numOfPlayers;
+					if (this.numOfPlayers === this.gameMode){
+						this.gameData.complete = true;
+					}
+					var index = this.disconnectedPlayers[i].index;
+					this.disconnectedPlayers.splice(i, 1);
+					console.log("After screenName: " + JSON.stringify(this.disconnectedPlayers));
+					return {gameData : this.gameData, screenName: screenName, index : index};
+				}
+
+			}
+
+
+			return {gameData : this.gameData, screenName: screenName, index : -1, availableScreenNames : this.disconnectedPlayers};
+
+
+		}else
+		{
+
+			screenName = this.validateScreenName(screenName);
+			this.screenNames.push(screenName);
+			++this.numOfPlayers;
+			this.gameData.setSessionTurn = false;
+			this.ludoPlayers[screenName] = new playerInstance(gameId, socketId, screenName, this.gameData, this.numOfPlayers);
+
+			this.gameData = this.ludoPlayers[screenName].gameData;
+			if (this.numOfPlayers === this.gameMode){
+				this.gameData.complete = true;
+			}
+
+			if (this.gameMode === 2){
+				var colorsLeft = this.colorsOptions;
+				var playerPieces = this.getPlayerPieces(this.colorsOptions);
+				this.addPlayerPieces(screenName , playerPieces, colorsLeft);
+				console.log(JSON.stringify(this.gameData));
+			}
+			else if (this.gameMode === 4 && this.colorsOptions.length > 0){
+				var colorsLeft = [];
+				colorsLeft.push(this.colorsOptions[0]);
+				var playerPieces = this.getPlayerPieces(colorsLeft);
+				this.addPlayerPieces(screenName , playerPieces, colorsLeft);
+				console.log(JSON.stringify(this.gameData));
+
+			}
+
+			return {gameData : this.gameData, screenName: screenName, index : this.numOfPlayers};
+
 		}
 
-		if (this.gameMode === 2){
-			var colorsLeft = this.colorsOptions;
-			var playerPieces = this.getPlayerPieces(this.colorsOptions);
-			this.addPlayerPieces(screenName , playerPieces, colorsLeft);
-			console.log(JSON.stringify(this.gameData));
-		}
-		else if (this.gameMode === 4 && this.colorsOptions.length > 0){
-			var colorsLeft = [];
-			colorsLeft.push(this.colorsOptions[0]);
-			var playerPieces = this.getPlayerPieces(colorsLeft);
-			this.addPlayerPieces(screenName , playerPieces, colorsLeft);
-			console.log(JSON.stringify(this.gameData));
-		}
 
-		return {gameData : this.gameData, screenName: screenName, index : this.numOfPlayers};
 	}
 	return null;
 };
@@ -107,25 +146,28 @@ LudoGameInstance.prototype.getNextSocketId = function(screenName, callback){
 
 		var currentPlayer = this.ludoPlayers[screenName];
 		var index = (currentPlayer.index % this.gameMode) + 1;
-		
+
 		for (var key in this.ludoPlayers)
 		{
 			if (this.ludoPlayers[key].index === index)
 			{
 				if (this.updateNotifyEndOfPlay(screenName) >= this.gameMode){
 					this.notifyEndOfPlay = [];
+					this.currentPlayerName = key;
 					callback(this.ludoPlayers[key].socketId);
 				}else{
 					callback(null);
 				}
 				return {};
 			}
-			
+
 		}
+	}else{
+		console.log('ScreenName : ' + screenName + ' cannot be FOUND');
+		callback(null);
 	}
-	
-	console.log('ScreenName : ' + screenName + ' cannot be FOUND');
-	callback(null);
+
+
 };
 
 LudoGameInstance.prototype.validateScreenName = function(screenName) {
@@ -223,7 +265,7 @@ LudoGameInstance.prototype.getPlayerPieces = function(colors){
 			break;
 		}
 	}
-	
+
 	console.log("Options: " + this.colorsOptions);
 	return selectedPieces;
 };
@@ -241,16 +283,30 @@ LudoGameInstance.prototype.isEmpty = function() {
 
 LudoGameInstance.prototype.removePlayer = function(screenName) {
 
-	_.without(this.ludoPlayers, screenName);
-	--this.numOfPlayers;
-	_.any(this.gameData.players, function(player){
-		if (player.playerName === screenName){
-			//player.playerName = null;
-			player.complete = false;
-			return {};
+	var disconnetedPlayer = {};
+
+	if (this.ludoPlayers[screenName])
+	{
+		//Save disconnected screenName and index
+		var player = this.ludoPlayers[screenName];
+		disconnetedPlayer.screenName = player.screenName;
+		disconnetedPlayer.index = player.index;
+		_.without(this.ludoPlayers, screenName);
+		--this.numOfPlayers;
+		for (var i = 0; i < this.gameData.players.length; ++i){
+			
+			if (this.gameData.players[i].playerName === screenName)
+			{
+				disconnetedPlayer.turn = this.gameData.players[i].turn;
+				this.gameData.complete = false;
+				this.disconnectedPlayers.push(disconnetedPlayer);
+				break;
+			}
+			
 		}
-	});
-	//console.log("After screenName: " + JSON.stringify(this.gameData));
+
+		console.log("After screenName: " + JSON.stringify(this.disconnectedPlayers));
+	}
 };
 
 LudoGameInstance.prototype.getPlayer = function(socketId) {
