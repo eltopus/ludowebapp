@@ -64,11 +64,11 @@ Socket = function(ludogame){
 		{
 			game.myTurn = true;
 			game.playDing();
-			console.log("I am unlocked! ");
+			//console.log("I am unlocked! ");
 		}else{
 			game.myTurn = false;
 			game.playDong();
-			console.log("I am locked! ");
+			//console.log("I am locked! ");
 		}
     });
 

@@ -195,6 +195,8 @@ Ludo.StartMenu.prototype = {
 
 			this.fourPlayerScreenNameBg.alpha = 0.0;
 			this.fourPlayerScreenName.alpha = 0.0;
+			
+			//alertMessage("Two Player selected", "Diconnection");
 		},
 
 		fourPlayer : function(){
@@ -383,17 +385,17 @@ Ludo.StartMenu.prototype = {
 			{
 
 				if (!gameId || 0 === gameId.length){
-					alert('Please enter game id');
+					alertMessage("Please enter game id", "Error", true);
 					return;
 				}
 
 				if (loadScreenName === 'twoplayer' || loadScreenName === 'fourplayer'){
-					alert('Please Enter Valid Screen Name');
+					alertMessage("Please Enter Valid Screen Name", "Error", true);
 					return;
 				}
 
 				if (loadScreenName.length < 1 ){
-					alert('Please Enter Valid Screen Name');
+					alertMessage("Please Enter Valid Screen Name", "Error", true);
 					return;
 				}
 
@@ -402,7 +404,7 @@ Ludo.StartMenu.prototype = {
 				if (this.socket === null){
 					this.socket = io();
 					this.socket.on('disconnected', function(message){
-						alert(message);
+						alertMessage(message, "Diconnection",  false);
 					});
 
 				}
@@ -433,7 +435,7 @@ Ludo.StartMenu.prototype = {
 					}
 					else
 					{
-						alert(data.message);
+						alertMessage(data.message, "Error", true);
 					}
 				});
 			}
@@ -441,19 +443,19 @@ Ludo.StartMenu.prototype = {
 			{
 				if (this.validateTextInput() == false)
 				{
-					alert('Please Valid Enter Screen Name!');
+					alertMessage("Please Enter Valid Screen Name", "Error", true);
 					return;
 				}
 
 				if (this.colors.length < 2 && this.gameMode === 2)
 				{
-					alert('Please Choose at least 2 colors!');
+					alertMessage("Please Choose at least 2 colors!", "Error", true);
 					return;
 				}
 
 				if (this.colors.length < 1 && this.gameMode === 4)
 				{
-					alert('Please Choose at least 1 color!');
+					alertMessage("Please Choose at least 1 color!", "Error", true);
 					return;
 				}
 
@@ -461,7 +463,7 @@ Ludo.StartMenu.prototype = {
 				if (this.socket === null){
 					this.socket = io();
 					this.socket.on('disconnected', function(message){
-						alert(message);
+						alertMessage(message, "Disconnection", false);
 					});
 				}
 
@@ -477,7 +479,7 @@ Ludo.StartMenu.prototype = {
 						}
 						else
 						{
-							alert(data.message);
+							alertMessage(data.message, "Error", true);
 						}
 					});
 					break;
@@ -490,7 +492,7 @@ Ludo.StartMenu.prototype = {
 						}
 						else
 						{
-							alert(data.message);
+							alertMessage(data.message, "Error", true);
 						}
 
 					});

@@ -6,4 +6,6 @@ window.onload = function() {
 	game.state.add('WaitMenu', Ludo.WaitMenu);
 	game.state.add('Game', Ludo.Game);
 	game.state.start('Boot');
+	
+	
 };

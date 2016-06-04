@@ -21,6 +21,7 @@
         <script src="js/Gamedef.js"></script>
         <script src="js/Action.js"></script>
         <script src="js/jquery-1.12.2.min.js"></script>
+        
         <script src="js/socket.io.js"></script>
         <script src="js/Socket.js"></script>
         <script src="js/Error.js"></script>
@@ -37,15 +38,26 @@
                 margin: 0;
                 background-color: #171642
             }
+            
+            .ui-widget-header,.ui-state-default, ui-button{
+            background:#b9cd6d;
+            border: 1px solid #b9cd6d;
+            color: #FFFFFF;
+            font-weight: bold;
+         }
         
         </style>
+        
+        
+        
     </head>
     <body>
         
+        <div id="dialog" title=" " class="selector"> </div>
         <div id="gameContainer">
         </div>
-        <div id="orientation"></div>
         <script src="js/index.js"></script>
         
+                
     </body>
 </html>

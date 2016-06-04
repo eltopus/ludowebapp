@@ -202,3 +202,21 @@ setGreenParameter2 = function(piece){
     piece.x = 336;
     piece.y = 624;
 };
+
+alertMessage = function(message, messageTitle, mod){
+	
+	$( "#dialog" ).dialog({
+		 modal: mod,
+		  title : messageTitle,
+		  buttons: {
+              OK: function() {$(this).dialog("close");}
+           },
+		
+	});
+	var isOpen = $("#dialog").dialog("isOpen");
+	if (isOpen){
+		$("#dialog").dialog("close") ;
+	}
+	$( "#dialog" ).text(message);
+	$( "#dialog" ).dialog();
+}

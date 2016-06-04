@@ -1,7 +1,6 @@
 var playerInstance = require('./LudoPlayerInstance');
 var _ = require('underscore');
 
-
 function LudoGameInstance(gameId, socketId, owner, gameData, colors) {
 
 	this.colorsOptions = ["red", "blue", "green", "yellow"];
@@ -68,6 +67,7 @@ function LudoGameInstance(gameId, socketId, owner, gameData, colors) {
 	this.screenNames.push(owner);
 	++this.numOfPlayers;
 	this.currentPlayerName = owner;
+	this.gameDataUpdate = null;
 
 };
 
@@ -140,24 +140,30 @@ LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, in
 	return null;
 };
 
-LudoGameInstance.prototype.getNextSocketId = function(screenName, callback){
+LudoGameInstance.prototype.getNextSocketId = function(screenName, updatedGameData, callback){
 
 	if (this.ludoPlayers[screenName]){
 
 		var currentPlayer = this.ludoPlayers[screenName];
 		var index = (currentPlayer.index % this.gameMode) + 1;
+		
+		
 
 		for (var key in this.ludoPlayers)
 		{
 			if (this.ludoPlayers[key].index === index)
 			{
+				this.gameDataUpdate = updatedGameData;
+				
 				if (this.updateNotifyEndOfPlay(screenName) >= this.gameMode){
 					this.notifyEndOfPlay = [];
 					this.currentPlayerName = key;
+					
 					callback(this.ludoPlayers[key].socketId);
 				}else{
 					callback(null);
 				}
+				
 				return {};
 			}
 
@@ -168,6 +174,11 @@ LudoGameInstance.prototype.getNextSocketId = function(screenName, callback){
 	}
 
 
+};
+
+
+LudoGameInstance.prototype.getUpdatedGameData = function(callback) {
+	callback(this.gameDataUpdate)
 };
 
 LudoGameInstance.prototype.validateScreenName = function(screenName) {

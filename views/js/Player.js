@@ -411,8 +411,8 @@ Player.prototype.setSelectedPiece = function(piece){
 };
 
 
-Player.prototype.emitNextPlayer = function(){
-	this.gameio.emitNextPlayer({screenName : this.playerName, gameId : this.gameId, gameMode : this.playerMode});
+Player.prototype.emitNextPlayer = function(updatedGameData){
+	this.gameio.emitNextPlayer({screenName : this.playerName, gameId : this.gameId, gameMode : this.playerMode, gameData: updatedGameData});
 };
 
 

@@ -245,13 +245,13 @@ Ludo.Game.prototype = {
 			this.soundIcon.events.onInputDown.add(this.muteMusic, this);
 
 			tempPlayer = this.currentPlayer;
-			
+
 			if (this.myTurn){
 				this.playDing();
 				this.currentPlayer.playerTurn();
 			}
-			
-			console.log("PlayerTurn: " + this.currentPlayer.turn);
+
+			//console.log("PlayerTurn: " + this.currentPlayer.turn);
 
 
 		},
@@ -316,49 +316,19 @@ Ludo.Game.prototype = {
 
 		restart: function(){
 
-			if (this.myTurn && this.currentPlayer != null)
-			{
-				this.currentPlayer.releasePlay();
-				this.socket.emit('releaseGame', {gameId : this.savedGameId});
-				/*
-    		var data = JSON.stringify(this.cache.getJSON('save'));
-    		var gameData = JSON.parse(data);
-            if (!this.currentPlayer.hasMovingPiece()){
-                this.updateGame(gameData);
-            }
-				 */
+			if (confirm("Release game?") == true) {
+				if (this.myTurn && this.currentPlayer != null)
+				{
+					this.currentPlayer.releasePlay();
+					this.socket.emit('releaseGame', {gameId : this.savedGameId});
 
-			}
-
-			/*
-    	this.scale.pageAlignVertically = true;
-        this.scale.pageAlignHorizontally = true;
-        this.scale.setShowAll();
-        this.scale.refresh();
-
-
-
-
-    	if (this.scale.isFullScreen)
-        {
-            this.scale.stopFullScreen();
-        }
-        else
-        {
-            this.scale.startFullScreen(false);
-        }
-
-    	/*
-        if (confirm("Restart game?") == true) {
-            groupIndex = 0;
-            this.game.state.start('StartMenu'); 
-        } 
-			 */
-
+				}
+			} 
 		},
 
 		saveGame : function(){
 
+			/*
 			var gamedef = new Gamedef(this.controller, this.gameData.gameId);
 			gamedef.savedef(this.ludo);
 			gamedef.gameMode = this.gameData.gameMode;
@@ -366,11 +336,60 @@ Ludo.Game.prototype = {
 				alert(message);
 			});
 
+			 */
+
+			if (!this.currentPlayer.hasMovingPiece())
+			{
+				
+				var ludo = this.ludo;
+				var currentPlayer = this.currentPlayer;
+				var play = this.play;
+				var diceBtn = this.diceBtn;
+				var select = this.select;
+				var controller = this.controller;
+				var cgame = this;
+
+				this.socket.emit('updateGame', this.gameId, function(gameData){
+					if (gameData != null)
+					{
+						//console.log("UpdatedGame: "+ JSON.stringify(gameData));
+						for (var i = 0; i < ludo.length; ++i)
+						{
+							ludo[i].updatePlayer(gameData.players);
+							if (ludo[i].myTurn())
+							{
+								currentPlayer = ludo[i];
+								currentPlayer.selectAll();
+								if (controller.setDiceValue(currentPlayer)){
+									play.visible = true;
+									diceBtn.visible = false;
+									currentPlayer.rolled();  
+								}    
+							}    
+							else
+							{
+								ludo[i].deSelectAll();
+							}  
+						}
+
+						if (currentPlayer.selectedPiece != null){
+							select(currentPlayer.selectedPiece, cgame);
+						}
+						
+						alertMessage("Game Updated Successfully!", "Success", false);
+					}else{
+						alertMessage("Game update failed!", "Error!", false);
+					}
+
+				});
+			}
+
 		},
 
 
 		createNewGame : function(){
-			/*
+			
+		/*
         var gamedef = new Gamedef(this.controller, this.gameId);
         gamedef.savedef(this.ludo);
         var gameIdText = this.gameIdText;
@@ -380,7 +399,7 @@ Ludo.Game.prototype = {
         this.socket.emit('createNewGame', preparedData, function (data){	
         	gameIdText.setText("Game ID: " + data.gameId.toString());
         });
-			 */
+		*/
 
 		},
 
@@ -658,7 +677,7 @@ Ludo.Game.prototype = {
 			}
 
 			if (this.currentPlayer.hasAllPiecesExited()){
-				alert("Winner is " + this.currentPlayer.playerName);
+				alertMessage("Winner is " + this.currentPlayer.playerName, "Winner!", true);
 				this.socket.emit('endOfGame', {gameId : this.savedGameId});
 				this.currentPlayer.resetAllPiecesExited();
 			}
@@ -696,6 +715,7 @@ Ludo.Game.prototype = {
 
 		updateGame : function(gameData){
 
+			//console.log("UpdatedGame: "+ JSON.stringify(gameData));
 			for (var i = 0; i < this.ludo.length; ++i)
 			{
 				this.ludo[i].updatePlayer(gameData.players);
@@ -739,21 +759,31 @@ Ludo.Game.prototype = {
 				callback(true, this.access);
 			}
 		},
-		
+
 		playDing : function(){
 			this.ding.play();
 			this.playerTurnText.fill = '#00ffff';
 			this.gameIdText.fill = '#00ffff';
 			this.diceDisplayText.fill = '#00ffff';
 		},
-		
+
 		playDong : function(callback){
 			this.playerTurnText.fill = '#F70C0C';
 			this.gameIdText.fill = '#F70C0C';
 			this.diceDisplayText.fill = '#F70C0C';
 		},
-		
-		
+
+		getUpdatedGame : function(){
+
+			var gamedef = new Gamedef(this.controller, this.gameData.gameId);
+			gamedef.savedef(this.ludo);
+			gamedef.gameMode = this.gameData.gameMode;
+			return gamedef;
+
+		},
+
+
+
 		update: function() {
 
 			if (this.isMobile === false){
@@ -801,8 +831,8 @@ Ludo.Game.prototype = {
 
 			if (tempPlayer != this.currentPlayer && !tempPlayer.hasMovingPiece())
 			{
-				//tempPlayer.emitNextPlayer();
-				//console.log("Emmitting to server.... I am locked. " + this.sockId + " name: " + tempPlayer.playerName);
+				tempPlayer.emitNextPlayer(this.getUpdatedGame());
+				//console.log("UpdatedGame: " + JSON.stringify(this.getUpdatedGame()));
 				tempPlayer = this.currentPlayer;
 			}
 		}

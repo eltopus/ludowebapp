@@ -48,7 +48,21 @@ exports.initGame = function(gameio, socket){
 	gameSocket.on('emitNextPlayer', emitNextPlayer);
 	gameSocket.on('releaseGame', releaseGame);
 	gameSocket.on('disconnect', disconnected);
+	gameSocket.on('updateGame', updateGame);
 };
+
+function updateGame(gameId, callback){
+	var sock = this;
+	var game = games[gameId];
+	if (game){
+		game.getUpdatedGameData(function(updatedGame){
+			callback(updatedGame);
+		})
+	}else{
+		callback(null);
+	}
+
+}
 
 function releaseGame(data){
 	var sock = this;
@@ -81,7 +95,7 @@ function processNextTurn(data, id, callback){
 	if (socketIds[id] && games[data.gameId])
 	{
 		var screenName = socketIds[id].screenName;
-		games[data.gameId].getNextSocketId(data.screenName, function(nextSocketId){
+		games[data.gameId].getNextSocketId(data.screenName, data.gameData, function(nextSocketId){
 			console.log('CurrentPlayerName: ' +games[data.gameId].currentPlayerName);
 			callback(nextSocketId);
 		});
