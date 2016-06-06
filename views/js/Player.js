@@ -415,6 +415,10 @@ Player.prototype.emitNextPlayer = function(updatedGameData){
 	this.gameio.emitNextPlayer({screenName : this.playerName, gameId : this.gameId, gameMode : this.playerMode, gameData: updatedGameData});
 };
 
+Player.prototype.updateGameOnDisconnection = function(updatedGameData){
+	this.gameio.updateGameOnDisconnection(updatedGameData);
+};
+
 
 Player.prototype.setSelectedPieceById = function(id){
 	for (var i = 0; i < this.playerPieces.length; ++i){

@@ -1,11 +1,14 @@
 var _ = require('underscore');
 
-function LudoPlayerInstance(gameId, socketId, screenName, gameData, index){
+function LudoPlayerInstance(gameId, socketId, screenName, gameData, index, owner){
 	
 	updateScreenName = function(name, data){
 		 _.any(data.players, function(player){
 			  if (player.playerName === null){
 				  player.playerName = name;
+				  if (owner){
+					  player.turn = true;
+				  }
 				  return {};
 			  }
 		  });
@@ -17,7 +20,7 @@ function LudoPlayerInstance(gameId, socketId, screenName, gameData, index){
 	updateScreenName(screenName, gameData);
 	this.gameData = gameData;
 	this.index = index;
-	console.log('Index set : ' + index);
+	//console.log('Index set : ' + index);
 }
 
 LudoPlayerInstance.prototype.updateGameData = function(gameData){

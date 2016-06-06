@@ -49,6 +49,15 @@ exports.initGame = function(gameio, socket){
 	gameSocket.on('releaseGame', releaseGame);
 	gameSocket.on('disconnect', disconnected);
 	gameSocket.on('updateGame', updateGame);
+	gameSocket.on('updateGameOnDisconnection', updateGameOnDisconnection);
+	gameSocket.on('playerReconnected', playerReconnected);
+};
+
+
+function playerReconnected(data){
+	var sock = this;
+	sock.broadcast.to(data.gameId).emit('playerReconnected', data.screenName);
+
 };
 
 function updateGame(gameId, callback){
@@ -57,12 +66,28 @@ function updateGame(gameId, callback){
 	if (game){
 		game.getUpdatedGameData(function(updatedGame){
 			callback(updatedGame);
-		})
+		});
 	}else{
 		callback(null);
 	}
 
 }
+
+
+function updateGameOnDisconnection(gameData, callback){
+	var sock = this;
+	var game = games[gameData.gameId];
+	if (game){
+		game.setUpdatedGameData(gameData, function(status){
+			callback(status);
+		});
+		
+	}else{
+		callback(false);
+	}
+
+}
+
 
 function releaseGame(data){
 	var sock = this;
@@ -78,12 +103,12 @@ function nextTurn(data, callback){
 function emitNextPlayer(data, callback)
 {
 	var sock = this;
-	processNextTurn(data, sock.id, function(newId){
-		if (newId !== null){
-			data.newId = newId;
+	processNextTurn(data, sock.id, function(nextPlayer){
+		if (nextPlayer !== null){
+			data.newId = nextPlayer.socketId;
 			callback(data);
-			console.log('Current ScreenName : ' + data.screenName + ' Emmiting new Id to : ' + newId);
-			io.sockets.in(data.gameId).emit('nextTurn', newId);
+			//console.log('Current ScreenName : ' + data.screenName + ' Emmiting new Id to : ' + nextPlayer.socketId);
+			io.sockets.in(data.gameId).emit('nextTurn', nextPlayer);
 		}else{
 			callback(null);
 		}
@@ -95,12 +120,12 @@ function processNextTurn(data, id, callback){
 	if (socketIds[id] && games[data.gameId])
 	{
 		var screenName = socketIds[id].screenName;
-		games[data.gameId].getNextSocketId(data.screenName, data.gameData, function(nextSocketId){
-			console.log('CurrentPlayerName: ' +games[data.gameId].currentPlayerName);
-			callback(nextSocketId);
+		games[data.gameId].getNextSocketId(data.screenName, data.gameData, function(nextPlayer){
+			//console.log('CurrentPlayerName: ' +games[data.gameId].currentPlayerName);
+			callback(nextPlayer);
 		});
 	}
-	console.log('------------------------------------------------------------ ');
+	//console.log('------------------------------------------------------------ ');
 
 };
 
@@ -139,11 +164,12 @@ function createTwoPlayerMultiplayerGame(preparedData, callback){
 		twoPlayer.complete = false;
 		twoPlayer.inprogress = false;
 		twoPlayer.setSessionTurn = true;
-		console.log(preparedData.colors);
+		//console.log(preparedData.colors);
 		var ludoInstance = new ludoGameInstance(gameId, sock.id, screenName, twoPlayer, preparedData.colors);
 		games[gameId] = ludoInstance;
 		socketIds[sock.id] = {gameId : gameId, screenName : screenName};
 		ludoInstance.gameData.sockId = sock.id;
+		ludoInstance.gameData.screenName = screenName;
 		callback(ludoInstance.gameData);
 	});
 	this.join(gameId.toString());
@@ -155,40 +181,38 @@ function connectMultiplayerGame(newPlayer, callback){
 	var gameId = newPlayer.gameId.toString().trim().toLowerCase();
 	var game = games[gameId];
 
-	if (game){
+	if (game)
+	{
 
-		if (game.gameData.inprogress){
-			console.log("Game in progress");
-		}else{
-			console.log("Game NOT in progress");
-		}
-		var data = games[gameId].addPlayer(gameId, sock.id, screenName, game.gameData.inprogress);
-		if (data === null){
-			callback({ok : false, message : "Error!!! Game ID: " + gameId + " may be full"});
-		}else{
+		games[gameId].addPlayer(gameId, sock.id, screenName, function(data){
 
-			if (game.gameData.inprogress && data.index < 1){
-				var screenNames = [];
-				for (var i = 0; i <  data.availableScreenNames.length; ++i){
-					console.log("Names: " + data.availableScreenNames[i].screenName)
-					screenNames.push(data.availableScreenNames[i].screenName)
-				}
-				callback({ok : false, message : "Available ScreenNames are: " + screenNames});
-				
+			if (data === null){
+				callback({ok : false, message : "Error!!! Game ID: " + gameId + " may be full"});
 			}else{
 
-				var gameData = data.gameData;
-				var updatedScreenName = data.screenName;
-				socketIds[sock.id] = {gameId : gameId, screenName : updatedScreenName};
-				gameData.sockId = sock.id;
-				sock.broadcast.to(gameId).emit('awaitingStartGame', gameData);
-				this.join(gameId.toString());
-				callback(gameData);
+				if (data.index < 1)
+				{
+					var screenNames = [];
+					for (var i = 0; i <  data.availableScreenNames.length; ++i){
+						//console.log("Names: " + data.availableScreenNames[i].screenName)
+						screenNames.push(data.availableScreenNames[i].screenName)
+					}
+					callback({ok : false, message : "Available ScreenNames are: " + screenNames});
+
+				}else{
+
+					var gameData = data.gameData;
+					socketIds[sock.id] = {gameId : gameId, screenName : data.screenName};
+					gameData.sockId = sock.id;
+					gameData.screenName = data.screenName;
+					sock.broadcast.to(gameId).emit('awaitingStartGame', gameData);
+					sock.join(gameId.toString());
+					callback(gameData);
+				}
 			}
 
+		});
 
-
-		}
 
 	}else{
 		callback({ok : false, message : "Game Id " + newPlayer.gameId + " does not exist" });
@@ -294,7 +318,7 @@ function saveNewGame(data, callback){
 		data.gameMode = gameData.gameMode;
 		data.inprogress = true;
 		games[data.gameId].gameData = data;
-		console.log("Save Data: " + JSON.stringify(games[data.gameId].gameData));
+		//console.log("Save Data: " + JSON.stringify(games[data.gameId].gameData));
 
 	}else{
 

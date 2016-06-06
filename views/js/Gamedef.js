@@ -8,6 +8,10 @@ Gamedef = function (controller, gameId) {
         this.diceIds.push({uniqueId : controller.dice[i].uniqueId, value : controller.dice[i].value()});
     }
     this.players = []; 
+    this.ok = true;
+	this.message = 'OK';
+	this.complete = true;
+	this.inprogress = true;
 };
 
 

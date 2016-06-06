@@ -425,7 +425,8 @@ Ludo.StartMenu.prototype = {
 								menuMusic.destroy();
 							}
 
-							state.start('Game', true, false, data, true, socket, data.setSessionTurn, false, isMobile, data.sockId);
+							socket.emit('playerReconnected', {gameId : gameId, screenName : data.screenName });
+							state.start('Game', true, false, data, true, socket, data.setSessionTurn, false, isMobile, data.sockId, data.screenName);
 						}
 						else
 						{

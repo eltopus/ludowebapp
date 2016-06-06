@@ -5,7 +5,7 @@ Ludo.Game = function(game){};
 
 Ludo.Game.prototype = {
 
-		init: function(gameData, saveFlag, socket, myTurn, owner, isMobile, sockId){
+		init: function(gameData, saveFlag, socket, myTurn, owner, isMobile, sockId, screenName){
 			this.savedGameId = gameData.gameId;
 			this.gameData = gameData;
 			this.saveFlag = saveFlag;
@@ -14,10 +14,11 @@ Ludo.Game.prototype = {
 			this.playerMode = gameData.playerMode;
 			this.myTurn = myTurn;
 			this.access = myTurn;
-
 			this.owner = owner;
 			this.isMobile = isMobile;
 			this.sockId = sockId;
+			this.playerName = screenName;
+			
 
 			this.gameMusic = null;
 			if (this.isMobile === false){
@@ -251,7 +252,23 @@ Ludo.Game.prototype = {
 				this.currentPlayer.playerTurn();
 			}
 
-			//console.log("PlayerTurn: " + this.currentPlayer.turn);
+			
+			
+			//Update Game when player disconnects
+			var currentPlayer = this.currentPlayer;
+			var controller = this.controller;
+			var ludo = this.ludo;
+			var playerMode = this.playerMode;
+			var gameId = this.newGameId;
+			this.socket.on('disconnected', function(message){
+				if (currentPlayer!= null){
+					var gamedef = new Gamedef(controller, gameId);
+					gamedef.savedef(ludo);
+					gamedef.gameMode = playerMode;
+					currentPlayer.updateGameOnDisconnection(gamedef);
+					//console.log("Sending updates..." + JSON.stringify(gamedef));
+				}
+	        });
 
 
 		},
@@ -781,6 +798,7 @@ Ludo.Game.prototype = {
 			return gamedef;
 
 		},
+		
 
 
 

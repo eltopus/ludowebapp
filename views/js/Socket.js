@@ -58,22 +58,24 @@ Socket = function(ludogame){
 		game.restartEmission();
     });
 	
-	gameio.on('nextTurn', function(newId){
+	gameio.on('nextTurn', function(nextPlayer){
 		
-		if (sockId == newId)
+		if (sockId == nextPlayer.socketId)
 		{
 			game.myTurn = true;
 			game.playDing();
-			//console.log("I am unlocked! ");
+			console.log("I am unlocked! " + nextPlayer.screenName);
 		}else{
 			game.myTurn = false;
 			game.playDong();
-			//console.log("I am locked! ");
+			console.log("I am locked! " + nextPlayer.screenName);
 		}
     });
 
 
-	
+	gameio.on('playerReconnected', function(screenName){
+		alertMessage(screenName + " has reconnected", "Reconnection",  false);
+    });
 	
 	
 };
@@ -114,3 +116,12 @@ Socket.prototype.emitNextPlayer = function(nextPlayerObject){
 		//game.myTurn = false;
 	});
 };
+
+Socket.prototype.updateGameOnDisconnection = function(updateGameData){
+	gameio.emit('updateGameOnDisconnection', updateGameData, function(status){
+		//console.log("Status! " + status);
+	});
+};
+
+
+
