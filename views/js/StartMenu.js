@@ -425,8 +425,15 @@ Ludo.StartMenu.prototype = {
 								menuMusic.destroy();
 							}
 
-							socket.emit('playerReconnected', {gameId : gameId, screenName : data.screenName });
-							state.start('Game', true, false, data, true, socket, data.setSessionTurn, false, isMobile, data.sockId, data.screenName);
+							
+							
+							if (data.screenName === 'ADMIN'){
+								state.start('Game', true, false, data, true, socket, data.setSessionTurn, false, isMobile, data.sockId, data.screenName, true);
+							}else{
+								socket.emit('playerReconnected', {gameId : gameId, screenName : data.screenName });
+								state.start('Game', true, false, data, true, socket, data.setSessionTurn, false, isMobile, data.sockId, data.screenName, true);
+							}
+							
 						}
 						else
 						{

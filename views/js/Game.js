@@ -5,7 +5,7 @@ Ludo.Game = function(game){};
 
 Ludo.Game.prototype = {
 
-		init: function(gameData, saveFlag, socket, myTurn, owner, isMobile, sockId, screenName){
+		init: function(gameData, saveFlag, socket, myTurn, owner, isMobile, sockId, screenName, rejoin){
 			this.savedGameId = gameData.gameId;
 			this.gameData = gameData;
 			this.saveFlag = saveFlag;
@@ -18,7 +18,8 @@ Ludo.Game.prototype = {
 			this.isMobile = isMobile;
 			this.sockId = sockId;
 			this.playerName = screenName;
-			
+			this.rejoin = rejoin;
+
 
 			this.gameMusic = null;
 			if (this.isMobile === false){
@@ -27,6 +28,13 @@ Ludo.Game.prototype = {
 				if (this.gameMusic.isPlaying == false){ 
 					this.gameMusic.play('',0,1,true); 
 				} 
+			}else{
+				/*
+				var stayAwake = setInterval(function () {
+				    location.href = location.href; //try refreshing
+				    window.setTimeout(window.stop, 0); //stop it soon after
+				}, 30000);
+				 */
 			}
 		},
 
@@ -232,7 +240,7 @@ Ludo.Game.prototype = {
 
 			if (!this.saveFlag)
 			{
-				this.createNewGame();
+				//this.createNewGame();
 			}
 
 
@@ -252,8 +260,8 @@ Ludo.Game.prototype = {
 				this.currentPlayer.playerTurn();
 			}
 
-			
-			
+
+
 			//Update Game when player disconnects
 			var currentPlayer = this.currentPlayer;
 			var controller = this.controller;
@@ -268,11 +276,27 @@ Ludo.Game.prototype = {
 					currentPlayer.updateGameOnDisconnection(gamedef);
 					//console.log("Sending updates..." + JSON.stringify(gamedef));
 				}
-	        });
+			});
+
+			if (this.rejoin){
+				//console.log("Updation player turn for: " + this.playerName);
+				//this.updatePlayerTurnOnRejoin();
+			}
 
 
 		},
 
+
+		updatePlayerTurnOnRejoin : function(){
+
+			for (player in this.gameData.players){
+				if (player.playerName === this.playerName && player.turn === true){
+					this.myTurn = true;
+					console.log("Updation player turn for: " + this.playerName);
+				}
+
+			}
+		},
 
 		onTap : function(pointer, doubleTap) {
 
@@ -343,7 +367,7 @@ Ludo.Game.prototype = {
 			} 
 		},
 
-		saveGame : function(){
+		saveGame : function(data){
 
 			/*
 			var gamedef = new Gamedef(this.controller, this.gameData.gameId);
@@ -357,7 +381,7 @@ Ludo.Game.prototype = {
 
 			if (!this.currentPlayer.hasMovingPiece())
 			{
-				
+
 				var ludo = this.ludo;
 				var currentPlayer = this.currentPlayer;
 				var play = this.play;
@@ -365,48 +389,91 @@ Ludo.Game.prototype = {
 				var select = this.select;
 				var controller = this.controller;
 				var cgame = this;
+				var playerName = this.playerName;
+				var myTurn = this.myTurn;
+				var playDing = this.playDing;
 
-				this.socket.emit('updateGame', this.gameId, function(gameData){
-					if (gameData != null)
-					{
-						//console.log("UpdatedGame: "+ JSON.stringify(gameData));
-						for (var i = 0; i < ludo.length; ++i)
+				if (!data.players){
+
+					this.socket.emit('updateGame', this.gameId, function(gameData){
+						if (gameData != null)
 						{
-							ludo[i].updatePlayer(gameData.players);
-							if (ludo[i].myTurn())
+							//console.log("UpdatedGame: "+ JSON.stringify(gameData));
+							for (var i = 0; i < ludo.length; ++i)
 							{
-								currentPlayer = ludo[i];
-								currentPlayer.selectAll();
-								if (controller.setDiceValue(currentPlayer)){
-									play.visible = true;
-									diceBtn.visible = false;
-									currentPlayer.rolled();  
+								ludo[i].updatePlayer(gameData.players);
+								if (ludo[i].myTurn())
+								{
+									currentPlayer = ludo[i];
+									currentPlayer.selectAll();
+									if (controller.setDiceValue(currentPlayer)){
+										play.visible = true;
+										diceBtn.visible = false;
+										currentPlayer.rolled();
+										if (currentPlayer.playerName === playerName && myTurn == false){
+											myTurn = true;
+											playDing();
+											
+										}
+									}    
 								}    
-							}    
-							else
-							{
-								ludo[i].deSelectAll();
-							}  
+								else
+								{
+									ludo[i].deSelectAll();
+								}  
+							}
+
+							if (currentPlayer.selectedPiece != null){
+								select(currentPlayer.selectedPiece, cgame);
+							}
+
+							alertMessage("Game Updated Successfully!", "Success", false);
+						}else{
+							alertMessage("Game update failed!", "Error!", false);
 						}
 
-						if (currentPlayer.selectedPiece != null){
-							select(currentPlayer.selectedPiece, cgame);
-						}
-						
-						alertMessage("Game Updated Successfully!", "Success", false);
-					}else{
-						alertMessage("Game update failed!", "Error!", false);
+					});
+
+
+				}else{
+					for (var i = 0; i < ludo.length; ++i)
+					{
+						ludo[i].updatePlayer(data.players);
+						if (ludo[i].myTurn())
+						{
+							currentPlayer = ludo[i];
+							currentPlayer.selectAll();
+							if (controller.setDiceValue(currentPlayer)){
+								play.visible = true;
+								diceBtn.visible = false;
+								currentPlayer.rolled(); 
+								if (currentPlayer.playerName == playerName && myTurn == false){
+									myTurn = true;
+									playDing();
+									
+								}
+							}    
+						}    
+						else
+						{
+							ludo[i].deSelectAll();
+						}  
 					}
 
-				});
+					if (currentPlayer.selectedPiece != null){
+						select(currentPlayer.selectedPiece, cgame);
+					}
+
+				}
+
 			}
 
 		},
 
 
 		createNewGame : function(){
-			
-		/*
+
+			/*
         var gamedef = new Gamedef(this.controller, this.gameId);
         gamedef.savedef(this.ludo);
         var gameIdText = this.gameIdText;
@@ -416,7 +483,7 @@ Ludo.Game.prototype = {
         this.socket.emit('createNewGame', preparedData, function (data){	
         	gameIdText.setText("Game ID: " + data.gameId.toString());
         });
-		*/
+			 */
 
 		},
 
@@ -798,7 +865,7 @@ Ludo.Game.prototype = {
 			return gamedef;
 
 		},
-		
+
 
 
 
@@ -849,7 +916,12 @@ Ludo.Game.prototype = {
 
 			if (tempPlayer != this.currentPlayer && !tempPlayer.hasMovingPiece())
 			{
-				tempPlayer.emitNextPlayer(this.getUpdatedGame());
+				if (this.playerName === 'ADMIN'){
+
+				}else{
+					tempPlayer.emitNextPlayer(this.getUpdatedGame());
+				}
+
 				//console.log("UpdatedGame: " + JSON.stringify(this.getUpdatedGame()));
 				tempPlayer = this.currentPlayer;
 			}

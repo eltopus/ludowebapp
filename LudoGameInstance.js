@@ -1,6 +1,6 @@
 var playerInstance = require('./LudoPlayerInstance');
 var _ = require('underscore');
-
+var perfectTimeToViewGame = false;
 function LudoGameInstance(gameId, socketId, owner, gameData, colors) {
 
 	this.colorsOptions = ["red", "blue", "green", "yellow"];
@@ -68,6 +68,23 @@ function LudoGameInstance(gameId, socketId, owner, gameData, colors) {
 	this.gameInProgress = false;
 	
 
+};
+
+
+LudoGameInstance.prototype.addAdminPlayer = function(screenName, callback) {
+	
+	if (this.gameInProgress){
+		
+		if (perfectTimeToViewGame){
+			this.gameData.inprogress = true;
+			this.gameData.screenName = 'ADMIN';
+			callback(this.gameData);
+		}
+		
+	}else{
+		callback(null);
+	}
+	
 };
 
 LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, callback) {
@@ -153,6 +170,7 @@ LudoGameInstance.prototype.getNextSocketId = function(screenName, updatedGameDat
 
 	if (this.ludoPlayers[screenName]){
 
+		perfectTimeToViewGame = false;
 		var currentPlayer = this.ludoPlayers[screenName];
 		var index = (currentPlayer.index % this.gameMode) + 1;
 
@@ -165,7 +183,8 @@ LudoGameInstance.prototype.getNextSocketId = function(screenName, updatedGameDat
 				if (this.updateNotifyEndOfPlay(screenName) >= this.gameMode){
 					this.notifyEndOfPlay = [];
 					this.currentPlayerName = key;
-					callback({socketId : this.ludoPlayers[key].socketId, screenName : key});
+					perfectTimeToViewGame = true;
+					callback({socketId : this.ludoPlayers[key].socketId, screenName : key, gameData : this.gameData});
 				}else{
 					callback(null);
 				}
@@ -290,7 +309,7 @@ LudoGameInstance.prototype.getPlayerPieces = function(colors){
 		}
 	}
 
-	console.log("Options: " + this.colorsOptions);
+	//console.log("Options: " + this.colorsOptions);
 	return selectedPieces;
 };
 

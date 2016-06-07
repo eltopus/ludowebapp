@@ -81,7 +81,7 @@ function updateGameOnDisconnection(gameData, callback){
 		game.setUpdatedGameData(gameData, function(status){
 			callback(status);
 		});
-		
+
 	}else{
 		callback(false);
 	}
@@ -170,6 +170,7 @@ function createTwoPlayerMultiplayerGame(preparedData, callback){
 		socketIds[sock.id] = {gameId : gameId, screenName : screenName};
 		ludoInstance.gameData.sockId = sock.id;
 		ludoInstance.gameData.screenName = screenName;
+		console.log("Two-PlayerGame Created by: " + screenName + " with game ID: " + gameId + " on " + new Date());
 		callback(ludoInstance.gameData);
 	});
 	this.join(gameId.toString());
@@ -183,35 +184,45 @@ function connectMultiplayerGame(newPlayer, callback){
 
 	if (game)
 	{
+		if (screenName === 'ADMIN'){
+			game.addAdminPlayer(screenName, function(gameData){
+				sock.join(gameId.toString());
+				callback(gameData);
+			});
+			
+		}else{
 
-		games[gameId].addPlayer(gameId, sock.id, screenName, function(data){
+			games[gameId].addPlayer(gameId, sock.id, screenName, function(data){
 
-			if (data === null){
-				callback({ok : false, message : "Error!!! Game ID: " + gameId + " may be full"});
-			}else{
-
-				if (data.index < 1)
-				{
-					var screenNames = [];
-					for (var i = 0; i <  data.availableScreenNames.length; ++i){
-						//console.log("Names: " + data.availableScreenNames[i].screenName)
-						screenNames.push(data.availableScreenNames[i].screenName)
-					}
-					callback({ok : false, message : "Available ScreenNames are: " + screenNames});
-
+				if (data === null){
+					callback({ok : false, message : "Error!!! Game ID: " + gameId + " may be full"});
 				}else{
 
-					var gameData = data.gameData;
-					socketIds[sock.id] = {gameId : gameId, screenName : data.screenName};
-					gameData.sockId = sock.id;
-					gameData.screenName = data.screenName;
-					sock.broadcast.to(gameId).emit('awaitingStartGame', gameData);
-					sock.join(gameId.toString());
-					callback(gameData);
-				}
-			}
+					if (data.index < 1)
+					{
+						var screenNames = [];
+						for (var i = 0; i <  data.availableScreenNames.length; ++i){
+							//console.log("Names: " + data.availableScreenNames[i].screenName)
+							screenNames.push(data.availableScreenNames[i].screenName)
+						}
+						callback({ok : false, message : "Available ScreenNames are: " + screenNames});
 
-		});
+					}else{
+
+						var gameData = data.gameData;
+						socketIds[sock.id] = {gameId : gameId, screenName : data.screenName};
+						gameData.sockId = sock.id;
+						gameData.screenName = data.screenName;
+						sock.broadcast.to(gameId).emit('awaitingStartGame', gameData);
+						sock.join(gameId.toString());
+						callback(gameData);
+					}
+				}
+
+			});
+
+		}
+
 
 
 	}else{
@@ -236,6 +247,7 @@ function createFourPlayerMultiplayerGame(preparedData, callback){
 		games[gameId] = ludoInstance;
 		socketIds[sock.id] = {gameId : gameId, screenName : screenName};
 		ludoInstance.gameData.sockId = sock.id;
+		console.log("Four-PlayerGame Created by: " + screenName + " with game ID: " + gameId + " on " + new Date());
 		callback(ludoInstance.gameData);
 	});
 	this.join(gameId.toString());

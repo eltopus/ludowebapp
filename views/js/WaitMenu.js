@@ -132,7 +132,7 @@ Ludo.WaitMenu.prototype = {
 			if (menuMusic != null){
 				menuMusic.destroy();
 			}
-        	state.start('Game', true, false, gameData, saveFlag, socket, turn, owner, isMobile, sockId, data.screenName);
+        	state.start('Game', true, false, gameData, saveFlag, socket, turn, owner, isMobile, sockId, data.screenName, false);
         });
 		
         
@@ -286,7 +286,7 @@ Ludo.WaitMenu.prototype = {
 		}
 		
     	this.socket.emit('startGame', this.gameId, function (gameData){
-			state.start('Game', true, false, gameData, saveFlag, socket, turn, owner, isMobile, sockId, screenName);
+			state.start('Game', true, false, gameData, saveFlag, socket, turn, owner, isMobile, sockId, screenName, false);
 		});
     },
     
