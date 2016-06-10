@@ -115,7 +115,7 @@ Ludo.Boot.prototype = {
         this.load.script("queue", "js/Queue.js");
         this.load.script("rules", "js/Rules.js");
         this.load.script("err", "js/Error.js");
-        this.load.script("actions", "js/Action.js");
+        //this.load.script("actions", "js/Action.js");
         this.load.script("jquery", "js/jquery-1.12.2.min.js");
         this.load.script("gamedef", "js/Gamedef.js");
         this.load.script("socketio", "js/socket.io.js");
@@ -125,7 +125,7 @@ Ludo.Boot.prototype = {
         this.load.script("jquery-ui", "jquery-ui/jquery-ui.min.js");
         this.load.script("index", "js/index.js");
         this.load.script('webfont', '//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js');
-        this.load.json('save', 'js/save.json');
+        //this.load.json('save', 'js/save.json');
         this.load.audio("menuMusic", "audio/Motivated.mp3");
         this.load.audio("gameMusic", "audio/LittleSwansGame.wav");
         this.load.audio("shakeAndroll", "audio/ShakeAndRollDice.mp3");

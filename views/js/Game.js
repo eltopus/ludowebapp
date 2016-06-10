@@ -35,6 +35,20 @@ Ludo.Game.prototype = {
 				    window.setTimeout(window.stop, 0); //stop it soon after
 				}, 30000);
 				 */
+				
+				var gameId = this.gameData.gameId;
+				var sock = this.socket;
+				window.addEventListener("focus", function(evt){
+				    sock.emit('browserInFocus', gameId, function(status){
+				    	
+				    	//alert(status);
+				    });
+				}, false);
+				window.addEventListener("blur", function(evt){
+					 sock.emit('browserInBackground', gameId, function(status){
+						 //alert(status);
+					 });
+				}, false);
 			}
 		},
 
@@ -761,7 +775,7 @@ Ludo.Game.prototype = {
 			}
 
 			if (this.currentPlayer.hasAllPiecesExited()){
-				alertMessage("Winner is " + this.currentPlayer.playerName, "Winner!", true);
+				alert("Winner is " + this.currentPlayer.playerName, "Winner!", true);
 				this.socket.emit('endOfGame', {gameId : this.savedGameId});
 				this.currentPlayer.resetAllPiecesExited();
 			}
@@ -920,6 +934,7 @@ Ludo.Game.prototype = {
 
 				}else{
 					tempPlayer.emitNextPlayer(this.getUpdatedGame());
+					this.myTurn = false;
 				}
 
 				//console.log("UpdatedGame: " + JSON.stringify(this.getUpdatedGame()));

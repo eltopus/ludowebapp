@@ -51,8 +51,22 @@ exports.initGame = function(gameio, socket){
 	gameSocket.on('updateGame', updateGame);
 	gameSocket.on('updateGameOnDisconnection', updateGameOnDisconnection);
 	gameSocket.on('playerReconnected', playerReconnected);
+	gameSocket.on('browserInBackground', browserInBackground);
+	gameSocket.on('browserInFocus', browserInFocus);
 };
 
+
+function browserInFocus(gameId, callback){
+	var sock = this;
+	callback('I am in focus');
+	console.log(sock.id + " is in focus");
+};
+
+function browserInBackground(gameId, callback){
+	var sock = this;
+	callback('I am in background');
+	console.log(sock.id + " is in background");
+};
 
 function playerReconnected(data){
 	var sock = this;
@@ -107,7 +121,7 @@ function emitNextPlayer(data, callback)
 		if (nextPlayer !== null){
 			data.newId = nextPlayer.socketId;
 			callback(data);
-			//console.log('Current ScreenName : ' + data.screenName + ' Emmiting new Id to : ' + nextPlayer.socketId);
+			console.log('Current ScreenName : ' + data.screenName + ' Emitting new Id to : ' + nextPlayer.screenName);
 			io.sockets.in(data.gameId).emit('nextTurn', nextPlayer);
 		}else{
 			callback(null);
@@ -205,7 +219,7 @@ function connectMultiplayerGame(newPlayer, callback){
 							//console.log("Names: " + data.availableScreenNames[i].screenName)
 							screenNames.push(data.availableScreenNames[i].screenName)
 						}
-						callback({ok : false, message : "Available ScreenNames are: " + screenNames});
+						callback({ok : false, message : "Disconnected ScreenNames are: " + screenNames});
 
 					}else{
 
@@ -299,10 +313,13 @@ function disconnected(data){
 			var game = games[gameId];
 			if (game){
 				game.removePlayer(screenName);
-				_.without(socketIds, sock.id);
+				//_.without(socketIds, sock.id);
+				delete socketIds[sock.id];
 				if (game.isEmpty()){
 					console.log('Game is empty. Deleting ' + gameId);
-					_.without(games, gameId);
+					//_.without(games, gameId);
+					delete games[gameId];
+					
 				}else{
 					sock.broadcast.to(gameId).emit('disconnected', screenName + ' has disconnected');
 				}

@@ -66,25 +66,25 @@ function LudoGameInstance(gameId, socketId, owner, gameData, colors) {
 	this.screenNames.push(owner);
 	this.currentPlayerName = owner;
 	this.gameInProgress = false;
-	
+
 
 };
 
 
 LudoGameInstance.prototype.addAdminPlayer = function(screenName, callback) {
-	
+
 	if (this.gameInProgress){
-		
+
 		if (perfectTimeToViewGame){
 			this.gameData.inprogress = true;
 			this.gameData.screenName = 'ADMIN';
 			callback(this.gameData);
 		}
-		
+
 	}else{
 		callback(null);
 	}
-	
+
 };
 
 LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, callback) {
@@ -99,7 +99,7 @@ LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, ca
 			for (var i = 0; i < this.disconnectedPlayers.length; ++i)
 			{
 
-				
+
 				if (this.disconnectedPlayers[i].screenName === screenName)
 				{
 					screenameExists = true;
@@ -173,24 +173,51 @@ LudoGameInstance.prototype.getNextSocketId = function(screenName, updatedGameDat
 		perfectTimeToViewGame = false;
 		var currentPlayer = this.ludoPlayers[screenName];
 		var index = (currentPlayer.index % this.gameMode) + 1;
+		
+		
+		if (screenName === this.currentPlayerName){
+			this.gameData = updatedGameData;
+			//console.log('Updating Game......');
+		}
 
-		for (var key in this.ludoPlayers)
+		var player = this.stillInTheGame(index);
+		if (player === null){
+			console.log('Next Player migth have been disconnected...');
+			
+			this.notifyEndOfPlay = [];
+			perfectTimeToViewGame = true;
+			callback({socketId : null, screenName : this.currentPlayerName, gameData : this.gameData});
+			
+		}else
 		{
-			if (this.ludoPlayers[key].index === index)
-			{
-				this.gameData = updatedGameData;
 
-				if (this.updateNotifyEndOfPlay(screenName) >= this.gameMode){
-					this.notifyEndOfPlay = [];
-					this.currentPlayerName = key;
-					perfectTimeToViewGame = true;
-					callback({socketId : this.ludoPlayers[key].socketId, screenName : key, gameData : this.gameData});
-				}else{
-					callback(null);
+			for (var key in this.ludoPlayers)
+			{
+				if (this.ludoPlayers[key].index === index)
+				{
+
+
+					var data = this.updateNotifyEndOfPlay(screenName);
+					if (data.ok){
+						this.gameData = updatedGameData;
+					}
+					var size = data.size;
+
+					if (size >= this.gameMode){
+						this.notifyEndOfPlay = [];
+						this.currentPlayerName = key;
+						perfectTimeToViewGame = true;
+						callback({socketId : this.ludoPlayers[key].socketId, screenName : key, gameData : this.gameData});
+					}else{
+						callback(null);
+					}
+
+					return {};
 				}
 
-				return {};
 			}
+
+
 
 		}
 	}else{
@@ -199,6 +226,36 @@ LudoGameInstance.prototype.getNextSocketId = function(screenName, updatedGameDat
 	}
 
 
+};
+
+LudoGameInstance.prototype.stillInTheGame = function(index){
+
+	var playerName = null;
+	//console.log('Checking if player is still in game');
+	for (var key in this.ludoPlayers)
+	{
+		if (this.ludoPlayers[key].index === index)
+		{
+			playerName = key;
+			break;
+
+		}
+	}
+
+	if (playerName === null){
+		//console.log('Seems like player is disconnected from game');
+		for (var i = 0; i < this.disconnectedPlayers.length; ++i){
+
+			if (this.disconnectedPlayers[i].index === index){
+				this.disconnectedPlayers[i].turn = true;
+				this.currentPlayerName = this.disconnectedPlayers[i].screenName;
+				console.log(this.currentPlayerName + ' Found and turn set to true');
+				break;
+			}
+		}
+
+	}
+	return playerName;
 };
 
 
@@ -231,16 +288,16 @@ LudoGameInstance.prototype.updateNotifyEndOfPlay = function(screenName) {
 
 	if (this.notifyEndOfPlay.length < 1){
 		this.notifyEndOfPlay.push(screenName);
-		return this.notifyEndOfPlay.length;
+		return {size : this.notifyEndOfPlay.length, ok : true};
 	}else{
 		for (var i = 0; i < this.notifyEndOfPlay.length; ++i){
 			if (this.notifyEndOfPlay[i] === screenName){
 				this.notifyEndOfPlay.push(screenName);
-				return this.notifyEndOfPlay.length;
+				return {size :this.notifyEndOfPlay.length, ok : true};
 			}else{
 				this.notifyEndOfPlay.push(screenName);
 				console.log("A great error has occured!!!!!!!!");
-				return this.notifyEndOfPlay.length;
+				return {size : this.notifyEndOfPlay.length, ok : false};
 			}
 		}
 	}

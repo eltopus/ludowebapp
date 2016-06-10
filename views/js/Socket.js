@@ -60,6 +60,23 @@ Socket = function(ludogame){
 	
 	gameio.on('nextTurn', function(nextPlayer){
 		
+		
+		if (game.playerName == nextPlayer.screenName)
+		{
+			game.myTurn = true;
+			game.playDing();
+			game.saveGame(nextPlayer.gameData);
+			console.log("I am unlocked! " + nextPlayer.screenName);
+		}else{
+			game.myTurn = false;
+			game.playDong();
+			game.saveGame(nextPlayer.gameData);
+			console.log("I am locked! " + nextPlayer.screenName);
+		}
+		
+		
+		
+		/*
 		if (sockId == nextPlayer.socketId)
 		{
 			game.myTurn = true;
@@ -72,6 +89,12 @@ Socket = function(ludogame){
 			game.saveGame(nextPlayer.gameData);
 			//console.log("I am locked! " + nextPlayer.screenName);
 		}
+		
+		*/
+		
+		
+		
+		
     });
 
 
