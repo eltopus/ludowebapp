@@ -1,6 +1,8 @@
 /**
  * 
  */
+
+var compression = require('compression');
 var express = require('express');
 var app = express();
 var logger = require('morgan');
@@ -13,8 +15,8 @@ var bodyParser = require('body-parser');
 var path = require('path');
 
 
-
 //app.use(logger('dev'));
+app.use(compression());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());

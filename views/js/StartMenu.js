@@ -12,12 +12,14 @@ Ludo.StartMenu.prototype = {
 			this.menuMusic = null;
 			if (this.isMobile === false){
 
+				/*
 				this.menuMusic = this.game.add.audio('menuMusic', 1, true);
 				if (this.menuMusic.isPlaying == false)
 				{ 
 					this.menuMusic.play('',0,1,true); 
 
 				} 
+				*/
 			}
 
 		},
@@ -404,7 +406,7 @@ Ludo.StartMenu.prototype = {
 				if (this.socket === null){
 					this.socket = io();
 					this.socket.on('disconnected', function(message){
-						alertMessage(message, "Diconnection",  false);
+						alertMessage(message + ' has disconnected.', "Diconnection",  false);
 					});
 
 				}
@@ -471,7 +473,7 @@ Ludo.StartMenu.prototype = {
 				if (this.socket === null){
 					this.socket = io();
 					this.socket.on('disconnected', function(message){
-						alertMessage(message, "Disconnection", false);
+						alertMessage(message + ' has disconnected.', "Disconnection", false);
 					});
 				}
 

@@ -9,7 +9,7 @@ Ludo.Boot.prototype = {
 		this.isMobile = false;
 		this.x = 32;
 		this.y = 80;
-		this.game.sound.mute = true;
+		//this.game.sound.mute = true;
 	},
 	
 	create: function() {
@@ -86,7 +86,7 @@ Ludo.Boot.prototype = {
         this.load.image('blue_piece', 'images/blue_button.png');
         this.load.image('green_piece', 'images/green_button.png');
         this.load.image('yellow_piece', 'images/yellow_button.png');
-        this.load.image('dice', 'images/flick.jpg');
+        this.load.image('dice', 'images/dice.png');
         this.load.image('play', 'images/playbutton.png');
         this.load.image('display', 'images/display.png');
         this.load.image('error', 'images/alert.png');
@@ -98,6 +98,7 @@ Ludo.Boot.prototype = {
         this.load.image('load-game', 'images/load_game.png');
         this.load.nineSlice('input', 'images/inputfield.png', 15);
         this.load.image('restart', 'images/restart.png');
+        this.load.image('updateBtn', 'images/update.png');
         this.load.image('cred', 'images/red.png');
         this.load.image('cblue', 'images/blue.png');
         this.load.image('cgreen', 'images/green.png');

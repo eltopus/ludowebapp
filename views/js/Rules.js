@@ -39,6 +39,7 @@ Rules.prototype.nextPlayer = function(currentPlayer){
 
 Rules.prototype.applyDiceRules = function(currentPlayer){
     if(!this.applyDiceRollRule(currentPlayer)){
+    	this.game.playRedneckRoll()
         this.play.visible = false;
         currentPlayer.getBothDiceValues();
         currentPlayer = this.nextPlayer(currentPlayer);

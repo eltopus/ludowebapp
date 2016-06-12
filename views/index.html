@@ -1,10 +1,12 @@
 <html>
     <head>
+    
     	<meta name="viewport" content="initial-scale=1 maximum-scale=1 user-scalable=0 minimal-ui" />
     	<meta charset="utf-8">
         <title>Ludo Africa</title>
         <link href="/jquery-ui/jquery-ui.min.css" rel="stylesheet">
         <script src="js/phaser.js"></script>
+        <script src="js/Boot.js"></script>
         <script src="js/Boot.js"></script>
         <script src="js/WaitMenu.js"></script>
         <script src="js/StartMenu.js"></script>
@@ -21,7 +23,6 @@
         <script src="js/Gamedef.js"></script>
         <script src="js/Action.js"></script>
         <script src="js/jquery-1.12.2.min.js"></script>
-        
         <script src="js/socket.io.js"></script>
         <script src="js/Socket.js"></script>
         <script src="js/Error.js"></script>
@@ -40,22 +41,49 @@
             }
             
             .ui-widget-header,.ui-state-default, ui-button{
-            background:#b9cd6d;
-            border: 1px solid #b9cd6d;
-            color: #FFFFFF;
-            font-weight: bold;
-         }
+            	background:#b9cd6d;
+            	border: 1px solid #b9cd6d;
+            	color: #FFFFFF;
+            	font-weight: bold;
+         	}
+        
+         	.radionomy-player{
+         		
+         	}
+         	
+         	#center{
+         		position: fixed;
+    			bottom: 0;
+    			right: 0;
+    			opacity: 0.7;
+    			z-index: -1;
+    			
+         	}
         
         </style>
+        
+        <script>
+        	(function (win, doc, script, source, objectName) { (win.RadionomyPlayerObject = win.RadionomyPlayerObject || []).push(objectName); win[objectName] = win[objectName] || function (k, v) { (win[objectName].parameters = win[objectName].parameters || { src: source, version: '1.1' })[k] = v; }; var js, rjs = doc.getElementsByTagName(script)[0]; js = doc.createElement(script); js.async = 1; js.src = source; rjs.parentNode.insertBefore(js, rjs); }(window, document, 'script', 'https://www.radionomy.com/js/radionomy.player.js', 'radplayer'));
+			radplayer('url', 'eltop');
+			radplayer('type', 'mobile');
+			radplayer('autoplay', '0');
+			radplayer('volume', '50');
+			radplayer('color1', '#f1ffc4');
+			radplayer('color2', '#ff844f');
+        </script>
         
         
         
     </head>
     <body>
-        
         <div id="dialog" title=" " class="selector"> </div>
         <div id="gameContainer">
         </div>
+        <div id="center">
+        	<div class="radionomy-player">
+        </div>
+        </div>
+        
         <script src="js/index.js"></script>
         
                 

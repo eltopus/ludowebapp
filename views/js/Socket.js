@@ -66,12 +66,12 @@ Socket = function(ludogame){
 			game.myTurn = true;
 			game.playDing();
 			game.saveGame(nextPlayer.gameData);
-			console.log("I am unlocked! " + nextPlayer.screenName);
+			//console.log("I am unlocked! " + nextPlayer.screenName);
 		}else{
 			game.myTurn = false;
 			game.playDong();
 			game.saveGame(nextPlayer.gameData);
-			console.log("I am locked! " + nextPlayer.screenName);
+			//console.log("I am locked! " + nextPlayer.screenName);
 		}
 		
 		
@@ -101,8 +101,13 @@ Socket = function(ludogame){
 	gameio.on('playerReconnected', function(screenName){
 		if (screenName != null){
 			alertMessage(screenName + " has reconnected", "Reconnection",  false);
+			game.connectionNotificationAlert(screenName, true);
 		}
     });
+	
+	gameio.on('disconnected', function(screenName){
+		game.connectionNotificationAlert(screenName, false);
+	});
 	
 	
 };

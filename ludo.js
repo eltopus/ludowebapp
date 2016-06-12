@@ -59,13 +59,13 @@ exports.initGame = function(gameio, socket){
 function browserInFocus(gameId, callback){
 	var sock = this;
 	callback('I am in focus');
-	console.log(sock.id + " is in focus");
+	//console.log(sock.id + " is in focus");
 };
 
 function browserInBackground(gameId, callback){
 	var sock = this;
 	callback('I am in background');
-	console.log(sock.id + " is in background");
+	//console.log(sock.id + " is in background");
 };
 
 function playerReconnected(data){
@@ -121,7 +121,7 @@ function emitNextPlayer(data, callback)
 		if (nextPlayer !== null){
 			data.newId = nextPlayer.socketId;
 			callback(data);
-			console.log('Current ScreenName : ' + data.screenName + ' Emitting new Id to : ' + nextPlayer.screenName);
+			//console.log('Current ScreenName : ' + data.screenName + ' Emitting new Id to : ' + nextPlayer.screenName);
 			io.sockets.in(data.gameId).emit('nextTurn', nextPlayer);
 		}else{
 			callback(null);
@@ -209,7 +209,7 @@ function connectMultiplayerGame(newPlayer, callback){
 			games[gameId].addPlayer(gameId, sock.id, screenName, function(data){
 
 				if (data === null){
-					callback({ok : false, message : "Error!!! Game ID: " + gameId + " may be full"});
+					callback({ok : false, message : "Game ID: " + gameId + " seems to be full."});
 				}else{
 
 					if (data.index < 1)
@@ -240,7 +240,7 @@ function connectMultiplayerGame(newPlayer, callback){
 
 
 	}else{
-		callback({ok : false, message : "Game Id " + newPlayer.gameId + " does not exist" });
+		callback({ok : false, message : "Game ID: " + newPlayer.gameId + " does not exist!" });
 	}
 
 
@@ -321,7 +321,7 @@ function disconnected(data){
 					delete games[gameId];
 					
 				}else{
-					sock.broadcast.to(gameId).emit('disconnected', screenName + ' has disconnected');
+					sock.broadcast.to(gameId).emit('disconnected', screenName);
 				}
 			}else{
 				console.log('Game does not exist');
