@@ -1,11 +1,14 @@
 
 var tempPlayer = null;
-Ludo.Game = function(game){};
+Ludo.Game = function (game) {
+};
 
 
 Ludo.Game.prototype = {
 
-		init: function(gameData, saveFlag, socket, myTurn, owner, isMobile, sockId, screenName, rejoin){
+		init : function (gameData, saveFlag, socket, myTurn, owner, isMobile, sockId, screenName, rejoin)
+		{
+			
 			this.savedGameId = gameData.gameId;
 			this.gameData = gameData;
 			this.saveFlag = saveFlag;
@@ -52,15 +55,17 @@ Ludo.Game.prototype = {
 					});
 				}, false);
 			}
+			
 		},
 
 
 		create: function(){
 
-			this.redneckRoll;
-			this.shakeAndroll;
-			this.ding;
-			if (this.isMobile === false){
+			this.redneckRoll = null;
+			this.shakeAndroll = null;
+			this.ding = null;
+			if (this.isMobile === false)
+			{
 				this.redneckRoll = this.game.add.audio('redneckRoll', 5, false);
 				this.shakeAndroll = this.game.add.audio('shakeAndroll', 5, false);
 				this.ding = this.game.add.audio('ding', 5, false);
@@ -74,21 +79,21 @@ Ludo.Game.prototype = {
 			this.activeState = 1;
 			this.awaitingExitState = 2;
 			this.exitState = 3;
-			this.cursors;
-			this.playerTurnText;
-			this.display;
-			this.diceBtn;
-			this.dieValueOne;
-			this.dieValueTwo;
-			this.play;
-			this.shadow;
-			this.shadowGroup;
-			this.offset;
-			this.tween;
+			this.cursors = null;
+			this.playerTurnText = null;
+			this.display = null;
+			this.diceBtn = null;
+			this.dieValueOne = null;
+			this.dieValueTwo = null;
+			this.play = null;
+			this.shadow = null;
+			this.shadowGroup = null;
+			this.offset = null;
+			this.tween = null;
 			this.bmd = null;
 			this.dieValueOne = 1;
 			this.dieValueTwo = 1;
-			this.filter;
+			this.filter = null;
 			this.playerOne = ["red", "blue"];
 			this.playerTwo = ["yellow", "green"];
 			this.playerRed = ["red"];
@@ -240,14 +245,14 @@ Ludo.Game.prototype = {
 			}
 
 
-			if (this.currentPlayer.selectedPiece != null){
+			if (this.currentPlayer.selectedPiece !== null){
 				this.select(this.currentPlayer.selectedPiece, this);
 			}
 
-			for (var i = 0; i < this.ludo.length; ++i){
-				if (this.currentPlayer != this.ludo[i]){
-					this.ludo[i].deSelectAll();
-					this.ludo[i].exitAll();
+			for (var j = 0; j < this.ludo.length; ++j){
+				if (this.currentPlayer !== this.ludo[j]){
+					this.ludo[j].deSelectAll();
+					this.ludo[j].exitAll();
 				}
 			}
 
@@ -259,8 +264,8 @@ Ludo.Game.prototype = {
 
 			if (this.saveFlag){
 
-				for (var i = 0; i < this.ludo.length; ++i){
-					this.ludo[i].drawSavedExitedPieces(this.graphics);
+				for (var k = 0; k < this.ludo.length; ++k){
+					this.ludo[k].drawSavedExitedPieces(this.graphics);
 				}
 			}
 
@@ -299,7 +304,7 @@ Ludo.Game.prototype = {
 			var playerMode = this.playerMode;
 			var gameId = this.newGameId;
 			this.socket.on('disconnected', function(message){
-				if (currentPlayer!= null){
+				if (currentPlayer!== null){
 					var gamedef = new Gamedef(controller, gameId);
 					gamedef.savedef(ludo);
 					gamedef.gameMode = playerMode;
@@ -332,7 +337,7 @@ Ludo.Game.prototype = {
 	        
 	    },
 
-		getConnectionText(x, y, color){
+		getConnectionText : function(x, y, color){
 
 			var text = this.getConnectionTextPlayerName(color);
 			
@@ -356,7 +361,7 @@ Ludo.Game.prototype = {
 			return isConnected;
 		},
 		
-		getConnectionTextPlayerName(color){
+		getConnectionTextPlayerName : function(color){
 
 			var playerName = "CONNECTED";
 			for (var i = 0; i < this.gameData.players.length; ++i)
@@ -372,7 +377,7 @@ Ludo.Game.prototype = {
 			return playerName;
 		},
 		
-		playerHasColor(player, color){
+		playerHasColor : function(player, color){
 
 			var containsColor = false;
 			var playerColors = player.piecesNames;
@@ -386,7 +391,7 @@ Ludo.Game.prototype = {
 			return containsColor;
 		},
 		
-		connectionNotificationAlert(playerName, status){
+		connectionNotificationAlert : function(playerName, status){
 			
 			for (var i = 0; i < this.gameData.players.length; ++i)
 			{
@@ -394,7 +399,7 @@ Ludo.Game.prototype = {
 				if (player.playerName === playerName){
 					var pieces = player.pieces;
 					for (var j = 0; j < pieces.length; ++j){
-						var pieceName = pieces[j].piece
+						var pieceName = pieces[j].piece;
 						this.displayConnectionAlert(pieceName, status);
 					}
 					
@@ -405,7 +410,7 @@ Ludo.Game.prototype = {
 			
 		},
 		
-		displayConnectionAlert(piece, status){
+		displayConnectionAlert : function (piece, status){
 			switch(piece){
 				case 'red':
 				{
@@ -453,7 +458,7 @@ Ludo.Game.prototype = {
 
 		updatePlayerTurnOnRejoin : function(){
 
-			for (player in this.gameData.players){
+			for (var player in this.gameData.players){
 				if (player.playerName === this.playerName && player.turn === true){
 					this.myTurn = true;
 					//console.log("Updating player turn for: " + this.playerName);
@@ -521,15 +526,15 @@ Ludo.Game.prototype = {
 		},
 
 		restartEmission : function(){
-			if (this.currentPlayer != null){
+			if (this.currentPlayer !== null){
 				this.currentPlayer.releasePlay();
 			}
 		},
 
 		restart: function(){
 
-			if (confirm("Forefiet turn?") == true) {
-				if (this.myTurn && this.currentPlayer != null)
+			if (confirm("Forefiet turn?") === true) {
+				if (this.myTurn && this.currentPlayer !== null)
 				{
 					this.currentPlayer.releasePlay();
 					this.socket.emit('releaseGame', {gameId : this.savedGameId});
@@ -558,7 +563,7 @@ Ludo.Game.prototype = {
 				if (!data.players){
 
 					this.socket.emit('updateGame', this.gameId, function(gameData){
-						if (gameData != null)
+						if (gameData !== null)
 						{
 							//console.log("UpdatedGame: "+ JSON.stringify(gameData));
 							for (var i = 0; i < ludo.length; ++i)
@@ -572,7 +577,7 @@ Ludo.Game.prototype = {
 										play.visible = true;
 										diceBtn.visible = false;
 										currentPlayer.rolled();
-										if (currentPlayer.playerName === playerName && myTurn == false){
+										if (currentPlayer.playerName === playerName && myTurn === false){
 											myTurn = true;
 											playDing();
 
@@ -585,7 +590,7 @@ Ludo.Game.prototype = {
 								}  
 							}
 
-							if (currentPlayer.selectedPiece != null){
+							if (currentPlayer.selectedPiece !== null){
 								select(currentPlayer.selectedPiece, cgame);
 							}
 
@@ -609,7 +614,7 @@ Ludo.Game.prototype = {
 								play.visible = true;
 								diceBtn.visible = false;
 								currentPlayer.rolled(); 
-								if (currentPlayer.playerName == playerName && myTurn == false){
+								if (currentPlayer.playerName == playerName && myTurn === false){
 									myTurn = true;
 									playDing();
 
@@ -622,7 +627,7 @@ Ludo.Game.prototype = {
 						}  
 					}
 
-					if (currentPlayer.selectedPiece != null){
+					if (currentPlayer.selectedPiece !== null){
 						select(currentPlayer.selectedPiece, cgame);
 					}
 
@@ -686,7 +691,7 @@ Ludo.Game.prototype = {
 			createPieceGroups(this.game);
 			var players = [];
 
-			if (retrieveflag == false)
+			if (retrieveflag === false)
 			{
 				switch(mode)
 				{
@@ -772,7 +777,7 @@ Ludo.Game.prototype = {
 		select: function(piece, pointer) {
 
 			if (this.myTurn){
-				if (this.currentPlayer.selectedPiece == null){
+				if (this.currentPlayer.selectedPiece === null){
 					if (this.currentPlayer.setSelectedPiece(piece)){
 						this.shadow.visible = true;
 						this.shadow.x = piece.x;
@@ -813,7 +818,7 @@ Ludo.Game.prototype = {
 		selectEmiision: function(piece, pointer) {
 
 
-			if (this.currentPlayer.selectedPiece == null){
+			if (this.currentPlayer.selectedPiece === null){
 				if (this.currentPlayer.setSelectedPiece(piece)){
 					this.shadow.visible = true;
 					this.shadow.x = piece.x;
@@ -854,7 +859,7 @@ Ludo.Game.prototype = {
 
 		selectPieceEmissionById: function(pieceId) {
 			var currentSelectedPiece = this.currentPlayer.getSelectedPieceById(pieceId);
-			if (currentSelectedPiece != null){
+			if (currentSelectedPiece !== null){
 				this.selectEmiision(currentSelectedPiece, null);
 			}
 		},
@@ -918,7 +923,7 @@ Ludo.Game.prototype = {
 		},
 
 		checkPlayCompleted : function(playerName, peck){
-			if (peck != null){
+			if (peck !== null){
 
 			}
 
@@ -982,7 +987,7 @@ Ludo.Game.prototype = {
 
 			}
 
-			if (this.currentPlayer.selectedPiece != null){
+			if (this.currentPlayer.selectedPiece !== null){
 				this.select(this.currentPlayer.selectedPiece, this);
 			}
 
@@ -1037,7 +1042,7 @@ Ludo.Game.prototype = {
 				this.filter.update();
 			}
 
-			if (this.currentPlayer.selectedPiece != null && this.currentPlayer.selectedPiece.visible && !this.currentPlayer.selectedPiece.isExited()){
+			if (this.currentPlayer.selectedPiece !== null && this.currentPlayer.selectedPiece.visible && !this.currentPlayer.selectedPiece.isExited()){
 				this.shadow.visible = true;
 				this.shadow.x = this.currentPlayer.selectedPiece.x;
 				this.shadow.y = this.currentPlayer.selectedPiece.y; 

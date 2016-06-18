@@ -4,7 +4,7 @@ Ludo.StartMenu = function(game){
 Ludo.StartMenu.prototype = {
 
 		init : function(isMobile){
-			this.startBG;
+			this.startBG = null;
 			this.gameMode = 2;
 			this.loadGame = false;
 			this.socket = null;
@@ -25,8 +25,8 @@ Ludo.StartMenu.prototype = {
 		},
 
 		create: function() {
-			this.filter;
-			this.sprite;
+			this.filter = null;
+			this.sprite = null;
 			this.soundIcon = this.game.add.sprite(850, 30, "soundIcon");
 			this.soundIcon.anchor.set(0.5);
 			this.soundIcon.scale.x = 0.2;
@@ -451,7 +451,7 @@ Ludo.StartMenu.prototype = {
 			}
 			else
 			{
-				if (this.validateTextInput() == false)
+				if (this.validateTextInput() === false)
 				{
 					alertMessage("Please Enter Valid Screen Name", "Error", true);
 					return;

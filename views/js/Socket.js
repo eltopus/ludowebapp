@@ -19,7 +19,7 @@ Socket = function(ludogame){
 		players[i].setGameIO(this);
     }
 	
-	for (var i = 0; i < dice.length; ++i){
+	for (i = 0; i < dice.length; ++i){
 		dice[i].setGameIO(this);
     }
 	
@@ -99,7 +99,7 @@ Socket = function(ludogame){
 
 
 	gameio.on('playerReconnected', function(screenName){
-		if (screenName != null){
+		if (screenName !== null){
 			alertMessage(screenName + " has reconnected", "Reconnection",  false);
 			game.connectionNotificationAlert(screenName, true);
 		}

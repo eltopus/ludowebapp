@@ -381,6 +381,19 @@ Player.prototype.validateNextExitMove = function(piece){
 	return false;
 };
 
+Player.prototype.getNonConsumingSelectedDieValue = function(){
+	var selectedDice = this.controller.getSelectedDieValue();
+	var d1 = 0;
+	var d2 = 0;
+
+	for (var i = 0; i < selectedDice.length; ++i){
+		d1 += selectedDice[i].d1;
+		d2 += selectedDice[i].d2;
+	}
+	var value = d1 + d2;
+	return value;
+};
+
 Player.prototype.selectAll = function(){
 	for (var i = 0; i < this.playerPieces.length; ++i){
 		this.playerPieces[i].isSelectable = true;
@@ -577,19 +590,6 @@ Player.prototype.rolled = function(){
 
 Player.prototype.unRolled = function(){
 	this.hasRolled = false;
-};
-
-Player.prototype.getNonConsumingSelectedDieValue = function(){
-	var selectedDice = this.controller.getSelectedDieValue();
-	var d1 = 0;
-	var d2 = 0;
-
-	for (var i = 0; i < selectedDice.length; ++i){
-		d1 += selectedDice[i].d1;
-		d2 += selectedDice[i].d2;
-	}
-	var value = d1 + d2;
-	return value;
 };
 
 
