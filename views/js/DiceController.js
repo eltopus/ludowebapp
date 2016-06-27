@@ -104,6 +104,20 @@ DiceController.prototype.unSelectUnplayedDie = function(){
     }
 };
 
+DiceController.prototype.getUnselectedDieValue = function(){
+    var value = [];
+   
+    if (!this.dice[0].selected() && this.dice[0].value() > 0){
+        value.push(this.dice[0].value());
+    }
+    
+    if (!this.dice[1].selected() && this.dice[1].value() > 0){
+        value.push(this.dice[1].value());
+    }
+    
+    return value;
+};
+
 DiceController.prototype.getUuid = function(){
     var s = [];
     var hexDigits = "0123456789abcdef";

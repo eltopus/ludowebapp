@@ -1,7 +1,7 @@
 var playerInstance = require('./LudoPlayerInstance');
 var _ = require('underscore');
 var perfectTimeToViewGame = false;
-function LudoGameInstance(gameId, socketId, owner, gameData, colors) {
+function LudoGameInstance(gameId, socketId, screenName, gameData, colors) {
 
 	this.colorsOptions = ["red", "blue", "green", "yellow"];
 	this.disconnectedPlayers = [];
@@ -51,24 +51,28 @@ function LudoGameInstance(gameId, socketId, owner, gameData, colors) {
 	this.screenNames = [];
 	this.notifyEndOfPlay = [];
 
-	this.owner = owner;
+	this.screenName = screenName;
 	this.numOfPlayers = 0;
 	gameData.gameId = gameId;
 	this.gameMode = gameData.gameMode;
 	++this.numOfPlayers;
-	this.ludoPlayers[owner] = new playerInstance(gameId, socketId, owner, gameData, this.numOfPlayers, true);
-	this.gameData = this.ludoPlayers[owner].gameData;
+	this.ludoPlayers[screenName] = new playerInstance(gameId, socketId, screenName, gameData, this.numOfPlayers, true);
+	this.gameData = this.ludoPlayers[screenName].gameData;
 	this.choicesLeft = null;
 
-	var playerPieces = this.getPlayerPieces(colors);
-	this.addPlayerPieces(owner, playerPieces, colors);
+	if (colors !== null){
+		var playerPieces = this.getPlayerPieces(colors);
+		this.addPlayerPieces(screenName, playerPieces, colors);
+	}
+	
 	//console.log(JSON.stringify(this.gameData));
-	this.screenNames.push(owner);
-	this.currentPlayerName = owner;
+	this.screenNames.push(screenName);
+	this.currentPlayerName = screenName;
 	this.gameInProgress = false;
+	this.gameData.screenNames = this.screenNames;
 
 
-};
+}
 
 
 LudoGameInstance.prototype.addAdminPlayer = function(screenName, callback) {
@@ -87,19 +91,23 @@ LudoGameInstance.prototype.addAdminPlayer = function(screenName, callback) {
 
 };
 
-LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, callback) {
+LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, fromDB, callback) {
 
 	if (this.isNotFull()) 
 	{
+		
 		if (this.gameInProgress)
 		{
-
+			
 			var screenameExists = false;
 			this.gameData.inprogress = true;
+			if (fromDB){
+				//this.gameData.inprogress = true;
+				this.screenNames.push(screenName);
+			}
+			
 			for (var i = 0; i < this.disconnectedPlayers.length; ++i)
 			{
-
-
 				if (this.disconnectedPlayers[i].screenName === screenName)
 				{
 					screenameExists = true;
@@ -111,7 +119,11 @@ LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, ca
 						this.gameData.complete = true;
 					}
 					var index = this.disconnectedPlayers[i].index;
-					this.disconnectedPlayers.splice(i, 1);
+					this.gameData.owner = this.disconnectedPlayers[i].isOwner;
+					if (!fromDB){
+						this.disconnectedPlayers.splice(i, 1);
+					}
+					this.gameData.howManyPlayersJoined  = this.numOfPlayers;
 					callback({gameData : this.gameData, screenName: screenName, index : index});
 				}
 
@@ -154,6 +166,8 @@ LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, ca
 
 			}
 
+			this.gameData.howManyPlayersJoined  = this.numOfPlayers;
+			this.gameData.screenNames = this.screenNames;
 			callback({gameData : this.gameData, screenName: screenName, index : this.numOfPlayers});
 
 		}
@@ -381,7 +395,7 @@ LudoGameInstance.prototype.isEmpty = function() {
 	return (this.numOfPlayers < 0 || this.numOfPlayers === 0 );
 };
 
-LudoGameInstance.prototype.removePlayer = function(screenName) {
+LudoGameInstance.prototype.removePlayer = function(screenName, isOwner) {
 
 	var disconnetedPlayer = {};
 
@@ -391,6 +405,7 @@ LudoGameInstance.prototype.removePlayer = function(screenName) {
 		var player = this.ludoPlayers[screenName];
 		disconnetedPlayer.screenName = player.screenName;
 		disconnetedPlayer.index = player.index;
+		disconnetedPlayer.isOwner = isOwner;
 		delete this.ludoPlayers[screenName];
 		--this.numOfPlayers;
 		for (var i = 0; i < this.gameData.players.length; ++i){

@@ -160,11 +160,20 @@ Rules.prototype.applyCheckingActiveStateHasActivePieces = function(currentPlayer
 };
 
 Rules.prototype.applyCheckingActiveStateHasOneUnplayedDie = function(currentPlayer){
-    if (currentPlayer.hasExactlyOneUnplayedDie()){
+    if (currentPlayer.hasExactlyOneUnplayedDie())
+    {
         return 3;
-        
     }else{
-        return 4;
+        if (currentPlayer.canExitingPiecesUseRemainingDiceValue()){
+            return 4;
+        }else{
+            if (currentPlayer.hasIddlePieces()){
+                return (this.applyCheckingActiveStateRolledSix(currentPlayer));
+            }
+            else{
+                return 3;
+            } 
+        }
     }
 };
 

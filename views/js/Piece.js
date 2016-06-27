@@ -1,6 +1,6 @@
 Piece = function (game, x, y, name, imageId, uniqueId, isMovable, state, index, isSelectable, group, playerName) {
 
-    Phaser.Sprite.call(this, game, x, y, imageId);
+    Phaser.Sprite.call(this, game.game, x, y, imageId);
     this.piecePath = activePath;
     this.redHomePath =  redPath;
     this.blueHomePath = bluePath;
@@ -31,10 +31,31 @@ Piece = function (game, x, y, name, imageId, uniqueId, isMovable, state, index, 
     this.moving = false;
     this.path = null;
     this.gameio = null;
+    this.frame = 0;
+    
+    
+    this.selectAmin = [0,1];
+    this.animSelect  = this.animations.add("playSelect", this.selectAmin);
+    this.deselectAmin = [1,0];
+    this.animDeselect  = this.animations.add("playDeselect", this.deselectAmin);
+    
 };
 
 this.Piece.prototype = Object.create(Phaser.Sprite.prototype);
 this.Piece.prototype.constructor = this.Piece;
+
+
+Piece.prototype.playSelect = function() {
+	this.frame = 1;
+};
+
+Piece.prototype.playDeselect = function() {
+   this.frame = 0;
+};
+
+Piece.prototype.isSelected = function() {
+	  return ( this.frame === 1 );
+};
 
 
 Piece.prototype.moveForward = function(pointsArray)
@@ -234,6 +255,16 @@ Piece.prototype.getHomePath = function(){
     return homePath;
 };
 
+Piece.prototype.dieCanGetMeHome = function(dieValue){
+    var finalDestination = this.index + dieValue;
+    return (finalDestination === 5);
+};
+
+Piece.prototype.dieCanGetMeCloserToHome = function(dieValue){
+    var finalDestination = this.index + dieValue;
+    return (finalDestination < 5);
+};
+
 
 Piece.prototype.plotExitpath = function(dieValue){
     
@@ -363,6 +394,20 @@ Piece.prototype.isExited = function(){
 
 Piece.prototype.exit = function(){
     this.state = 3;
+};
+
+Piece.prototype.awaitingExitCanUseDiceValue = function(diceValue){
+    if (this.isAwaitingExit()){
+        
+        if ((this.index + diceValue) <= 5){
+            return true;
+        }else{
+            return false;
+        }
+        
+    }else{
+        return false;
+    }
 };
 
 

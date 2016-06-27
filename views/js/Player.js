@@ -77,30 +77,30 @@ Player.prototype.setPieces = function(game, pieces, playername){
 
 Player.prototype.updatePlayer = function(players){
 
-    var player = null;
-    for (var i = 0; i < players.length; ++i){
-        if (players[i].playerName === this.playerName){
-            player = players[i];
-        }
-    }
-    
-    if (player !== null)
-    {
-        this.setDice(player.diceObject);
-        this.endOfPlay = player.endOfPlay;
-        this.hasRolled = player.hasRolled;
-        this.playerName = player.playerName;
-        if (player.selectedPieceId !== null){
-            this.setSelectedPieceById(player.selectedPieceId);
-        }
-        this.exitingGraphicsPositions = player.exitingGraphicsPositions;
-        this.turn = player.turn;
-    
-	    for (var i = 0; i < player.pieces.length; ++i)
-        {
-            this.playerPieces[i].updatePiece(player.pieces);   
-        }
-    }
+	var player = null;
+	for (var i = 0; i < players.length; ++i){
+		if (players[i].playerName === this.playerName){
+			player = players[i];
+		}
+	}
+
+	if (player !== null)
+	{
+		this.setDice(player.diceObject);
+		this.endOfPlay = player.endOfPlay;
+		this.hasRolled = player.hasRolled;
+		this.playerName = player.playerName;
+		if (player.selectedPieceId !== null){
+			this.setSelectedPieceById(player.selectedPieceId);
+		}
+		this.exitingGraphicsPositions = player.exitingGraphicsPositions;
+		this.turn = player.turn;
+
+		for (var i = 0; i < player.pieces.length; ++i)
+		{
+			this.playerPieces[i].updatePiece(player.pieces);   
+		}
+	}
 
 };
 
@@ -165,7 +165,7 @@ Player.prototype.play = function(playerPlayed){
 	if (playerPlayed == null){
 		this.gameio.emitPlay({playerName : this.playerName, gameId : this.gameId});
 	}
-	
+
 	if (this.hasSelectedPiece())
 	{
 		var state = this.pieceMovement(this.selectedPiece);
@@ -405,16 +405,21 @@ Player.prototype.selectAll = function(){
 Player.prototype.deSelectAll = function(){
 
 	for (var i = 0; i < this.playerPieces.length; ++i){
+		
 		this.playerPieces[i].isSelectable = false;
-		this.playerPieces[i].alpha = 0.2;
+		this.playerPieces[i].alpha = 0.7;
 	}
 
 };
 
 Player.prototype.setSelectedPiece = function(piece){
 	for (var i = 0; i < this.playerPieces.length; ++i){
-		if (this.playerPieces[i] == piece){
+		if (this.playerPieces[i] === piece){
+			if (this.selectedPiece !== null){
+                this.selectedPiece.playDeselect();
+            }
 			this.selectedPiece = this.playerPieces[i];
+			this.selectedPiece.playSelect();
 			this.gameio.emitPieceSelection({uniqueId : this.selectedPiece.uniqueId, gameId : this.gameId});
 			return true;
 		}
@@ -436,7 +441,11 @@ Player.prototype.updateGameOnDisconnection = function(updatedGameData){
 Player.prototype.setSelectedPieceById = function(id){
 	for (var i = 0; i < this.playerPieces.length; ++i){
 		if (this.playerPieces[i].uniqueId === id){
+			if (this.selectedPiece != null){
+                this.selectedPiece.playDeselect();
+            }
 			this.selectedPiece = this.playerPieces[i];
+			this.selectedPiece.playSelect();
 			return true;
 		}
 	}
@@ -487,34 +496,34 @@ Player.prototype.rollDice = function(dice, pusher, diceObjects){
 			dice[i].pusher = pusher;
 			dice[i].roll(null);
 		}
-		
+
 	}else{
 		for (var i = 0; i < dice.length; ++i){
 			dice[i].setCurrentPlayer(this);
 			dice[i].pusher = pusher;
 			dice[i].roll(diceObjects);
 		}
-		
+
 	}
-	
+
 	this.pusher = false;
 };
 
 
 Player.prototype.updateDiceObject = function(diceObject){
-	
+
 	this.diceObject.push(diceObject);
 	this.diceCompletion();
 };
 
 Player.prototype.updateDiceObjectSelection = function(diceObject){
-	
-    for (var i = 0; i < this.diceObject.length; ++i){
-        if (this.diceObject[i].uniqueId === diceObject.uniqueId){
-            this.diceObject[i].selected = diceObject.selected;
-            break;
-        }
-    }
+
+	for (var i = 0; i < this.diceObject.length; ++i){
+		if (this.diceObject[i].uniqueId === diceObject.uniqueId){
+			this.diceObject[i].selected = diceObject.selected;
+			break;
+		}
+	}
 };
 
 
@@ -614,21 +623,80 @@ Player.prototype.getAwaitingExitDieValue = function(){
 	var start = this.selectedPiece.index;
 	var value = 0;
 	var temp = 0;
-	for (var i = 0; i < this.diceObject.length; ++i){
 
-		if (this.diceObject[i].value != 0){
-			var stop = start + this.diceObject[i].value;
-			if (stop <= 5){
-				this.controller.consumeDie(this.diceObject[i].uniqueId);
-				temp = this.diceObject[i].value;
-				this.diceObject[i].value = 0;
-				if (temp > value){
-					value = temp;
-				}
-			}
-		}
+	var dieOne = this.diceObject[0].value;
+	var dieTwo = this.diceObject[1].value;
+
+	if (this.selectedPiece.dieCanGetMeHome(dieOne)){
+		this.controller.consumeDie(this.diceObject[0].uniqueId);
+		this.diceObject[0].value = 0;
+		//console.log("Returning Die One:::  " + dieOne);
+		return dieOne;
 	}
-	return value;
+	else if (this.selectedPiece.dieCanGetMeHome(dieTwo)){
+		this.controller.consumeDie(this.diceObject[1].uniqueId);
+		this.diceObject[1].value = 0;
+		//console.log("Returning Die Two:::  " + dieTwo);
+		return dieTwo;
+	}
+	else if (this.selectedPiece.dieCanGetMeHome(dieOne + dieTwo)){
+		this.controller.consumeDie(this.diceObject[0].uniqueId);
+		this.diceObject[0].value = 0;
+		this.controller.consumeDie(this.diceObject[1].uniqueId);
+		this.diceObject[1].value = 0;
+		//console.log("Returning Both Dice:::  " + (dieOne + dieTwo));
+		return (dieOne + dieTwo);
+	}
+	else{
+		return this.getHighestDieValueThatGetsMeCloserToHome();
+	}
+};
+
+Player.prototype.getHighestDieValueThatGetsMeCloserToHome = function(){
+
+	var dieValueOne = this.diceObject[0].value;
+	var dieValueTwo = this.diceObject[1].value;
+
+	if (this.selectedPiece.dieCanGetMeCloserToHome(dieValueOne) && !this.selectedPiece.dieCanGetMeCloserToHome(dieValueTwo)){
+
+		this.controller.consumeDie(this.diceObject[0].uniqueId);
+		this.diceObject[0].value = 0;
+		//console.log("Die One Can get me closer  " + dieValueOne);
+		return dieValueOne;
+	}
+	else if (!this.selectedPiece.dieCanGetMeCloserToHome(dieValueOne) && this.selectedPiece.dieCanGetMeCloserToHome(dieValueTwo)){
+
+		this.controller.consumeDie(this.diceObject[1].uniqueId);
+		this.diceObject[1].value = 0;
+		//console.log("Die Two Can get me closer  " + dieValueTwo);
+		return dieValueTwo;
+	}
+	else if (this.selectedPiece.dieCanGetMeCloserToHome(dieValueOne + dieValueTwo)){
+
+		this.controller.consumeDie(this.diceObject[0].uniqueId);
+		this.diceObject[0].value = 0;
+		this.controller.consumeDie(this.diceObject[1].uniqueId);
+		this.diceObject[1].value = 0;
+		//console.log("Both Dice Can get me closer  " + (dieValueOne + dieValueTwo));
+		return (dieValueOne + dieValueTwo);
+	}else{
+
+		this.controller.consumeDie(this.diceObject[0].uniqueId);
+		this.diceObject[0].value = 0;
+		this.controller.consumeDie(this.diceObject[1].uniqueId);
+		this.diceObject[1].value = 0;
+		//console.log("NONE Can get me closer  " + (dieValueOne + dieValueTwo));
+		return (this.getHighestDieValue(dieValueOne, dieValueTwo));
+	}
+
+};
+
+Player.prototype.getHighestDieValue = function(dieOne, dieTwo){  
+    if (dieOne > dieTwo){
+        return dieOne;
+    }else{
+        return dieTwo;
+    }
 };
 
 
@@ -688,6 +756,21 @@ Player.prototype.getNextSelectedPiece = function(){
 		}
 	}
 	return false;
+};
+
+Player.prototype.canExitingPiecesUseRemainingDiceValue = function(){ 
+	
+    var unselectedDiceValue = this.controller.getUnselectedDieValue();
+    for (var j = 0; j < unselectedDiceValue.length; ++j )
+    {
+        for (var i = 0; i < this.playerPieces.length; ++i)
+        {    
+            if (this.playerPieces[i].awaitingExitCanUseDiceValue(unselectedDiceValue[j])){
+                return true;
+            }    
+        }     
+    }
+    return false;
 };
 
 
@@ -845,7 +928,7 @@ Player.prototype.myTurn = function(){
 
 
 Player.prototype.exitAll = function(){
-	
+
 	/*
     for (var i = 0; i < this.playerPieces.length-2; ++i){
         this.playerPieces[i].exit();
@@ -863,9 +946,9 @@ Player.prototype.exitAll = function(){
     if (this.playerPieces[7].piece == "green"){
         setGreenParameter2(this.playerPieces[7]);
     }
-    */
-  
-	 
+	 */
+
+
 };
 
 Player.prototype.resetAllPiecesExited = function(){ 

@@ -222,7 +222,6 @@ Ludo.StartMenu.prototype = {
 			
 			this.verifyChosenColors();
 			
-
 		},
 
 		retrieveGame : function()
@@ -421,6 +420,7 @@ Ludo.StartMenu.prototype = {
 
 					if (data.ok)
 					{	
+						
 						if (data.inprogress)
 						{
 							if (menuMusic != null){
@@ -433,13 +433,13 @@ Ludo.StartMenu.prototype = {
 								state.start('Game', true, false, data, true, socket, data.setSessionTurn, false, isMobile, data.sockId, data.screenName, true);
 							}else{
 								socket.emit('playerReconnected', {gameId : gameId, screenName : data.screenName });
-								state.start('Game', true, false, data, true, socket, data.setSessionTurn, false, isMobile, data.sockId, data.screenName, true);
+								state.start('Game', true, false, data, true, socket, data.setSessionTurn, data.owner, isMobile, data.sockId, data.screenName, true);
 							}
 							
 						}
 						else
 						{
-							state.start('WaitMenu', true, false, data, true, socket, data.setSessionTurn, false, isMobile, menuMusic);
+							state.start('WaitMenu', true, false, data, true, socket, data.setSessionTurn, data.owner, isMobile, menuMusic);
 						}
 
 					}
@@ -482,6 +482,7 @@ Ludo.StartMenu.prototype = {
 				switch (this.gameMode){
 				case 2:
 					socket.emit('createTwoPlayerMultiplayerGame', {screenName : twoPlayerScreenName, colors : this.colors}, function (data){
+						
 						if (data.ok)
 						{
 							//console.log(JSON.stringify(data));
@@ -498,6 +499,7 @@ Ludo.StartMenu.prototype = {
 					socket.emit('createFourPlayerMultiplayerGame', {screenName : fourPlayerScreenName, colors : this.colors}, function (data){
 						if (data.ok)
 						{
+							console.log("ScreenName: " + data.screenName);
 							state.start('WaitMenu', true, false, data, true, socket, data.setSessionTurn, true, isMobile, menuMusic);
 						}
 						else
@@ -533,6 +535,20 @@ Ludo.StartMenu.prototype = {
 		},
 
 		muteMusic : function(){
+			
+			/*
+			if (this.socket === null){
+				this.socket = io();
+				this.socket.emit('loadGame', "name", function(message){
+					alertMessage(message, "Game Loading...", false);
+				});
+			}else{
+				this.socket.emit('loadGame', "name", function(message){
+					alertMessage(message, "Game Loading...", false);
+				});
+			}
+			*/
+			
 			if (this.game.sound.mute === true){
 				this.game.sound.mute = false;
 				this.soundIcon.scale.x = 0.2;

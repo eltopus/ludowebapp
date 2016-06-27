@@ -10,6 +10,20 @@ Ludo.Boot.prototype = {
 		this.x = 32;
 		this.y = 80;
 		//this.game.sound.mute = true;
+		
+		var device = Phaser.Device;
+		//console.log("Is Device " + device.windows);
+		/*
+		if(device.desktop){
+			(function (win, doc, script, source, objectName) { (win.RadionomyPlayerObject = win.RadionomyPlayerObject || []).push(objectName); win[objectName] = win[objectName] || function (k, v) { (win[objectName].parameters = win[objectName].parameters || { src: source, version: '1.1' })[k] = v; }; var js, rjs = doc.getElementsByTagName(script)[0]; js = doc.createElement(script); js.async = 1; js.src = source; rjs.parentNode.insertBefore(js, rjs); }(window, document, 'script', 'https://www.radionomy.com/js/radionomy.player.js', 'radplayer'));
+			radplayer('url', 'ludo');
+			radplayer('type', 'mobile');
+			radplayer('autoplay', '0');
+			radplayer('volume', '50');
+			radplayer('color1', '#f1ffc4');
+			radplayer('color2', '#ff844f');
+		}
+		*/
 	},
 	
 	create: function() {
@@ -81,12 +95,12 @@ Ludo.Boot.prototype = {
 	
     start : function() 
     {
+    	this.load.spritesheet("red_piece", "images/red.png", 42, 42, 2);
+        this.load.spritesheet("blue_piece", "images/blue.png", 42, 42, 2);
+        this.load.spritesheet("green_piece", "images/green.png", 42, 42, 2);
+        this.load.spritesheet("yellow_piece", "images/yellow.png", 42, 42, 2);
         this.load.image('board', 'images/ludo.jpg');
-        this.load.image('red_piece', 'images/red_button.png');
-        this.load.image('blue_piece', 'images/blue_button.png');
-        this.load.image('green_piece', 'images/green_button.png');
-        this.load.image('yellow_piece', 'images/yellow_button.png');
-        this.load.image('dice', 'images/dice.png');
+        this.load.image('diceBtn', 'images/dice.png');
         this.load.image('play', 'images/playbutton.png');
         this.load.image('display', 'images/display.png');
         this.load.image('error', 'images/alert.png');
@@ -99,10 +113,10 @@ Ludo.Boot.prototype = {
         this.load.nineSlice('input', 'images/inputfield.png', 15);
         this.load.image('restart', 'images/restart.png');
         this.load.image('updateBtn', 'images/update.png');
-        this.load.image('cred', 'images/red.png');
-        this.load.image('cblue', 'images/blue.png');
-        this.load.image('cgreen', 'images/green.png');
-        this.load.image('cyellow', 'images/yellow.png');
+        this.load.image('cred', 'images/cred.png');
+        this.load.image('cblue', 'images/cblue.png');
+        this.load.image('cgreen', 'images/cgreen.png');
+        this.load.image('cyellow', 'images/cyellow.png');
         this.load.image('soundIcon', 'images/sound.ico');
         //this.load.image('welcomepage', 'images/welcomepage.png');
         this.load.spritesheet("die", "images/diceRed.png", 64, 64);

@@ -13,54 +13,54 @@ Socket = function(ludogame){
 	var players = game.ludo;
 	this.queue = new Queue();
 	sockId = game.sockId;
-	
-	
+
+
 	for (var i = 0; i < players.length; ++i){
 		players[i].setGameIO(this);
-    }
-	
+	}
+
 	for (i = 0; i < dice.length; ++i){
 		dice[i].setGameIO(this);
-    }
-	
-	
+	}
+
+
 	gameio.on('pieceSelection', function(pieceId){
 		game.selectPieceEmissionById(pieceId);
-        
-    });
-	
+
+	});
+
 	gameio.on('diceRoll', function(diceObject){
 		game.rollDiceEmission(diceObject);
-		
-    });
-	
+
+	});
+
 	gameio.on('diceSelection', function(diceObject){
 		game.setSelectedDieById(diceObject);
-		
-    });
-	
+
+	});
+
 	gameio.on('diceUnSelection', function(diceObject){
 		game.setUnSelectedDieById(diceObject);
-		
-    });
-	
+
+	});
+
 	gameio.on('piecePosition', function(pieceObject){
 		console.log('Id: ' + pieceObject.uniqueId + ' x: ' + pieceObject.x + ' y: ' + pieceObject.y);
-		
-    });
-	
+
+	});
+
 	gameio.on('play', function(playObject){
 		game.playDiceEmission(playObject.playerName);
-		
-    });
-	
+
+	});
+
 	gameio.on('releaseGame', function(data){
 		game.restartEmission();
-    });
-	
+	});
+
 	gameio.on('nextTurn', function(nextPlayer){
-		
-		
+
+
 		if (game.playerName == nextPlayer.screenName)
 		{
 			game.myTurn = true;
@@ -73,29 +73,13 @@ Socket = function(ludogame){
 			game.saveGame(nextPlayer.gameData);
 			//console.log("I am locked! " + nextPlayer.screenName);
 		}
-		
-		
-		
-		/*
-		if (sockId == nextPlayer.socketId)
-		{
-			game.myTurn = true;
-			game.playDing();
-			game.saveGame(nextPlayer.gameData);
-			//console.log("I am unlocked! " + nextPlayer.screenName);
-		}else{
-			game.myTurn = false;
-			game.playDong();
-			game.saveGame(nextPlayer.gameData);
-			//console.log("I am locked! " + nextPlayer.screenName);
-		}
-		
-		*/
-		
-		
-		
-		
-    });
+
+
+	});
+
+	gameio.on('updateGame', function(data){
+		game.updateGame(data);
+	});
 
 
 	gameio.on('playerReconnected', function(screenName){
@@ -103,13 +87,13 @@ Socket = function(ludogame){
 			alertMessage(screenName + " has reconnected", "Reconnection",  false);
 			game.connectionNotificationAlert(screenName, true);
 		}
-    });
-	
+	});
+
 	gameio.on('disconnected', function(screenName){
 		game.connectionNotificationAlert(screenName, false);
 	});
-	
-	
+
+
 };
 
 
