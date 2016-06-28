@@ -1,7 +1,7 @@
 var playerInstance = require('./LudoPlayerInstance');
 var _ = require('underscore');
 var perfectTimeToViewGame = false;
-function LudoGameInstance(gameId, socketId, screenName, gameData, colors) {
+function LudoGameInstance(gameId, socketId, screenName, gameData, colors, callback) {
 
 	this.colorsOptions = ["red", "blue", "green", "yellow"];
 	this.disconnectedPlayers = [];
@@ -71,6 +71,7 @@ function LudoGameInstance(gameId, socketId, screenName, gameData, colors) {
 	this.gameInProgress = false;
 	this.gameData.screenNames = this.screenNames;
 
+	callback(this);
 
 }
 
@@ -139,6 +140,8 @@ LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, fr
 		}else
 		{
 
+			var colorsLeft = null;
+			var playerPieces = null;
 			screenName = this.validateScreenName(screenName);
 			this.screenNames.push(screenName);
 			++this.numOfPlayers;
@@ -152,15 +155,15 @@ LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, fr
 			}
 
 			if (this.gameMode === 2){
-				var colorsLeft = this.colorsOptions;
-				var playerPieces = this.getPlayerPieces(this.colorsOptions);
+				colorsLeft = this.colorsOptions;
+				playerPieces = this.getPlayerPieces(this.colorsOptions);
 				this.addPlayerPieces(screenName , playerPieces, colorsLeft);
 				//console.log(JSON.stringify(this.gameData));
 			}
 			else if (this.gameMode === 4 && this.colorsOptions.length > 0){
-				var colorsLeft = [];
+				colorsLeft = [];
 				colorsLeft.push(this.colorsOptions[0]);
-				var playerPieces = this.getPlayerPieces(colorsLeft);
+				playerPieces = this.getPlayerPieces(colorsLeft);
 				this.addPlayerPieces(screenName , playerPieces, colorsLeft);
 				//console.log(JSON.stringify(this.gameData));
 
@@ -275,7 +278,7 @@ LudoGameInstance.prototype.stillInTheGame = function(index){
 
 
 LudoGameInstance.prototype.getUpdatedGameData = function(callback) {
-	callback(this.gameData)
+	callback(this.gameData);
 };
 
 

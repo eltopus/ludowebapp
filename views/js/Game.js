@@ -953,7 +953,7 @@ Ludo.Game.prototype = {
 
 				var gameData = data.gameData;
 				var screenName = data.screenName;
-				if (gameData != null)
+				if (gameData !== null)
 				{
 					for (var i = 0; i < this.ludo.length; ++i)
 					{

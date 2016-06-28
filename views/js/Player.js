@@ -21,7 +21,7 @@ Player = function(game, name, turn, piecesNames, index, playerMode, controller, 
 	this.greenGraphicsIndex = -1;
 	this.gameio = null;
 	this.pusher = false;
-	this.error;
+	this.error = null;
 	this.gameId = gameId;
 
 
@@ -96,7 +96,7 @@ Player.prototype.updatePlayer = function(players){
 		this.exitingGraphicsPositions = player.exitingGraphicsPositions;
 		this.turn = player.turn;
 
-		for (var i = 0; i < player.pieces.length; ++i)
+		for (i = 0; i < player.pieces.length; ++i)
 		{
 			this.playerPieces[i].updatePiece(player.pieces);   
 		}
@@ -162,13 +162,15 @@ Player.prototype.getPieces = function(game, name){
 
 Player.prototype.play = function(playerPlayed){
 
-	if (playerPlayed == null){
+	if (playerPlayed === null){
 		this.gameio.emitPlay({playerName : this.playerName, gameId : this.gameId});
 	}
 
 	if (this.hasSelectedPiece())
 	{
 		var state = this.pieceMovement(this.selectedPiece);
+		var path = null;
+		var value = null;
 		switch (state)
 		{
 		case 0:
@@ -178,8 +180,8 @@ Player.prototype.play = function(playerPlayed){
 		case 1:
 			//consume dice
 			this.consumeSix();
-			var value = this.getRemainingDieValue();
-			var path = this.selectedPiece.plotPath(value);
+			value = this.getRemainingDieValue();
+			path = this.selectedPiece.plotPath(value);
 			this.selectedPiece.moveToStart(path);
 			break;
 		case 2:
@@ -188,17 +190,17 @@ Player.prototype.play = function(playerPlayed){
 			break;
 		case 3:
 			//Move forward with both dice values
-			var value = this.getBothDiceValues();
-			var path = this.selectedPiece.plotPath(value);
+			value = this.getBothDiceValues();
+			path = this.selectedPiece.plotPath(value);
 			this.selectedPiece.moveForward(path);
 			break;
 		case 4:
-			var value = this.getSelectedDieValue();
-			if (value == 0){
+			value = this.getSelectedDieValue();
+			if (value === 0){
 				this.error.showError("Please select dice.");
 			}
 			else{
-				var path = this.selectedPiece.plotPath(value);
+				path = this.selectedPiece.plotPath(value);
 				this.selectedPiece.moveForward(path);
 			}
 			break;
@@ -207,31 +209,31 @@ Player.prototype.play = function(playerPlayed){
 			break;
 		case 6:
 			//Use approprate die
-			var value = this.getAwaitingExitDieValue();
-			var path = this.selectedPiece.plotExitpath(value);
+			value = this.getAwaitingExitDieValue();
+			path = this.selectedPiece.plotExitpath(value);
 			this.selectedPiece.moveForward(path);
 			break;
 		case 7:
-			var value = this.getSelectedDieValue();
-			if (value == 0){
+			value = this.getSelectedDieValue();
+			if (value === 0){
 				this.error.showError("Please select dice.");
 			}
 			else{
-				var path = this.selectedPiece.plotExitpath(value);
+				path = this.selectedPiece.plotExitpath(value);
 				this.selectedPiece.moveForward(path);
 			}
 			break;
 		case 8:
 			//Use both dice to move
-			var value = this.getAwaitingExitDieValue();
-			var path = this.selectedPiece.plotExitpath(value);
+			value = this.getAwaitingExitDieValue();
+			path = this.selectedPiece.plotExitpath(value);
 			this.selectedPiece.moveForward(path);
 			this.getBothDiceValues();
 			break;
 		case 10:
 			//Move towards exit with both dice values
-			var value = this.getBothDiceValues();
-			var path = this.selectedPiece.plotExitpath(value);
+			value = this.getBothDiceValues();
+			path = this.selectedPiece.plotExitpath(value);
 			this.selectedPiece.moveForward(path);
 			break;
 		default:
@@ -289,11 +291,11 @@ Player.prototype.canMoveToNextAtHome = function(){
 Player.prototype.canMoveSelectedToNextAtHome = function(){
 	var byWhatDie = 0;
 	var piece = this.selectedPiece;
-	if (piece != null){
+	if (piece !== null){
 		if (piece.isAwaitingExit()){
 			var start = piece.index;
 			for (var i = 0; i < this.diceObject.length; ++i){
-				if (this.diceObject[i].value != 0){
+				if (this.diceObject[i].value !== 0){
 					var stop = start + this.diceObject[i].value;
 					if (stop <= 5){
 						++byWhatDie;
@@ -313,7 +315,7 @@ Player.prototype.canMoveSamePieceSelectedCloserToExit = function(){
 	if (piece.isAwaitingExit()){   
 		var start = piece.index;    
 		for (var i = 0; i < this.diceObject.length; ++i){
-			if (this.diceObject[i].value != 0){
+			if (this.diceObject[i].value !== 0){
 				var stop = start + this.diceObject[i].value;
 				if (stop <= 5){
 					++whatDie;
@@ -346,7 +348,7 @@ Player.prototype.canMoveAnotherAwaitingToExit = function(selectedPiece){
 Player.prototype.validateAwaitingExitDiceLeftover = function(start, index){
 
 	for (var i = 0; i < this.diceObject.length; ++i){
-		if (this.diceObject[i].value != 0)
+		if (this.diceObject[i].value !== 0)
 		{      
 			var stop = start + this.diceObject[i].value;   
 			if (stop <= 5 && i != index){  
@@ -360,7 +362,7 @@ Player.prototype.validateAwaitingExitDiceLeftover = function(start, index){
 
 Player.prototype.validateAwaitingExitDiceSelection = function(){
 	var piece = this.selectedPiece;
-	if(piece != null){
+	if(piece !== null){
 		return (this.validateNextExitMove(piece));
 	}
 	else{
@@ -370,7 +372,7 @@ Player.prototype.validateAwaitingExitDiceSelection = function(){
 
 Player.prototype.validateNextExitMove = function(piece){
 	var selection = this.getNonConsumingSelectedDieValue();
-	if (selection == 0){
+	if (selection === 0){
 		return false;
 	}
 	var start = piece.index;
@@ -441,7 +443,7 @@ Player.prototype.updateGameOnDisconnection = function(updatedGameData){
 Player.prototype.setSelectedPieceById = function(id){
 	for (var i = 0; i < this.playerPieces.length; ++i){
 		if (this.playerPieces[i].uniqueId === id){
-			if (this.selectedPiece != null){
+			if (this.selectedPiece !== null){
                 this.selectedPiece.playDeselect();
             }
 			this.selectedPiece = this.playerPieces[i];
@@ -590,7 +592,7 @@ Player.prototype.consumeDie = function(value){
 };
 
 Player.prototype.diceIsEmpty = function(){
-	return (this.diceObject.length == 0);
+	return (this.diceObject.length === 0);
 };
 
 Player.prototype.rolled = function(){
@@ -752,6 +754,7 @@ Player.prototype.getNextSelectedPiece = function(){
 	for (var i = 0; i < this.playerPieces.length; ++i){
 		if (this.playerPieces[i].isActive()){
 			this.selectedPiece = this.playerPieces[i];
+			this.selectedPiece.playSelect();
 			return true;
 		}
 	}
@@ -788,7 +791,7 @@ Player.prototype.hasMovingPiece = function(){
 };
 
 Player.prototype.hasSelectedPiece = function(){
-	return (this.selectedPiece != null);
+	return (this.selectedPiece !== null);
 };
 
 
@@ -910,7 +913,7 @@ Player.prototype.hasAllPiecesExited = function(){
 };
 
 Player.prototype.hasExactlyOneUnplayedDie = function(){
-	return ( (this.diceObject.length > 0) && (this.diceObject[0].value > 0 && this.diceObject[1].value == 0) || ( this.diceObject.length > 0) && (this.diceObject[1].value > 0 && this.diceObject[0].value == 0));
+	return ( (this.diceObject.length > 0) && (this.diceObject[0].value > 0 && this.diceObject[1].value === 0) || ( this.diceObject.length > 0) && (this.diceObject[1].value > 0 && this.diceObject[0].value === 0));
 };
 
 Player.prototype.playerTurn = function(){
@@ -922,7 +925,7 @@ Player.prototype.nextTurn = function(){
 };
 
 Player.prototype.myTurn = function(){
-	return (this.turn == true);
+	return (this.turn === true);
 };
 
 
@@ -955,6 +958,11 @@ Player.prototype.resetAllPiecesExited = function(){
 	for (var i = 0; i < this.playerPieces.length; ++i){    
 		this.playerPieces[i].iddle();
 	}     
+};
+
+Player.prototype.selectsDieValueSix = function(){ 
+	var selectedDice = this.controller.getSelectedDieValue();
+	return ((selectedDice[0].d1 === 6) || (selectedDice[0].d2 === 6));
 };
 
 
@@ -1011,7 +1019,7 @@ Player.prototype.drawExitedPiece = function(piece, graphics){
 	var index = this.getNextGraphicsPosition(piece);
 	var graphicsPosition = this.getExitingPieceGraphicsPosition(piece);
 
-	if (graphicsPosition == null){
+	if (graphicsPosition === null){
 		return;
 	}
 	graphics.beginFill(graphicsPosition.color, 1);
@@ -1032,5 +1040,6 @@ Player.prototype.getUuid = function(){
 	var uuid = s.join("");
 	return uuid;
 };
+
 
 

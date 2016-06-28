@@ -423,7 +423,7 @@ Ludo.StartMenu.prototype = {
 						
 						if (data.inprogress)
 						{
-							if (menuMusic != null){
+							if (menuMusic !== null){
 								menuMusic.destroy();
 							}
 
@@ -499,7 +499,8 @@ Ludo.StartMenu.prototype = {
 					socket.emit('createFourPlayerMultiplayerGame', {screenName : fourPlayerScreenName, colors : this.colors}, function (data){
 						if (data.ok)
 						{
-							console.log("ScreenName: " + data.screenName);
+							//console.log("ScreenName: " + data.screenName);
+							//console.log(JSON.stringify(data));
 							state.start('WaitMenu', true, false, data, true, socket, data.setSessionTurn, true, isMobile, menuMusic);
 						}
 						else
@@ -536,7 +537,7 @@ Ludo.StartMenu.prototype = {
 
 		muteMusic : function(){
 			
-			/*
+			
 			if (this.socket === null){
 				this.socket = io();
 				this.socket.emit('loadGame', "name", function(message){
@@ -547,7 +548,7 @@ Ludo.StartMenu.prototype = {
 					alertMessage(message, "Game Loading...", false);
 				});
 			}
-			*/
+			
 			
 			if (this.game.sound.mute === true){
 				this.game.sound.mute = false;

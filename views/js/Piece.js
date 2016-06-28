@@ -19,7 +19,7 @@ Piece = function (game, x, y, name, imageId, uniqueId, isMovable, state, index, 
     this.graph = null;     
     this.bmd = null;      
     this.isSelectable = isSelectable;      
-    this.tween;     
+    this.tween = null;  
     this.playerName = playerName;
     this.group = group; 
     this.isTweening = false;
@@ -181,9 +181,9 @@ Piece.prototype.plotPath = function(dieValue){
 
     this.index = stop - 1;
  
-    for (var k = start; k < stop; ++k){
-        pathX.push(this.piecePath.x[k]);    
-        pathY.push(this.piecePath.y[k]);   
+    for (var j = start; j < stop; ++j){
+        pathX.push(this.piecePath.x[j]);    
+        pathY.push(this.piecePath.y[j]);   
     }
 
     //Analyze go home *************************************************************************************8
@@ -213,7 +213,7 @@ Piece.prototype.plotPath = function(dieValue){
         }
 
                 
-        for (var i = 0; i < homeValue; ++i){
+        for (i = 0; i < homeValue; ++i){
             newPathX.push(homePath.x[i]);
             newPathY.push(homePath.y[i]);   
         }
@@ -313,7 +313,7 @@ Piece.prototype.analyzeMovement = function(pathX, pathY){
     switch(this.piece){ 
         case "red":
             for (var i = 0; i < pathX.length; ++i){
-                if (pathX[i] == 0 && pathY[i] == 288){
+                if (pathX[i] === 0 && pathY[i] === 288){
                     home = i;
                     break; 
                 }     
@@ -322,8 +322,8 @@ Piece.prototype.analyzeMovement = function(pathX, pathY){
                 
         case "blue":
                   
-            for (var i = 0; i < pathX.length; ++i){  
-                if (pathX[i] == 384 && pathY[i] == 0){
+            for (i = 0; i < pathX.length; ++i){  
+                if (pathX[i] === 384 && pathY[i] === 0){
                     home = i;
                     break;   
                 }     
@@ -332,8 +332,8 @@ Piece.prototype.analyzeMovement = function(pathX, pathY){
                 
         case "green":
                    
-            for (var i = 0; i < pathX.length; ++i){ 
-                if (pathX[i] == 288 && pathY[i] == 672){
+            for (i = 0; i < pathX.length; ++i){ 
+                if (pathX[i] === 288 && pathY[i] === 672){
                     home = i;
                     break;     
                 }    
@@ -341,8 +341,8 @@ Piece.prototype.analyzeMovement = function(pathX, pathY){
             break;  
             
         case "yellow":
-            for (var i = 0; i < pathX.length; ++i){
-                if (pathX[i] == 672 && pathY[i] == 384){
+            for (i = 0; i < pathX.length; ++i){
+                if (pathX[i] === 672 && pathY[i] === 384){
                     home = i;
                     break;   
                 }
@@ -365,7 +365,7 @@ Piece.prototype.isMoving = function(){
 };
 
 Piece.prototype.isIddle = function(){
-    return (this.state == 0);
+    return (this.state === 0);
 };
 
 Piece.prototype.iddle = function(){
@@ -433,7 +433,7 @@ Piece.prototype.onCompleteMovement = function()
     this.path = null;
     this.bmd.clear(); 
     var peck = this.checkCollision();
-    if (peck != null){
+    if (peck !== null){
         this.exit();
         this.visible = false;
         this.game.getNextActivePiece();

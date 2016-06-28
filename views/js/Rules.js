@@ -39,7 +39,7 @@ Rules.prototype.nextPlayer = function(currentPlayer){
 
 Rules.prototype.applyDiceRules = function(currentPlayer){
     if(!this.applyDiceRollRule(currentPlayer)){
-    	this.game.playRedneckRoll()
+    	this.game.playRedneckRoll();
         this.play.visible = false;
         currentPlayer.getBothDiceValues();
         currentPlayer = this.nextPlayer(currentPlayer);
@@ -117,6 +117,9 @@ Rules.prototype.applyIddleCheckingRolledSixOrDouble = function(currentPlayer){
         if (currentPlayer.hasMoreThanOneIddlePiece()){
             return 2;
         }else{
+        	if (currentPlayer.hasActivePieces()){
+                return 2;
+            }
             return 1;
         }
         
@@ -167,6 +170,9 @@ Rules.prototype.applyCheckingActiveStateHasOneUnplayedDie = function(currentPlay
         if (currentPlayer.canExitingPiecesUseRemainingDiceValue()){
             return 4;
         }else{
+        	if (currentPlayer.hasMoreThanOneActivePiece()){
+                return 4;
+            }
             if (currentPlayer.hasIddlePieces()){
                 return (this.applyCheckingActiveStateRolledSix(currentPlayer));
             }
@@ -195,7 +201,7 @@ Rules.prototype.applyCheckingActiveCanMoveHome = function(currentPlayer){
 
 Rules.prototype.applyCheckingActiveStateHasIddlePieces = function(currentPlayer){
     
-    if (currentPlayer.hasMoreThanOneIddlePiece()){
+    if (currentPlayer.hasIddlePieces()){
         return (this.applyCheckingActiveStateRolledSix(currentPlayer));
     }else{
         return 3;
@@ -236,12 +242,17 @@ Rules.prototype.applyCheckingAwaitingIsActive = function(currentPlayer){
     }
 };
 
-Rules.prototype.applyCheckingAwaitingHasIddle = function(currentPlayer){
+Rules.prototype.applyCheckingActiveStateHasIddlePieces = function(currentPlayer){
     
     if (currentPlayer.hasIddlePieces()){
-        return (this.applyCheckingAwaitingRolledSix(currentPlayer));
-    }else{
-        return (this.applyCheckingAwaitingHasAwaiting(currentPlayer));
+        if (!currentPlayer.rolledDoubleSix() && currentPlayer.selectsDieValueSix()){
+            return 3;
+        }else{
+            return (this.applyCheckingActiveStateRolledSix(currentPlayer));
+        }
+    }
+    else{
+        return 3;
     }
 };
 

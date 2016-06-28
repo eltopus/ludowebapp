@@ -8,6 +8,7 @@ var games = [];
 var socketIds = [];
 
 var redis = require('redis');
+var fs = require('fs');
 var ludoGameInstance = require('./LudoGameInstance');
 var _ = require('underscore');
 
@@ -64,19 +65,19 @@ function browserInFocus(gameId, callback){
 	var sock = this;
 	callback('I am in focus');
 	//console.log(sock.id + " is in focus");
-};
+}
 
 function browserInBackground(gameId, callback){
 	var sock = this;
 	callback('I am in background');
 	//console.log(sock.id + " is in background");
-};
+}
 
 function playerReconnected(data){
 	var sock = this;
 	sock.broadcast.to(data.gameId).emit('playerReconnected', data.screenName);
 
-};
+}
 
 function updateGame(gameId, callback){
 	var sock = this;
@@ -115,13 +116,13 @@ function updateGameOnDisconnection(gameData, callback){
 function releaseGame(data){
 	var sock = this;
 	sock.broadcast.to(data.gameId).emit('releaseGame', data);
-};
+}
 
 
 function nextTurn(data, callback){
 	var sock = this;
 	callback(true);
-};
+}
 
 function emitNextPlayer(data, callback)
 {
@@ -136,7 +137,7 @@ function emitNextPlayer(data, callback)
 			callback(null);
 		}
 	});
-};
+}
 
 function processNextTurn(data, id, callback){
 
@@ -150,18 +151,18 @@ function processNextTurn(data, id, callback){
 	}
 	//console.log('------------------------------------------------------------ ');
 
-};
+}
 
 function endOfGame(data){
 
-};
+}
 
 
 function awaitingStartGame(data){
 	var sock = this;
 	sock.broadcast.to(data.gameId).emit('awaitingStartGame', data);
 
-};
+}
 
 function startGame(gameId, callback){
 	var sock = this;
@@ -169,12 +170,12 @@ function startGame(gameId, callback){
 	sock.broadcast.to(gameId).emit('startGame', gameData);
 	//console.log("Start: " + JSON.stringify(gameData));
 	callback(gameData);
-};
+}
 
 function pieceSelection(pieceSelectionObject){
 	var sock = this;
 	sock.broadcast.to(pieceSelectionObject.gameId).emit('pieceSelection', pieceSelectionObject.uniqueId);
-};
+}
 
 
 function createTwoPlayerMultiplayerGame(preparedData, callback){
@@ -187,17 +188,47 @@ function createTwoPlayerMultiplayerGame(preparedData, callback){
 		twoPlayer.complete = false;
 		twoPlayer.inprogress = false;
 		twoPlayer.setSessionTurn = true;
-		var ludoInstance = new ludoGameInstance(gameId, sock.id, screenName, twoPlayer, preparedData.colors);
-		games[gameId] = ludoInstance;
-		socketIds[sock.id] = {gameId : gameId, screenName : screenName, owner : true};
-		ludoInstance.gameData.sockId = sock.id;
-		ludoInstance.gameData.screenName = screenName;
-		console.log("Two-PlayerGame Created by: " + screenName + " with game ID: " + gameId + " on " + new Date());
-		callback(ludoInstance.gameData);
+		new ludoGameInstance(gameId, sock.id, screenName, twoPlayer, preparedData.colors, function (ludoInstance){
+			games[gameId] = ludoInstance;
+			socketIds[sock.id] = {gameId : gameId, screenName : screenName, owner : true};
+			ludoInstance.gameData.sockId = sock.id;
+			ludoInstance.gameData.screenName = screenName;
+			console.log("Two-PlayerGame Created by: " + screenName + " with game ID: " + gameId + " on " + new Date());
+			callback(ludoInstance.gameData);
 		//sock.broadcast.to(gameId).emit('awaitingStartGame', ludoInstance.gameData);
+			sock.join(gameId.toString());
+		});
+		
 	});
-	this.join(gameId.toString());
-};
+	
+}
+
+function createFourPlayerMultiplayerGame(preparedData, callback){
+	var sock = this;
+	var gameId = randomString(5);
+	var screenName = preparedData.screenName.toString().trim().toUpperCase();
+
+	getFourPlayerGame(function(fourPlayer){
+		fourPlayer.ok = true;
+		fourPlayer.message = 'OK';
+		fourPlayer.complete = false;
+		fourPlayer.inprogress = false;
+		fourPlayer.setSessionTurn = true;
+		new ludoGameInstance(gameId, sock.id, screenName, fourPlayer, preparedData.colors, function (ludoInstance){
+			games[gameId] = ludoInstance;
+			socketIds[sock.id] = {gameId : gameId, screenName : screenName, owner : true};
+			ludoInstance.gameData.sockId = sock.id;
+			ludoInstance.gameData.screenName = screenName;
+			console.log("Four-PlayerGame Created by: " + screenName + " with game ID: " + gameId + " on " + new Date());
+			ludoInstance.gameData.screenName = screenName;
+			callback(ludoInstance.gameData);
+			sock.join(gameId.toString());
+			
+		});
+		
+	});
+	
+}
 
 
 function connectMultiplayerGame(newPlayer, callback){
@@ -227,7 +258,7 @@ function connectMultiplayerGame(newPlayer, callback){
 						var screenNames = [];
 						for (var i = 0; i <  data.availableScreenNames.length; ++i){
 							//console.log("Names: " + data.availableScreenNames[i].screenName)
-							screenNames.push(data.availableScreenNames[i].screenName)
+							screenNames.push(data.availableScreenNames[i].screenName);
 						}
 						callback({ok : false, message : "Disconnected ScreenNames are: " + screenNames});
 
@@ -254,52 +285,26 @@ function connectMultiplayerGame(newPlayer, callback){
 	}
 
 
-};
-
-
-
-
-function createFourPlayerMultiplayerGame(preparedData, callback){
-	var sock = this;
-	var gameId = randomString(5);
-	var screenName = preparedData.screenName.toString().trim().toUpperCase();
-
-	getFourPlayerGame(function(fourPlayer){
-		fourPlayer.ok = true;
-		fourPlayer.message = 'OK';
-		fourPlayer.complete = false;
-		fourPlayer.inprogress = false;
-		fourPlayer.setSessionTurn = true;
-		var ludoInstance = new ludoGameInstance(gameId, sock.id, screenName, fourPlayer, preparedData.colors);
-		games[gameId] = ludoInstance;
-		socketIds[sock.id] = {gameId : gameId, screenName : screenName, owner : true};
-		ludoInstance.gameData.sockId = sock.id;
-		console.log("Four-PlayerGame Created by: " + screenName + " with game ID: " + gameId + " on " + new Date());
-		ludoInstance.gameData.screenName = screenName;
-		callback(ludoInstance.gameData);
-	});
-	this.join(gameId.toString());
-};
-
+}
 
 
 function diceSelection(diceObject){
 	var sock = this;
 	sock.broadcast.to(diceObject.gameId).emit('diceSelection', diceObject);
 
-};
+}
 
 function piecePosition(pieceObject){
 	var sock = this;
 	//console.log('Piece: ' + pieceObject.uniqueId + ' x: ' + pieceObject.x + ' y: ' + pieceObject.y);
 	sock.broadcast.emit('piecePosition', pieceObject);
 
-};
+}
 
 function diceUnSelection(diceObject){
 	var sock = this;
 	sock.broadcast.to(diceObject.gameId).emit('diceUnSelection', diceObject);
-};
+}
 
 
 function diceRoll(diceObject){
@@ -307,13 +312,13 @@ function diceRoll(diceObject){
 	sock.broadcast.to(diceObject.gameId).emit('diceRoll', diceObject);
 
 
-};
+}
 
 function emitPlay(playerObject){
 	var sock = this;
 	sock.broadcast.to(playerObject.gameId).emit('play', playerObject);
 
-};
+}
 
 
 function disconnected(data){
@@ -349,7 +354,7 @@ function disconnected(data){
 		console.log('Disconnecton Error!!!');
 	}
 
-};
+}
 
 
 function saveNewGame(data, callback){
@@ -369,80 +374,94 @@ function saveNewGame(data, callback){
 	}
 	callback("Game ID: " + data.gameId + " saved");
 
-};
+}
 
 function randomString(length) {
 	return Math.round((Math.pow(36, length + 1) - Math.random() * Math.pow(36, length))).toString(36).slice(1);
-};
+}
 
 function loadTwoPlayerMultiplayerGame(name, callback){
 	
-	var preparedDataL = {"gameId":"2ypw2","diceIds":[{"uniqueId":"0fa40a32-8102-40be-85ae-595e7845d62a","value":0},{"uniqueId":"601b50bb-ed85-4323-8cfd-61262f924748","value":0}],"players":[{"piecesNames":["red","blue"],"playerName":"TESTONE","hasRolled":false,"index":0,"playerMode":2,"endOfPlay":0,"pieces":[{"piece":"red","state":3,"index":1,"x":118,"y":72,"x_home":118,"y_home":72,"imageId":"red_piece","uniqueId":"8d4329e4-bb84-4ef5-97ec-593669ff197c","homeIndex":1},{"piece":"red","state":3,"index":1,"x":72,"y":118,"x_home":72,"y_home":118,"imageId":"red_piece","uniqueId":"4324a6e0-b3b5-4c36-832a-d9eed25842dc","homeIndex":1},{"piece":"red","state":3,"index":1,"x":168,"y":118,"x_home":168,"y_home":118,"imageId":"red_piece","uniqueId":"e9833aec-d612-479f-836a-f33a62ee369a","homeIndex":1},{"piece":"red","state":3,"index":1,"x":120,"y":168,"x_home":120,"y_home":168,"imageId":"red_piece","uniqueId":"b4e8d1af-6c0e-4604-93da-7ba37c002906","homeIndex":1},{"piece":"blue","state":3,"index":14,"x":552,"y":72,"x_home":552,"y_home":72,"imageId":"blue_piece","uniqueId":"a9e1bda1-4122-45bf-b44a-aed5e480c9fd","homeIndex":14},{"piece":"blue","state":0,"index":14,"x":503,"y":118,"x_home":503,"y_home":118,"imageId":"blue_piece","uniqueId":"d082c0f2-7fda-44b3-9409-e08acc1575a0","homeIndex":14},{"piece":"blue","state":1,"index":32,"x":384,"y":432,"x_home":600,"y_home":118,"imageId":"blue_piece","uniqueId":"f461039d-4fce-40b7-9ffe-941edf65275b","homeIndex":14},{"piece":"blue","state":2,"index":2,"x":336,"y":144,"x_home":552,"y_home":168,"imageId":"blue_piece","uniqueId":"db947c8e-c8b4-4f8c-80bd-3698d0f8dfbf","homeIndex":14}],"diceObject":[],"turn":true,"selectedPieceId":"f461039d-4fce-40b7-9ffe-941edf65275b","exitingGraphicsPositions":[740,780,820,860]},{"piecesNames":["green","yellow"],"playerName":"TESTTWO","hasRolled":false,"index":1,"playerMode":2,"endOfPlay":0,"pieces":[{"piece":"green","state":0,"index":40,"x":118,"y":503,"x_home":118,"y_home":503,"imageId":"green_piece","uniqueId":"4ba566af-e1e8-4fa7-8492-51d89bc491d3","homeIndex":40},{"piece":"green","state":0,"index":40,"x":72,"y":552,"x_home":72,"y_home":552,"imageId":"green_piece","uniqueId":"dbfb79bf-30c6-433a-a2f4-d0dc059d08ec","homeIndex":40},{"piece":"green","state":0,"index":40,"x":168,"y":552,"x_home":168,"y_home":552,"imageId":"green_piece","uniqueId":"0cdbdbd8-dbbb-42aa-b723-69eea1ebbe86","homeIndex":40},{"piece":"green","state":0,"index":40,"x":118,"y":600,"x_home":118,"y_home":600,"imageId":"green_piece","uniqueId":"313f6444-cc96-45b4-ae9f-3c9dfddff8a8","homeIndex":40},{"piece":"yellow","state":0,"index":27,"x":552,"y":503,"x_home":552,"y_home":503,"imageId":"yellow_piece","uniqueId":"2753916e-d3d6-4546-8edd-e52a9f67ca69","homeIndex":27},{"piece":"yellow","state":0,"index":27,"x":503,"y":552,"x_home":503,"y_home":552,"imageId":"yellow_piece","uniqueId":"7c22843d-7255-4672-b691-9a8db162d5ab","homeIndex":27},{"piece":"yellow","state":1,"index":34,"x":384,"y":528,"x_home":600,"y_home":552,"imageId":"yellow_piece","uniqueId":"38934697-64df-4c41-8431-55de32e11361","homeIndex":27},{"piece":"yellow","state":0,"index":27,"x":552,"y":600,"x_home":552,"y_home":600,"imageId":"yellow_piece","uniqueId":"7afc3d33-f2e2-4a3e-81e5-be11831250b6","homeIndex":27}],"diceObject":[],"turn":false,"selectedPieceId":"38934697-64df-4c41-8431-55de32e11361","exitingGraphicsPositions":[740,780,820,860]}],"ok":true,"message":"OK","complete":true,"inprogress":true, "gameMode":2};
 	
-	var sock = this;
-	var gameId = preparedDataL.gameId;
-	var players = preparedDataL.players;
-	var playerName1 = null;
-	var playerName2 = null;
-	console.log("GameId: " + gameId);
-	preparedDataL.ok = true;
-	preparedDataL.message = 'OK';
-	preparedDataL.complete = false;
-	preparedDataL.inprogress = false;
-	preparedDataL.setSessionTurn = false;
-	console.log("Pulling from DB GameId: " + gameId);
-	
-	
-	
-	for (var i = 0; i < players.length; ++i)
-	{
-		
-		if (i === 0)
-		{
-			var player = players[i];
-			playerName1 = player.playerName;
-			var gameInstance = new ludoGameInstance(gameId, null, playerName1, preparedDataL, null);
-			gameInstance.gameInProgress = true;
-			gameInstance.numOfPlayers = 0;
-		
-			var disconnetedPlayer = {};
-			disconnetedPlayer.screenName = playerName1;
-			disconnetedPlayer.index = 1;
-			disconnetedPlayer.turn = player.turn;
-			disconnetedPlayer.isOwner = true;
-			gameInstance.disconnectedPlayers.push(disconnetedPlayer);
-			games[gameId] = gameInstance;
-			//console.log("Player One: " + JSON.stringify(gameInstance.gameData));
-			
-			
-		}
-		
-		if (i === 1)
-		{
-			var player = players[i];
-			playerName2 = player.playerName;
-			var disconnetedPlayer = {};
-			disconnetedPlayer.screenName = playerName2;
-			disconnetedPlayer.index = 2;
-			disconnetedPlayer.turn = player.turn;
-			disconnetedPlayer.isOwner = true;
-			games[gameId].disconnectedPlayers.push(disconnetedPlayer);
-			games[gameId].addPlayer(gameId, null, playerName2, true, function(data){
-				games[gameId].gameData.inprogress = false;
-				if (data != null)
-				{
-					games[gameId].numOfPlayers = 0;
-					//console.log("Player Game Data: " + JSON.stringify(data.gameData));
-				}
-				
-			});
-		}
-	}
-	
+	fs.readFile('gameData.json', 'utf8', function (err, data) {
+	    if (err)
+	    {
+	    	//throw err; // we'll not consider error handling for now
+	    	callback(false);
+	    	
+	    }else{
+	    	var preparedDataL = JSON.parse(data);
+	    	var sock = this;
+	    	var gameId = preparedDataL.gameId;
+	    	var players = preparedDataL.players;
+	    	var playerName1 = null;
+	    	var playerName2 = null;
+	    	console.log("GameId: " + gameId);
+	    	preparedDataL.ok = true;
+	    	preparedDataL.message = 'OK';
+	    	preparedDataL.complete = false;
+	    	preparedDataL.inprogress = false;
+	    	preparedDataL.setSessionTurn = false;
+	    	console.log("Pulling from DB GameId: " + gameId);
+	    	
+	    	
+	    	
+	    	for (var i = 0; i < players.length; ++i)
+	    	{
+	    		
+	    		if (i === 0)
+	    		{
+	    			var player1 = players[i];
+	    			playerName1 = player1.playerName;
+	    			var gameInstance = new ludoGameInstance(gameId, null, playerName1, preparedDataL, null);
+	    			gameInstance.gameInProgress = true;
+	    			gameInstance.numOfPlayers = 0;
+	    		
+	    			var disconnetedPlayer1 = {};
+	    			disconnetedPlayer1.screenName = playerName1;
+	    			disconnetedPlayer1.index = 1;
+	    			disconnetedPlayer1.turn = player1.turn;
+	    			disconnetedPlayer1.isOwner = true;
+	    			gameInstance.disconnectedPlayers.push(disconnetedPlayer1);
+	    			games[gameId] = gameInstance;
+	    			//console.log("Player One: " + JSON.stringify(gameInstance.gameData));
+	    			
+	    			
+	    		}
+	    		
+	    		if (i === 1)
+	    		{
+	    			var player2 = players[i];
+	    			playerName2 = player2.playerName;
+	    			var disconnetedPlayer2 = {};
+	    			disconnetedPlayer2.screenName = playerName2;
+	    			disconnetedPlayer2.index = 2;
+	    			disconnetedPlayer2.turn = player2.turn;
+	    			disconnetedPlayer2.isOwner = true;
+	    			var gameInstance2 = games[gameId];
+	    			
+	    			gameInstance2.disconnectedPlayers.push(disconnetedPlayer2);
+	    			gameInstance2.addPlayer(gameId, null, playerName2, true, function(data){
+	    				gameInstance2.gameData.inprogress = false;
+	    				if (data !== null)
+	    				{
+	    					gameInstance2.numOfPlayers = 0;
+	    					//console.log("Player Game Data: " + JSON.stringify(data.gameData));
+	    				}
+	    				
+	    			});
+	    		}
+	    	}
+	    	
+	    	
+	    }
+	    
+	});
+
 	//console.log("Player Final: " + JSON.stringify(games[gameId].disconnectedPlayers));
 	callback(true);
 	
-};
+}
 
 
 
@@ -470,7 +489,7 @@ function getTwoPlayerGame(callback) {
 				        	         { piece :"green", state :0, index :40, x :118,  y :600, x_home :118, y_home :600, imageId :"green_piece", uniqueId :"313f6444-cc96-45b4-ae9f-3c9dfddff8a8", homeIndex :40}],
 				        	         diceObject :[], turn :false, selectedPieceId :null, exitingGraphicsPositions :[740,780,820,860]}]};
 	callback(twoPlayerGame);
-};
+}
 
 function getFourPlayerGame(callback){
 	var fourPlayerGame = {gameId :null, gameMode : 4, setSessionTurn : false, owner : false, howManyPlayersJoined : 0,

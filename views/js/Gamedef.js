@@ -29,7 +29,7 @@ Playerdef = function(player, pieces){
     this.selectedPieceId = null;
     this.exitingGraphicsPositions = player.exitingGraphicsPositions;
     
-    if (player.selectedPiece != null){
+    if (player.selectedPiece !== null){
         this.selectedPieceId = player.selectedPiece.uniqueId;
     }
     

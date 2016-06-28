@@ -4,8 +4,6 @@
 Dice = function (game, x, y, gameId, myTurn, uniqueId) {
     Phaser.Sprite.call(this, game.game, x, y, 'die');
     
-    this.tween;
-    this.anim;
     this.blurX = game.add.filter("BlurX");  // Blur filters taken from
     this.blurY = game.add.filter("BlurY");  // Filters -> blur example
     this.game = game;
@@ -33,7 +31,7 @@ Dice = function (game, x, y, gameId, myTurn, uniqueId) {
     this.frame = 1;
     this.alpha = 0.5;
     this.diceValueIsSet = false;
-    this.gameio;
+    this.gameio = null;
     this.randValue = 0;
     this.diceArr = [5,1,6,2,0,4];
 
@@ -164,7 +162,7 @@ Dice.prototype.setSavedCurrentPlayer = function(currentPlayer){
 
 Dice.prototype.selectDie = function() {
     if (this.game.myTurn){
-    	if (this.player != null && !this.player.hasMovingPiece()){   
+    	if (this.player !== null && !this.player.hasMovingPiece()){   
             if (this.selected() && !this.isPlayed){
                 this.unSelect();
                 this.gameio.emitDiceUnSelection({uniqueId :  this.uniqueId, gameId : this.gameId, selected : false});
@@ -199,14 +197,13 @@ Dice.prototype.value = function() {
             return 4;
         default:
             return 0;
-            break;
     }
 };
 
 //Used to set dice values from persisted JSON file
 Dice.prototype.setValue = function(diceObject) {
     
-    if (diceObject.value == 0){
+    if (diceObject.value === 0){
         return;
     }
     switch(diceObject.value) 

@@ -123,13 +123,13 @@ Ludo.WaitMenu.prototype = {
 			var saveFlag = loadGame;
 			var state = this.game.state;
 			var turn = this.myTurn;
-			var owner = this.owner;
-			var isMobile = this.isMobile;
-			var menuMusic = this.menuMusic;
+			owner = this.owner;
+			isMobile = this.isMobile;
+			menuMusic = this.menuMusic;
 			var sockId = this.sockId;
 
 			this.socket.on('startGame', function(gameData){
-				if (menuMusic != null){
+				if (menuMusic !== null){
 					menuMusic.destroy();
 				}
 				state.start('Game', true, false, gameData, saveFlag, socket, turn, owner, isMobile, sockId, data.screenName, false);
@@ -147,8 +147,8 @@ Ludo.WaitMenu.prototype = {
 		},
 
 		create: function() {
-			this.filter;
-			this.sprite;
+			this.filter = null;
+			this.sprite = null;
 			this.soundIcon = this.game.add.sprite(850, 30, "soundIcon");
 			this.soundIcon.anchor.set(0.5);
 			this.soundIcon.scale.x = 0.2;
@@ -191,12 +191,11 @@ Ludo.WaitMenu.prototype = {
 
 			updatePlayerActivity = function(data)
 			{
-				//console.log(JSON.stringify(data));
 				var screenNames = data.screenNames;
 			
 				
 
-				if (data.gameMode == 2)
+				if (data.gameMode === 2)
 				{
 					
 
@@ -222,11 +221,12 @@ Ludo.WaitMenu.prototype = {
 					}
 
 				}
-				else if (data.gameMode == 4)
+				else if (data.gameMode === 4)
 				{
 					
-					for ( var j = 0; j < screenNames.lenght; ++j)
+					for ( var j = 0; j < screenNames.length; ++j)
 					{
+						
 
 						if (j === 0){
 							userOne.value =  screenNames[j] + ' joined game. Waiting for other players...';
@@ -285,7 +285,7 @@ Ludo.WaitMenu.prototype = {
 			var sockId = this.sockId;
 			var isMobile = this.isMobile;
 			var screenName = this.screenName;
-			if (this.menuMusic != null){
+			if (this.menuMusic !== null){
 				this.menuMusic.destroy();
 			}
 
