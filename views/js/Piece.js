@@ -150,7 +150,7 @@ Piece.prototype.moveBackHome = function(){
     this.iddle(); 
     this.isSelectable = false;
     this.index = this.homeIndex;
-    var tween = this.game.add.tween(this).to( { x: this.x_home, y: this.y_home }, 2000, Phaser.Easing.Linear.None, true);   
+    this.game.add.tween(this).to( { x: this.x_home, y: this.y_home }, 2000, Phaser.Easing.Linear.None, true);   
 };
 
 Piece.prototype.plotPath = function(dieValue){

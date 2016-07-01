@@ -242,6 +242,15 @@ Rules.prototype.applyCheckingAwaitingIsActive = function(currentPlayer){
     }
 };
 
+Rules.prototype.applyCheckingAwaitingHasIddle = function(currentPlayer){
+    
+    if (currentPlayer.hasIddlePieces()){
+        return (this.applyCheckingAwaitingRolledSix(currentPlayer));
+    }else{
+        return (this.applyCheckingAwaitingHasAwaiting(currentPlayer));
+    }
+};
+
 Rules.prototype.applyCheckingActiveStateHasIddlePieces = function(currentPlayer){
     
     if (currentPlayer.hasIddlePieces()){

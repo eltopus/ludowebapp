@@ -27,6 +27,10 @@ LudoPlayerInstance.prototype.updateGameData = function(gameData){
 	this.gameData = gameData;
 };
 
+LudoPlayerInstance.prototype.deleteGameData = function(){
+	this.gameData = null;
+};
+
 
 
 module.exports = LudoPlayerInstance;

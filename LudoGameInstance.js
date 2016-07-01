@@ -58,6 +58,7 @@ function LudoGameInstance(gameId, socketId, screenName, gameData, colors, callba
 	++this.numOfPlayers;
 	this.ludoPlayers[screenName] = new playerInstance(gameId, socketId, screenName, gameData, this.numOfPlayers, true);
 	this.gameData = this.ludoPlayers[screenName].gameData;
+	this.ludoPlayers[screenName].deleteGameData();
 	this.choicesLeft = null;
 
 	if (colors !== null){
@@ -115,6 +116,7 @@ LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, fr
 					this.gameData.setSessionTurn = this.disconnectedPlayers[i].turn;
 					this.ludoPlayers[screenName] = new playerInstance(gameId, socketId, screenName, this.gameData, this.disconnectedPlayers[i].index, false);
 					this.gameData = this.ludoPlayers[screenName].gameData;
+					this.ludoPlayers[screenName].deleteGameData();
 					++this.numOfPlayers;
 					if (this.numOfPlayers === this.gameMode){
 						this.gameData.complete = true;
@@ -147,8 +149,8 @@ LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, fr
 			++this.numOfPlayers;
 			this.gameData.setSessionTurn = false;
 			this.ludoPlayers[screenName] = new playerInstance(gameId, socketId, screenName, this.gameData, this.numOfPlayers, false);
-
 			this.gameData = this.ludoPlayers[screenName].gameData;
+			this.ludoPlayers[screenName].deleteGameData();
 			if (this.numOfPlayers === this.gameMode){
 				this.gameData.complete = true;
 				this.gameInProgress = true;
@@ -435,6 +437,10 @@ LudoGameInstance.prototype.getPlayer = function(socketId) {
 		}
 	}
 	return player;
+};
+
+LudoGameInstance.prototype.updateDice = function(diceObject, callback) {
+	callback(true);
 };
 
 module.exports = LudoGameInstance;

@@ -62,9 +62,16 @@ exports.initGame = function(gameio, socket){
 
 
 function browserInFocus(gameId, callback){
+	
+	
 	var sock = this;
-	callback('I am in focus');
 	//console.log(sock.id + " is in focus");
+	var game = games[gameId];
+	if (game){
+		game.getUpdatedGameData(function(updatedGame){
+			callback(updatedGame);
+		});
+	}
 }
 
 function browserInBackground(gameId, callback){
@@ -270,6 +277,7 @@ function connectMultiplayerGame(newPlayer, callback){
 						gameData.screenName = data.screenName;
 						sock.broadcast.to(gameId).emit('awaitingStartGame', gameData);
 						sock.join(gameId.toString());
+						console.log("Game: " + gameId + " was joined by " + screenName + " on " + new Date());
 						callback(gameData);
 					}
 				}
@@ -310,8 +318,6 @@ function diceUnSelection(diceObject){
 function diceRoll(diceObject){
 	var sock = this;
 	sock.broadcast.to(diceObject.gameId).emit('diceRoll', diceObject);
-
-
 }
 
 function emitPlay(playerObject){
@@ -333,7 +339,7 @@ function disconnected(data){
 			var game = games[gameId];
 			if (game){
 				game.removePlayer(screenName, owner);
-				//_.without(socketIds, sock.id);
+				console.log("Player: " + screenName + " was removed from game " + gameId + " on " + new Date());
 				delete socketIds[sock.id];
 				if (game.isEmpty()){
 					console.log('Game is empty. Deleting ' + gameId);

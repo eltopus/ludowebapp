@@ -334,7 +334,6 @@ Player.prototype.canMoveAnotherAwaitingToExit = function(selectedPiece){
 	{
 		if (selectedPiece != this.playerPieces[i] && this.playerPieces[i].isAwaitingExit())
 		{
-			var start = this.playerPieces[i].index;
 			if (this.validateAwaitingExitDiceLeftover(this.playerPieces[i].index, index) >= 0){
 				return true;   
 			} 
@@ -622,10 +621,7 @@ Player.prototype.getRemainingDieValue = function(){
 
 
 Player.prototype.getAwaitingExitDieValue = function(){
-	var start = this.selectedPiece.index;
-	var value = 0;
-	var temp = 0;
-
+	
 	var dieOne = this.diceObject[0].value;
 	var dieTwo = this.diceObject[1].value;
 
