@@ -56,7 +56,7 @@ Dice.prototype.roll = function(diceObjects) {
 		//console.log("id: " + this.uniqueId + ' value: ' + this.randValue);
 		
 		
-		this.gameio.emitDiceRoll({uniqueId :  this.uniqueId, frame : this.randValue, gameId : this.gameId});
+		this.gameio.emitDiceRoll({uniqueId :  this.uniqueId, frame : this.randValue, gameId : this.gameId, playerName : this.player.playerName});
 	    this.alpha = 1;
 	    this.isPlayed = false;
 	    this.filters = [this.blurX, this.blurY];
@@ -138,6 +138,11 @@ Dice.prototype.update = function() {
 Dice.prototype.played = function(){
     this.isPlayed = true;
     this.alpha = 0.6;
+    if (this.player !== null && this.gameio !== null && this.game.myTurn){
+    	//console.log("PlayerName: " + this.player.playerName);
+    	this.gameio.emitDiceIsPlayed({uniqueId : this.uniqueId, gameId : this.gameId, playerName : this.player.playerName});
+    }
+    
 };
 
 Dice.prototype.isSpent = function(){
@@ -165,10 +170,10 @@ Dice.prototype.selectDie = function() {
     	if (this.player !== null && !this.player.hasMovingPiece()){   
             if (this.selected() && !this.isPlayed){
                 this.unSelect();
-                this.gameio.emitDiceUnSelection({uniqueId :  this.uniqueId, gameId : this.gameId, selected : false});
+                this.gameio.emitDiceUnSelection({uniqueId :  this.uniqueId, gameId : this.gameId, selected : false, playerName : this.player.playerName});
             }else if (this.unSelected()){  
                 this.select(); 
-                this.gameio.emitDiceSelection({uniqueId :  this.uniqueId, gameId : this.gameId, selected : true});
+                this.gameio.emitDiceSelection({uniqueId :  this.uniqueId, gameId : this.gameId, selected : true, playerName : this.player.playerName});
             }   
         }
     }

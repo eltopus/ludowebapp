@@ -53,7 +53,7 @@ Player.prototype.buildPieces = function(game){
 Player.prototype.setGameIO = function(gameio){
 	this.gameio = gameio;
 	for (var i = 0; i < this.playerPieces.length; ++i){
-		this.playerPieces[i].gameio =  this.gameio;
+		this.playerPieces[i].setGameIO(this.gameio);
 	}
 };
 
@@ -276,7 +276,7 @@ Player.prototype.canMoveToNextAtHome = function(){
 		{
 			var start = piece.index;
 			for (var m = 0; m < this.diceObject.length; ++m){
-				if (this.diceObject[m].value != 0){
+				if (this.diceObject[m].value !== 0){
 					var stop = start + this.diceObject[m].value;
 					if (stop <= 5){
 						++byWhatDie;
@@ -406,7 +406,7 @@ Player.prototype.selectAll = function(){
 Player.prototype.deSelectAll = function(){
 
 	for (var i = 0; i < this.playerPieces.length; ++i){
-		
+
 		this.playerPieces[i].isSelectable = false;
 		this.playerPieces[i].alpha = 0.7;
 	}
@@ -415,13 +415,14 @@ Player.prototype.deSelectAll = function(){
 
 Player.prototype.setSelectedPiece = function(piece){
 	for (var i = 0; i < this.playerPieces.length; ++i){
-		if (this.playerPieces[i] === piece){
+
+		if (this.playerPieces[i].uniqueId === piece.uniqueId){
 			if (this.selectedPiece !== null){
-                this.selectedPiece.playDeselect();
-            }
+				this.selectedPiece.playDeselect();
+			}
 			this.selectedPiece = this.playerPieces[i];
 			this.selectedPiece.playSelect();
-			this.gameio.emitPieceSelection({uniqueId : this.selectedPiece.uniqueId, gameId : this.gameId});
+			this.gameio.emitPieceSelection({uniqueId : this.selectedPiece.uniqueId, gameId : this.gameId, playerName : this.playerName});
 			return true;
 		}
 	}
@@ -430,8 +431,8 @@ Player.prototype.setSelectedPiece = function(piece){
 };
 
 
-Player.prototype.emitNextPlayer = function(updatedGameData){
-	this.gameio.emitNextPlayer({screenName : this.playerName, gameId : this.gameId, gameMode : this.playerMode, gameData: updatedGameData});
+Player.prototype.emitNextPlayer = function(){
+	this.gameio.emitNextPlayer({screenName : this.playerName, gameId : this.gameId, gameMode : this.playerMode});
 };
 
 Player.prototype.updateGameOnDisconnection = function(updatedGameData){
@@ -443,8 +444,8 @@ Player.prototype.setSelectedPieceById = function(id){
 	for (var i = 0; i < this.playerPieces.length; ++i){
 		if (this.playerPieces[i].uniqueId === id){
 			if (this.selectedPiece !== null){
-                this.selectedPiece.playDeselect();
-            }
+				this.selectedPiece.playDeselect();
+			}
 			this.selectedPiece = this.playerPieces[i];
 			this.selectedPiece.playSelect();
 			return true;
@@ -603,7 +604,6 @@ Player.prototype.unRolled = function(){
 };
 
 
-
 //****************************Get Operations********************************************
 
 Player.prototype.getRemainingDieValue = function(){
@@ -621,7 +621,7 @@ Player.prototype.getRemainingDieValue = function(){
 
 
 Player.prototype.getAwaitingExitDieValue = function(){
-	
+
 	var dieOne = this.diceObject[0].value;
 	var dieTwo = this.diceObject[1].value;
 
@@ -690,11 +690,11 @@ Player.prototype.getHighestDieValueThatGetsMeCloserToHome = function(){
 };
 
 Player.prototype.getHighestDieValue = function(dieOne, dieTwo){  
-    if (dieOne > dieTwo){
-        return dieOne;
-    }else{
-        return dieTwo;
-    }
+	if (dieOne > dieTwo){
+		return dieOne;
+	}else{
+		return dieTwo;
+	}
 };
 
 
@@ -758,18 +758,18 @@ Player.prototype.getNextSelectedPiece = function(){
 };
 
 Player.prototype.canExitingPiecesUseRemainingDiceValue = function(){ 
-	
-    var unselectedDiceValue = this.controller.getUnselectedDieValue();
-    for (var j = 0; j < unselectedDiceValue.length; ++j )
-    {
-        for (var i = 0; i < this.playerPieces.length; ++i)
-        {    
-            if (this.playerPieces[i].awaitingExitCanUseDiceValue(unselectedDiceValue[j])){
-                return true;
-            }    
-        }     
-    }
-    return false;
+
+	var unselectedDiceValue = this.controller.getUnselectedDieValue();
+	for (var j = 0; j < unselectedDiceValue.length; ++j )
+	{
+		for (var i = 0; i < this.playerPieces.length; ++i)
+		{    
+			if (this.playerPieces[i].awaitingExitCanUseDiceValue(unselectedDiceValue[j])){
+				return true;
+			}    
+		}     
+	}
+	return false;
 };
 
 
@@ -784,6 +784,21 @@ Player.prototype.hasMovingPiece = function(){
 		}    
 	}     
 	return (movingPieces > 0);
+};
+
+Player.prototype.hasNoMovingPiece = function(callback){
+	var movingPieces = 0;
+	for (var i = 0; i < this.playerPieces.length; ++i){    
+		if (this.playerPieces[i].isMoving()){
+			++movingPieces; 
+			break;
+		}    
+	}     
+	if (movingPieces > 0){
+		
+	}else{
+		callback(true);
+	}
 };
 
 Player.prototype.hasSelectedPiece = function(){

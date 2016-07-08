@@ -65,20 +65,20 @@ Socket = function(ludogame){
 		{
 			game.myTurn = true;
 			game.playDing();
-			game.saveGame(nextPlayer.gameData);
+			game.updateGame(nextPlayer.gameData);
+			//game.saveGame(nextPlayer.gameData);
 			//console.log("I am unlocked! " + nextPlayer.screenName);
 		}else{
 			game.myTurn = false;
 			game.playDong();
-			game.saveGame(nextPlayer.gameData);
+			game.updateGame(nextPlayer.gameData);
+			//game.saveGame(nextPlayer.gameData);
 			//console.log("I am locked! " + nextPlayer.screenName);
 		}
-
-
 	});
 
-	gameio.on('updateGame', function(data){
-		game.updateGame(data);
+	gameio.on('updateGame', function(gameData){
+		//game.updateGame(gameData);
 	});
 
 
@@ -94,6 +94,14 @@ Socket = function(ludogame){
 	});
 
 
+};
+
+Socket.prototype.emitDiceIsPlayed = function(diceInfo){
+	gameio.emit('diceIsPlayed', diceInfo);
+};
+
+Socket.prototype.emitUpdatePieceInfo = function(pieceInfo){
+	gameio.emit('updatePieceInfo', pieceInfo);
 };
 
 

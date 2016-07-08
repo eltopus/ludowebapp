@@ -58,6 +58,10 @@ Piece.prototype.isSelected = function() {
 };
 
 
+Piece.prototype.setGameIO = function(gameio) {
+	this.gameio = gameio;
+};
+
 Piece.prototype.moveForward = function(pointsArray)
 {
     this.startMoving();
@@ -150,7 +154,8 @@ Piece.prototype.moveBackHome = function(){
     this.iddle(); 
     this.isSelectable = false;
     this.index = this.homeIndex;
-    this.game.add.tween(this).to( { x: this.x_home, y: this.y_home }, 2000, Phaser.Easing.Linear.None, true);   
+    this.tween = this.game.add.tween(this).to( { x: this.x_home, y: this.y_home }, 2000, Phaser.Easing.Linear.None, true);
+    this.tween.onComplete.add(this.onCompleteMovementBackToHome, this);
 };
 
 Piece.prototype.plotPath = function(dieValue){
@@ -232,6 +237,7 @@ Piece.prototype.plotPath = function(dieValue){
         this.bmd.rect(points.x[p]-3, points.y[p]-3, 6, 6, 'rgba(0, 0, 90, 1)');     
     } 
     
+    console.log("Points: " + points);
     return points;
 };
 
@@ -418,6 +424,9 @@ Piece.prototype.checkCollision = function(){
             for (var j = 0; j < activePieces.length; ++j){
                 if (this.isActive() && activePieces[j].index == this.index){
                     activePieces[j].moveBackHome();
+                    if (this.game.myTurn){
+                    	this.gameio.emitUpdatePieceInfo({gameId : this.game.gameId, uniqueId : activePieces[j].uniqueId, x : activePieces[j].x_home, y : activePieces[j].y_home, state : 0, index : activePieces[j].homeIndex, playerName : activePieces[j].playerName });
+                    }
                     return activePieces[j].uniqueId;
                 }
             }
@@ -433,25 +442,34 @@ Piece.prototype.onCompleteMovement = function()
     this.path = null;
     this.bmd.clear(); 
     var peck = this.checkCollision();
-    if (peck !== null){
+    if (peck !== null)
+    {
         this.exit();
         this.visible = false;
         this.game.getNextActivePiece();
         this.game.unselectUnplayedDie();
     }
     
-    if (this.isExited()){
+    if (this.isExited())
+    {
         this.visible = false;
         this.game.unselectUnplayedDie();
         this.game.getNextActivePiece();
         this.game.drawExitingGrahics(this);
     }
+    if (this.game.myTurn){
+    	this.gameio.emitUpdatePieceInfo({gameId : this.game.gameId, uniqueId : this.uniqueId, x : this.x, y : this.y, state : this.state, index : this.index, playerName : this.playerName});
+    }
     
     this.game.checkPlayCompleted(this.playerName, peck);
+
 };
 
-Piece.prototype.onContinueMovement = function()
-{
+Piece.prototype.onCompleteMovementBackToHome = function(){
+	
+};
+
+Piece.prototype.onContinueMovement = function(){
     this.moveForward(this.path);
 };
 

@@ -1,10 +1,33 @@
 var playerInstance = require('./LudoPlayerInstance');
 var _ = require('underscore');
 var perfectTimeToViewGame = false;
+var diceObjects = [];
+
+var diceValue = function(frame){
+
+    switch(frame) {
+        case 0:
+            return 6;
+        case 1:
+            return 1;
+        case 2:
+            return 2;
+        case 4:
+            return 5;
+        case 5:
+            return 3;
+        case 6:
+            return 4;
+        default:
+            return 0;
+    }
+};
+
 function LudoGameInstance(gameId, socketId, screenName, gameData, colors, callback) {
 
 	this.colorsOptions = ["red", "blue", "green", "yellow"];
 	this.disconnectedPlayers = [];
+	this.gameData = gameData;
 
 	this.redPieces = [{piece :"red", state : 0, index : 1, x :118, y:72, x_home:118, y_home:72, 
 		imageId:"red_piece", uniqueId :"8d4329e4-bb84-4ef5-97ec-593669ff197c", homeIndex:1 },
@@ -53,10 +76,10 @@ function LudoGameInstance(gameId, socketId, screenName, gameData, colors, callba
 
 	this.screenName = screenName;
 	this.numOfPlayers = 0;
-	gameData.gameId = gameId;
-	this.gameMode = gameData.gameMode;
+	this.gameData.gameId = gameId;
+	this.gameMode = this.gameData.gameMode;
 	++this.numOfPlayers;
-	this.ludoPlayers[screenName] = new playerInstance(gameId, socketId, screenName, gameData, this.numOfPlayers, true);
+	this.ludoPlayers[screenName] = new playerInstance(gameId, socketId, screenName, this.gameData, this.numOfPlayers, true);
 	this.gameData = this.ludoPlayers[screenName].gameData;
 	this.ludoPlayers[screenName].deleteGameData();
 	this.choicesLeft = null;
@@ -65,13 +88,12 @@ function LudoGameInstance(gameId, socketId, screenName, gameData, colors, callba
 		var playerPieces = this.getPlayerPieces(colors);
 		this.addPlayerPieces(screenName, playerPieces, colors);
 	}
-	
+
 	//console.log(JSON.stringify(this.gameData));
 	this.screenNames.push(screenName);
 	this.currentPlayerName = screenName;
 	this.gameInProgress = false;
 	this.gameData.screenNames = this.screenNames;
-
 	callback(this);
 
 }
@@ -97,17 +119,17 @@ LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, fr
 
 	if (this.isNotFull()) 
 	{
-		
+
 		if (this.gameInProgress)
 		{
-			
+
 			var screenameExists = false;
 			this.gameData.inprogress = true;
 			if (fromDB){
 				//this.gameData.inprogress = true;
 				this.screenNames.push(screenName);
 			}
-			
+
 			for (var i = 0; i < this.disconnectedPlayers.length; ++i)
 			{
 				if (this.disconnectedPlayers[i].screenName === screenName)
@@ -185,28 +207,22 @@ LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, fr
 
 };
 
-LudoGameInstance.prototype.getNextSocketId = function(screenName, updatedGameData, callback){
+LudoGameInstance.prototype.getNextSocketId = function(screenName, callback){
 
 	if (this.ludoPlayers[screenName]){
 
 		perfectTimeToViewGame = false;
 		var currentPlayer = this.ludoPlayers[screenName];
 		var index = (currentPlayer.index % this.gameMode) + 1;
-		
-		
-		if (screenName === this.currentPlayerName){
-			this.gameData = updatedGameData;
-			//console.log('Updating Game......');
-		}
 
 		var player = this.stillInTheGame(index);
-		if (player === null){
+		if (player === null)
+		{
 			console.log('Next Player migth have been disconnected...');
-			
 			this.notifyEndOfPlay = [];
 			perfectTimeToViewGame = true;
 			callback({socketId : null, screenName : this.currentPlayerName, gameData : this.gameData});
-			
+
 		}else
 		{
 
@@ -217,15 +233,13 @@ LudoGameInstance.prototype.getNextSocketId = function(screenName, updatedGameDat
 
 
 					var data = this.updateNotifyEndOfPlay(screenName);
-					if (data.ok){
-						this.gameData = updatedGameData;
-					}
 					var size = data.size;
 
 					if (size >= this.gameMode){
 						this.notifyEndOfPlay = [];
 						this.currentPlayerName = key;
 						perfectTimeToViewGame = true;
+						this.updatePlayerTurn(key);
 						callback({socketId : this.ludoPlayers[key].socketId, screenName : key, gameData : this.gameData});
 					}else{
 						callback(null);
@@ -277,15 +291,12 @@ LudoGameInstance.prototype.stillInTheGame = function(index){
 	return playerName;
 };
 
-
-
 LudoGameInstance.prototype.getUpdatedGameData = function(callback) {
-	callback(this.gameData);
+	callback({updatedGame : this.gameData});
 };
 
 
 LudoGameInstance.prototype.setUpdatedGameData = function(gameData, callback) {
-	this.gameData = gameData;
 	callback(true);
 };
 
@@ -439,7 +450,153 @@ LudoGameInstance.prototype.getPlayer = function(socketId) {
 	return player;
 };
 
-LudoGameInstance.prototype.updateDice = function(diceObject, callback) {
+
+LudoGameInstance.prototype.updateDiceRoll = function(diceObject, callback) {
+	
+	diceObjects.push(diceObject);
+	if (diceObjects.length > 1){
+		//console.log("After Dice Rool : " + JSON.stringify(diceObjects));
+		var gameData = this.gameData;
+		_.any(gameData.players, function(player){
+			if (player.playerName === diceObject.playerName)
+			{
+				player.diceObject = [];
+				gameData.diceIds = [];
+				for (var i = 0; i < diceObjects.length; ++i){
+					player.diceObject.push({uniqueId : diceObjects[i].uniqueId, value : diceValue(diceObjects[i].frame), selected : false});
+					gameData.diceIds.push({uniqueId : diceObjects[i].uniqueId, value : diceValue(diceObjects[i].frame)});
+				}
+				player.hasRolled = true;
+				player.turn = true;
+				diceObjects = [];
+			}else
+			{
+				player.hasRolled = false;
+				player.turn = false;
+				player.diceObject = [];
+			}
+		});
+	}
+	callback(true);
+};
+
+LudoGameInstance.prototype.updateDiceSelection = function(diceObject, callback) {
+	
+		_.any(this.gameData.players, function(player){
+			if (player.playerName === diceObject.playerName)
+			{
+				for (var i = 0; i < player.diceObject.length; ++i){
+					if (player.diceObject[i].uniqueId === diceObject.uniqueId){
+						player.diceObject[i].selected = true;
+						callback(true);
+						return {};
+					}
+				}
+			}
+		});
+		callback(false);
+};
+
+LudoGameInstance.prototype.updateDiceUnSelection = function(diceObject, callback) {
+	
+	_.any(this.gameData.players, function(player){
+		if (player.playerName === diceObject.playerName)
+		{
+			for (var i = 0; i < player.diceObject.length; ++i){
+				if (player.diceObject[i].uniqueId === diceObject.uniqueId){
+					player.diceObject[i].selected = false;
+					callback(true);
+					return {};
+				}
+			}
+		}
+	});
+	callback(false);
+};
+
+LudoGameInstance.prototype.updatePlayerTurn = function(playerName) {
+	
+	var players = this.gameData.players;
+	_.any(players, function(player){
+		if (player.playerName === playerName){
+			player.hasRolled = false;
+			player.turn = true;
+		}else{
+			player.hasRolled = false;
+			player.turn = false;
+		}
+	});
+};
+
+LudoGameInstance.prototype.updatePlayerPieceSelection = function(playerInfo, callback) {
+	
+	var players = this.gameData.players;
+	_.any(players, function(player){
+		if (player.playerName === playerInfo.playerName){
+			for (var i = 0; i < player.pieces.length; ++i){
+				if (player.pieces[i].uniqueId === playerInfo.uniqueId){
+					player.selectedPieceId = playerInfo.uniqueId;
+					return {};
+				}
+			}
+		}
+	});
+	callback(true);
+};
+
+LudoGameInstance.prototype.updatePieceInfo = function(playerInfo, callback) {
+	
+	var players = this.gameData.players;
+	_.any(players, function(player){
+		if (player.playerName === playerInfo.playerName){
+			for (var i = 0; i < player.pieces.length; ++i){
+				if (player.pieces[i].uniqueId === playerInfo.uniqueId){
+					player.pieces[i].x = playerInfo.x;
+					player.pieces[i].y = playerInfo.y;
+					player.pieces[i].state = playerInfo.state;
+					player.pieces[i].index = playerInfo.index;
+					return {};
+				}
+			}
+		}
+	});
+	
+	callback(true);
+};
+
+LudoGameInstance.prototype.updateDiceInfo = function(diceInfo, callback) {
+	
+	var gameData = this.gameData;
+	//console.log("FBefore : " + JSON.stringify(gameData));
+	_.any(gameData.players, function(player){
+		if (player.playerName === diceInfo.playerName)
+		{
+			for (var i = 0; i < player.diceObject.length; ++i)
+			{
+				if (player.diceObject[i].uniqueId === diceInfo.uniqueId){
+					player.diceObject[i].value = 0;
+					break;
+				}
+				
+			}
+			
+			if (player.diceObject.length > 1){
+				if (player.diceObject[0].value === 0 && player.diceObject[1].value === 0){
+					player.diceObject = [];
+				}
+			}
+			
+			for (var j = 0; j < gameData.diceIds.length; ++j)
+			{
+				if (gameData.diceIds[j].uniqueId === diceInfo.uniqueId){
+					gameData.diceIds[j].value = 0;
+					break;
+				}
+			}
+			return {};
+		}
+	});
+	//console.log("FAfter : " + JSON.stringify(gameData));
 	callback(true);
 };
 

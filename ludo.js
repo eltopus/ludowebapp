@@ -57,6 +57,8 @@ exports.initGame = function(gameio, socket){
 	gameSocket.on('browserInBackground', browserInBackground);
 	gameSocket.on('browserInFocus', browserInFocus);
 	gameSocket.on('loadGame', loadTwoPlayerMultiplayerGame);
+	gameSocket.on('updatePieceInfo', updatePieceInfo);
+	gameSocket.on('diceIsPlayed', diceIsPlayed);
 	
 };
 
@@ -87,16 +89,11 @@ function playerReconnected(data){
 }
 
 function updateGame(gameId, callback){
-	var sock = this;
 	var game = games[gameId];
 	if (game){
-		game.getUpdatedGameData(function(updatedGame){
-			callback(updatedGame);
-			if (socketIds[sock.id]){
-				var screenName = socketIds[sock.id].screenName;
-				sock.broadcast.to(gameId).emit('updateGame', {gameData : updatedGame, screenName : screenName});
-			}
-			
+		game.getUpdatedGameData(function(gameData){
+			//console.log("On Update : " + JSON.stringify(games[gameId].gameData));
+			callback(gameData.updatedGame);
 		});
 	}else{
 		callback(null);
@@ -138,6 +135,7 @@ function emitNextPlayer(data, callback)
 		if (nextPlayer !== null){
 			data.newId = nextPlayer.socketId;
 			callback(data);
+			//console.log("On Next turn : " + JSON.stringify(games[data.gameId].gameData));
 			//console.log('Current ScreenName : ' + data.screenName + ' Emitting new Id to : ' + nextPlayer.screenName);
 			io.sockets.in(data.gameId).emit('nextTurn', nextPlayer);
 		}else{
@@ -151,7 +149,7 @@ function processNextTurn(data, id, callback){
 	if (socketIds[id] && games[data.gameId])
 	{
 		var screenName = socketIds[id].screenName;
-		games[data.gameId].getNextSocketId(data.screenName, data.gameData, function(nextPlayer){
+		games[data.gameId].getNextSocketId(data.screenName, function(nextPlayer){
 			//console.log('CurrentPlayerName: ' +games[data.gameId].currentPlayerName);
 			callback(nextPlayer);
 		});
@@ -177,11 +175,6 @@ function startGame(gameId, callback){
 	sock.broadcast.to(gameId).emit('startGame', gameData);
 	//console.log("Start: " + JSON.stringify(gameData));
 	callback(gameData);
-}
-
-function pieceSelection(pieceSelectionObject){
-	var sock = this;
-	sock.broadcast.to(pieceSelectionObject.gameId).emit('pieceSelection', pieceSelectionObject.uniqueId);
 }
 
 
@@ -295,9 +288,32 @@ function connectMultiplayerGame(newPlayer, callback){
 
 }
 
+function pieceSelection(pieceSelectionObject){
+	var sock = this;
+	var gameInstance = games[pieceSelectionObject.gameId];
+	if (gameInstance){
+		gameInstance.updatePlayerPieceSelection(pieceSelectionObject, function(status){
+			if (status){
+				//console.log("Final Piece Selection: " + JSON.stringify(games[pieceSelectionObject.gameId].gameData));
+			}
+			
+		});
+	}
+	sock.broadcast.to(pieceSelectionObject.gameId).emit('pieceSelection', pieceSelectionObject.uniqueId);
+}
 
 function diceSelection(diceObject){
 	var sock = this;
+	//console.log("Selection: " + JSON.stringify(diceObject));
+	var gameInstance = games[diceObject.gameId];
+	if (gameInstance){
+		gameInstance.updateDiceSelection(diceObject, function(status){
+			if (status){
+				//console.log("Final: " + JSON.stringify(games[diceObject.gameId].gameData));
+			}
+			
+		});
+	}
 	sock.broadcast.to(diceObject.gameId).emit('diceSelection', diceObject);
 
 }
@@ -311,19 +327,66 @@ function piecePosition(pieceObject){
 
 function diceUnSelection(diceObject){
 	var sock = this;
+	//console.log("UnSelection: " + JSON.stringify(diceObject));
+	var gameInstance = games[diceObject.gameId];
+	if (gameInstance){
+		gameInstance.updateDiceUnSelection(diceObject, function(status){
+			if (status){
+				//console.log("Final: " + JSON.stringify(games[diceObject.gameId].gameData));
+			}
+			
+		});
+	}
 	sock.broadcast.to(diceObject.gameId).emit('diceUnSelection', diceObject);
 }
 
 
 function diceRoll(diceObject){
 	var sock = this;
+	var gameInstance = games[diceObject.gameId];
+	if (gameInstance){
+		gameInstance.updateDiceRoll(diceObject, function(status){
+			if (status){
+				//console.log("Final After Roll : " + JSON.stringify(games[diceObject.gameId].gameData));
+			}
+			
+		});
+	}
 	sock.broadcast.to(diceObject.gameId).emit('diceRoll', diceObject);
 }
+
+function updatePieceInfo(pieceInfo){
+	
+	var gameInstance = games[pieceInfo.gameId];
+	if (gameInstance){
+		gameInstance.updatePieceInfo(pieceInfo, function(status){
+			if (status){
+				//console.log("Final Piece Info : " + JSON.stringify(gameInstance.gameData));
+			}else{
+				//console.log("Final Piece Info...");
+			}
+			
+		});
+	}
+}
+
+function diceIsPlayed(diceInfo){
+	var gameInstance = games[diceInfo.gameId];
+	if (gameInstance){
+		gameInstance.updateDiceInfo(diceInfo, function(status){
+			if (status){
+				//console.log("Final Dice Info : " + JSON.stringify(gameInstance.gameData));
+			}else{
+				//console.log("Final Dice Info...");
+			}
+		});
+	}
+}
+
 
 function emitPlay(playerObject){
 	var sock = this;
 	sock.broadcast.to(playerObject.gameId).emit('play', playerObject);
-
 }
 
 

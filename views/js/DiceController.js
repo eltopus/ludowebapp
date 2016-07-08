@@ -1,5 +1,7 @@
 DiceController = function (game, gameId, myTurn, diceIds) {
   
+	this.game = game;
+	this.gameio = null;
     this.dice = this.getNewDice(game, gameId, myTurn, diceIds);
     for (var i = 0; i < this.dice.length; ++i){
         var uuid = this.getUuid();
@@ -8,12 +10,17 @@ DiceController = function (game, gameId, myTurn, diceIds) {
         
 };
 
+
+DiceController.prototype.setGameIO = function(gameio){
+	this.gameio = gameio;
+};
+
 DiceController.prototype.rollDice = function(currentPlayer, pusher, diceObjects){
     currentPlayer.rollDice(this.dice, pusher, diceObjects);
 };
 
 DiceController.prototype.setDiceValue = function(currentPlayer){
-	this.consumeDice();
+	//this.consumeDice();
     if (currentPlayer.diceObject.length > 0){
         for (var i = 0; i < this.dice.length; ++i){
             this.dice[i].setSavedCurrentPlayer(currentPlayer);
