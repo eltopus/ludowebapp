@@ -37,7 +37,6 @@ Player.prototype.releasePlay = function(game){
 };
 
 
-
 Player.prototype.buildPieces = function(game){
 	switch(this.playerMode){
 	case 2:
@@ -66,7 +65,8 @@ Player.prototype.setPieces = function(game, pieces, playername){
 	for (var i = 0; i < pieces.length; ++i)
 	{
 
-		var piece = new Piece(game, pieces[i].x, pieces[i].y, pieces[i].piece, pieces[i].imageId, pieces[i].uniqueId, false, pieces[i].state, pieces[i].index, false, getNextGroup(), playername);   
+		var group = this.game.add.group();
+		var piece = new Piece(game, pieces[i].x, pieces[i].y, pieces[i].piece, pieces[i].imageId, pieces[i].uniqueId, false, pieces[i].state, pieces[i].index, false, group, playername);   
 		piece.x_home = pieces[i].x_home;         
 		piece.y_home = pieces[i].y_home; 
 		piece.homeIndex = pieces[i].homeIndex;
@@ -513,8 +513,14 @@ Player.prototype.rollDice = function(dice, pusher, diceObjects){
 
 
 Player.prototype.updateDiceObject = function(diceObject){
-
-	this.diceObject.push(diceObject);
+    
+    for (var i = 0; i < this.diceObject.length; ++i){
+        if (this.diceObject[i].uniqueId === diceObject.uniqueId){
+            this.diceObject[i].value = diceObject.value;
+            this.diceObject[i].playerName = diceObject.playerName;
+            this.diceObject[i].selected = diceObject.playerName;
+        }
+    }
 	this.diceCompletion();
 };
 
@@ -577,7 +583,9 @@ Player.prototype.consumeSix = function(){
 };
 
 Player.prototype.consumeDice = function(){
-	this.diceObject = [];
+    for (var i = 0; i < this.diceObject.length; ++i){
+        this.diceObject[i].value = 0;
+	}
 };
 
 Player.prototype.consumeDie = function(value){
@@ -592,7 +600,7 @@ Player.prototype.consumeDie = function(value){
 };
 
 Player.prototype.diceIsEmpty = function(){
-	return (this.diceObject.length === 0);
+	return (this.diceObject[0].value === 0 && this.diceObject[1].value === 0);
 };
 
 Player.prototype.rolled = function(){
@@ -628,13 +636,11 @@ Player.prototype.getAwaitingExitDieValue = function(){
 	if (this.selectedPiece.dieCanGetMeHome(dieOne)){
 		this.controller.consumeDie(this.diceObject[0].uniqueId);
 		this.diceObject[0].value = 0;
-		//console.log("Returning Die One:::  " + dieOne);
 		return dieOne;
 	}
 	else if (this.selectedPiece.dieCanGetMeHome(dieTwo)){
 		this.controller.consumeDie(this.diceObject[1].uniqueId);
 		this.diceObject[1].value = 0;
-		//console.log("Returning Die Two:::  " + dieTwo);
 		return dieTwo;
 	}
 	else if (this.selectedPiece.dieCanGetMeHome(dieOne + dieTwo)){
@@ -642,7 +648,6 @@ Player.prototype.getAwaitingExitDieValue = function(){
 		this.diceObject[0].value = 0;
 		this.controller.consumeDie(this.diceObject[1].uniqueId);
 		this.diceObject[1].value = 0;
-		//console.log("Returning Both Dice:::  " + (dieOne + dieTwo));
 		return (dieOne + dieTwo);
 	}
 	else{
@@ -659,14 +664,12 @@ Player.prototype.getHighestDieValueThatGetsMeCloserToHome = function(){
 
 		this.controller.consumeDie(this.diceObject[0].uniqueId);
 		this.diceObject[0].value = 0;
-		//console.log("Die One Can get me closer  " + dieValueOne);
 		return dieValueOne;
 	}
 	else if (!this.selectedPiece.dieCanGetMeCloserToHome(dieValueOne) && this.selectedPiece.dieCanGetMeCloserToHome(dieValueTwo)){
 
 		this.controller.consumeDie(this.diceObject[1].uniqueId);
 		this.diceObject[1].value = 0;
-		//console.log("Die Two Can get me closer  " + dieValueTwo);
 		return dieValueTwo;
 	}
 	else if (this.selectedPiece.dieCanGetMeCloserToHome(dieValueOne + dieValueTwo)){
@@ -675,7 +678,6 @@ Player.prototype.getHighestDieValueThatGetsMeCloserToHome = function(){
 		this.diceObject[0].value = 0;
 		this.controller.consumeDie(this.diceObject[1].uniqueId);
 		this.diceObject[1].value = 0;
-		//console.log("Both Dice Can get me closer  " + (dieValueOne + dieValueTwo));
 		return (dieValueOne + dieValueTwo);
 	}else{
 
@@ -683,7 +685,6 @@ Player.prototype.getHighestDieValueThatGetsMeCloserToHome = function(){
 		this.diceObject[0].value = 0;
 		this.controller.consumeDie(this.diceObject[1].uniqueId);
 		this.diceObject[1].value = 0;
-		//console.log("NONE Can get me closer  " + (dieValueOne + dieValueTwo));
 		return (this.getHighestDieValue(dieValueOne, dieValueTwo));
 	}
 
@@ -775,6 +776,10 @@ Player.prototype.canExitingPiecesUseRemainingDiceValue = function(){
 
 //******************************Has Operations*************************************************************
 
+Player.prototype.hasMovingPieceCallback = function(callback){
+	callback(true);
+};
+
 Player.prototype.hasMovingPiece = function(){
 	var movingPieces = 0;
 	for (var i = 0; i < this.playerPieces.length; ++i){    
@@ -784,21 +789,6 @@ Player.prototype.hasMovingPiece = function(){
 		}    
 	}     
 	return (movingPieces > 0);
-};
-
-Player.prototype.hasNoMovingPiece = function(callback){
-	var movingPieces = 0;
-	for (var i = 0; i < this.playerPieces.length; ++i){    
-		if (this.playerPieces[i].isMoving()){
-			++movingPieces; 
-			break;
-		}    
-	}     
-	if (movingPieces > 0){
-		
-	}else{
-		callback(true);
-	}
 };
 
 Player.prototype.hasSelectedPiece = function(){

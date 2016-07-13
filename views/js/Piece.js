@@ -39,6 +39,9 @@ Piece = function (game, x, y, name, imageId, uniqueId, isMovable, state, index, 
     this.deselectAmin = [1,0];
     this.animDeselect  = this.animations.add("playDeselect", this.deselectAmin);
     
+    this.onStopMoving = new Phaser.Signal();
+    this.onStopMoving.add(game.onStopMoving, this);
+    
 };
 
 this.Piece.prototype = Object.create(Phaser.Sprite.prototype);
@@ -237,8 +240,34 @@ Piece.prototype.plotPath = function(dieValue){
         this.bmd.rect(points.x[p]-3, points.y[p]-3, 6, 6, 'rgba(0, 0, 90, 1)');     
     } 
     
-    console.log("Points: " + points);
     return points;
+};
+
+Piece.prototype.updatePieceDestination = function(points){
+	var dest_x_index = points.x.length - 1;
+	var dest_y_index = points.y.length - 1;
+	
+	if (dest_x_index >= 0 && dest_y_index >= 0)
+	{
+		
+		if (this.game.myTurn)
+		{
+			for (var i = 0; i < this.game.ludo.length; ++i)
+			{
+		        if (this.game.ludo[i].playerName != this.playerName)
+		        {
+		            var activePieces = this.game.ludo[i].getActivePieces();
+		            for (var j = 0; j < activePieces.length; ++j)
+		            {
+		                if (this.isActive() && activePieces[j].index == this.index){
+		                    this.gameio.emitUpdatePieceInfo({gameId : this.game.gameId, uniqueId : activePieces[j].uniqueId, x : activePieces[j].x_home, y : activePieces[j].y_home, state : 0, index : activePieces[j].homeIndex, playerName : activePieces[j].playerName });
+		                    return;
+		                }
+		            }
+		        }
+			}
+	    }
+	}	
 };
 
 Piece.prototype.getHomePath = function(){
@@ -438,7 +467,7 @@ Piece.prototype.checkCollision = function(){
 
 Piece.prototype.onCompleteMovement = function()
 {
-    this.stopMoving();
+    
     this.path = null;
     this.bmd.clear(); 
     var peck = this.checkCollision();
@@ -457,9 +486,12 @@ Piece.prototype.onCompleteMovement = function()
         this.game.getNextActivePiece();
         this.game.drawExitingGrahics(this);
     }
+   
     if (this.game.myTurn){
     	this.gameio.emitUpdatePieceInfo({gameId : this.game.gameId, uniqueId : this.uniqueId, x : this.x, y : this.y, state : this.state, index : this.index, playerName : this.playerName});
     }
+    this.stopMoving();
+    this.onStopMoving.dispatch(this, this.uniqueId);
     
     this.game.checkPlayCompleted(this.playerName, peck);
 

@@ -59,27 +59,6 @@ Ludo.Boot.prototype = {
   			 this.game.scale.maxHeight = this.game.height * 2.5;
   			 this.game.scale.forceOrientation(false, true);
   			 this.isMobile = true;
-    	     
-    		 
-    		 /*
-    		this.game.add.plugin(Fabrique.Plugins.InputField);
-    		this.input.maxPointers = 1;
-    		this.stage.disableVisibilityChange = true;
-    		this.game.orientated = true;
-    		this.game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
-    		this.game.scale.minWidth = this.game.width /2.7;
-    		this.game.scale.minHeight = this.game.height /2.7;
-    		this.game.scale.pageAlignHorizontally = true;
-    		this.game.scale.pageAlignVertically = true;
-    		this.game.scale.maxWidth = this.game.width * 2.5;
- 			this.game.scale.maxHeight = this.game.height * 2.5;
- 			this.game.scale.forceOrientation(false, true);
- 			this.game.scale.enterIncorrectOrientation.add(this.enterIncorrectOrientation, this);
- 			this.game.scale.leaveIncorrectOrientation.add(this.leaveIncorrectOrientation, this);
- 			this.game.scale.setScreenSize = true;
- 			*/
-  			 
-
     		 
     	 }
     	
@@ -89,7 +68,6 @@ Ludo.Boot.prototype = {
         
         this.start();
         
-        //this.state.start('StartMenu', true, false, this.isMobile);
     },
 	
 	
@@ -130,7 +108,6 @@ Ludo.Boot.prototype = {
         this.load.script("queue", "js/Queue.js");
         this.load.script("rules", "js/Rules.js");
         this.load.script("err", "js/Error.js");
-        //this.load.script("actions", "js/Action.js");
         this.load.script("jquery", "js/jquery-1.12.2.min.js");
         this.load.script("gamedef", "js/Gamedef.js");
         this.load.script("socketio", "js/socket.io.js");
@@ -141,11 +118,12 @@ Ludo.Boot.prototype = {
         this.load.script("index", "js/index.js");
         this.load.script('webfont', '//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js');
         //this.load.json('save', 'js/save.json');
-        this.load.audio("menuMusic", "audio/Motivated.mp3");
-        this.load.audio("gameMusic", "audio/LittleSwansGame.wav");
+        //this.load.audio("menuMusic", "audio/Motivated.mp3");
+        //this.load.audio("gameMusic", "audio/LittleSwansGame.wav");
         this.load.audio("shakeAndroll", "audio/ShakeAndRollDice.mp3");
         this.load.audio("redneckRoll", "audio/RedneckRollsDice.mp3");
         this.load.audio("ding", "audio/ding.mp3");
+        //this.load.audio('ding', ['audio/ding.mp3']);
         this.game.load.start();
         
         
@@ -159,12 +137,6 @@ Ludo.Boot.prototype = {
     fileComplete : function(progress, cacheKey, success, totalLoaded, totalFiles) {
 
     	this.text.setText("File Complete: " + progress + "% - " + totalLoaded + " out of " + totalFiles);
-
-    	if (this.x > 700)
-    	{
-    		this.x = 32;
-    		this.y += 332;
-    	}
 
     },
     

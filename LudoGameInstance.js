@@ -1,6 +1,5 @@
 var playerInstance = require('./LudoPlayerInstance');
 var _ = require('underscore');
-var perfectTimeToViewGame = false;
 var diceObjects = [];
 
 var diceValue = function(frame){
@@ -89,11 +88,12 @@ function LudoGameInstance(gameId, socketId, screenName, gameData, colors, callba
 		this.addPlayerPieces(screenName, playerPieces, colors);
 	}
 
-	//console.log(JSON.stringify(this.gameData));
 	this.screenNames.push(screenName);
 	this.currentPlayerName = screenName;
 	this.gameInProgress = false;
 	this.gameData.screenNames = this.screenNames;
+	this.inBackground = [];
+	this.playerWentInBackground = false;
 	callback(this);
 
 }
@@ -102,12 +102,8 @@ function LudoGameInstance(gameId, socketId, screenName, gameData, colors, callba
 LudoGameInstance.prototype.addAdminPlayer = function(screenName, callback) {
 
 	if (this.gameInProgress){
-
-		if (perfectTimeToViewGame){
-			this.gameData.inprogress = true;
-			this.gameData.screenName = 'ADMIN';
-			callback(this.gameData);
-		}
+		this.gameData.screenName = 'ADMIN';
+		callback(this.gameData);
 
 	}else{
 		callback(null);
@@ -124,7 +120,6 @@ LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, fr
 		{
 
 			var screenameExists = false;
-			this.gameData.inprogress = true;
 			if (fromDB){
 				//this.gameData.inprogress = true;
 				this.screenNames.push(screenName);
@@ -176,6 +171,7 @@ LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, fr
 			if (this.numOfPlayers === this.gameMode){
 				this.gameData.complete = true;
 				this.gameInProgress = true;
+				
 			}
 
 			if (this.gameMode === 2){
@@ -207,58 +203,99 @@ LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, fr
 
 };
 
+
+LudoGameInstance.prototype.getUpdatedGameData = function(callback) {
+	callback({gameData : this.gameData, screenName  : this.currentPlayerName});
+};
+
 LudoGameInstance.prototype.getNextSocketId = function(screenName, callback){
 
-	if (this.ludoPlayers[screenName]){
+	if (this.ludoPlayers[screenName])
+	{
 
-		perfectTimeToViewGame = false;
 		var currentPlayer = this.ludoPlayers[screenName];
 		var index = (currentPlayer.index % this.gameMode) + 1;
 
 		var player = this.stillInTheGame(index);
 		if (player === null)
 		{
+			//Unreachable Code
 			console.log('Next Player migth have been disconnected...');
 			this.notifyEndOfPlay = [];
-			perfectTimeToViewGame = true;
-			callback({socketId : null, screenName : this.currentPlayerName, gameData : this.gameData});
+			callback({socketId : null, screenName : this.currentPlayerName, gameData : this.gameData, playerWentInBackground : this.playerWentInBackground});
 
 		}else
 		{
-
+			var nextPlayerName = null;
 			for (var key in this.ludoPlayers)
 			{
-				if (this.ludoPlayers[key].index === index)
-				{
-
-
-					var data = this.updateNotifyEndOfPlay(screenName);
-					var size = data.size;
-
-					if (size >= this.gameMode){
-						this.notifyEndOfPlay = [];
-						this.currentPlayerName = key;
-						perfectTimeToViewGame = true;
-						this.updatePlayerTurn(key);
-						callback({socketId : this.ludoPlayers[key].socketId, screenName : key, gameData : this.gameData});
-					}else{
-						callback(null);
-					}
-
-					return {};
+				if (this.ludoPlayers[key].index === index){
+					nextPlayerName = key;
+					break;
 				}
+				
 
 			}
+			
+			if (nextPlayerName !== null)
+			{
+				var players = this.gameData.players;
+				_.any(players, function(player){
+					if (player.playerName === key){
+						player.hasRolled = false;
+						player.turn = true;
+					}else{
+						player.hasRolled = false;
+						player.turn = false;
+					}
+				});
 
+				var data = this.updateNotifyEndOfPlay(screenName);
+				var size = data.size;
 
-
+				if (size >= this.gameMode){
+					this.notifyEndOfPlay = [];
+					this.currentPlayerName = nextPlayerName;
+					this.gameData.screenName = nextPlayerName;
+					//this.updatePlayerTurn(key);
+					callback({socketId : this.ludoPlayers[nextPlayerName].socketId, screenName : nextPlayerName, gameData : this.gameData, playerWentInBackground : this.playerWentInBackground});
+				}else
+				{
+					
+					size = this.notifyEndOfPlay.length + this.inBackground.length;
+					if (size >= this.gameMode){
+						//console.log("Updating playerWentInBackground");
+						this.playerWentInBackground = true;
+						callback({gameData : this.gameData, playerWentInBackground : this.playerWentInBackground});
+						
+					}else{
+						callback({playerWentInBackground : this.playerWentInBackground});
+					}
+					
+					
+				}
+			}
 		}
 	}else{
 		console.log('ScreenName : ' + screenName + ' cannot be FOUND');
-		callback(null);
+		callback({playerWentInBackground : this.playerWentInBackground});
 	}
 
 
+};
+
+LudoGameInstance.prototype.addPlayerinBackground = function(playerName, callback){
+	//console.log('Updating in background ' + playerName);
+	this.inBackground.push(playerName);
+	this.playerWentInBackground = true;
+	callback(true);
+	
+};
+
+
+LudoGameInstance.prototype.resetInBackground = function(){
+	this.inBackground = [];
+	this.playerWentInBackground = false;
 };
 
 LudoGameInstance.prototype.stillInTheGame = function(index){
@@ -282,7 +319,7 @@ LudoGameInstance.prototype.stillInTheGame = function(index){
 			if (this.disconnectedPlayers[i].index === index){
 				this.disconnectedPlayers[i].turn = true;
 				this.currentPlayerName = this.disconnectedPlayers[i].screenName;
-				console.log(this.currentPlayerName + ' Found and turn set to true');
+				//console.log(this.currentPlayerName + ' Found and turn set to true');
 				break;
 			}
 		}
@@ -291,8 +328,11 @@ LudoGameInstance.prototype.stillInTheGame = function(index){
 	return playerName;
 };
 
-LudoGameInstance.prototype.getUpdatedGameData = function(callback) {
-	callback({updatedGame : this.gameData});
+
+
+LudoGameInstance.prototype.updateStartGame = function(callback) {
+	this.gameData.inprogress = true;
+	callback(this.gameData);
 };
 
 
@@ -316,21 +356,21 @@ LudoGameInstance.prototype.validateScreenName = function(screenName) {
 
 LudoGameInstance.prototype.updateNotifyEndOfPlay = function(screenName) {
 
-	if (this.notifyEndOfPlay.length < 1){
-		this.notifyEndOfPlay.push(screenName);
-		return {size : this.notifyEndOfPlay.length, ok : true};
-	}else{
-		for (var i = 0; i < this.notifyEndOfPlay.length; ++i){
-			if (this.notifyEndOfPlay[i] === screenName){
-				this.notifyEndOfPlay.push(screenName);
-				return {size :this.notifyEndOfPlay.length, ok : true};
-			}else{
-				this.notifyEndOfPlay.push(screenName);
-				console.log("A great error has occured!!!!!!!!");
-				return {size : this.notifyEndOfPlay.length, ok : false};
-			}
+	this.notifyEndOfPlay.push(screenName);
+	
+	/*
+	var size = this.notifyEndOfPlay.length + this.inBackground.length;
+	if (size >= this.gameMode){
+		for (var j = 0; j < this.inBackground.length; ++j){
+			console.log("Pushing " + this.inBackground[j]);
+			this.notifyEndOfPlay.push(this.inBackground[j]);
 		}
+		this.inBackground = [];
 	}
+	*/
+	
+	return {size :this.notifyEndOfPlay.length, ok : true};
+	
 };
 
 
@@ -473,7 +513,6 @@ LudoGameInstance.prototype.updateDiceRoll = function(diceObject, callback) {
 			{
 				player.hasRolled = false;
 				player.turn = false;
-				player.diceObject = [];
 			}
 		});
 	}
@@ -580,11 +619,13 @@ LudoGameInstance.prototype.updateDiceInfo = function(diceInfo, callback) {
 				
 			}
 			
+			/*
 			if (player.diceObject.length > 1){
 				if (player.diceObject[0].value === 0 && player.diceObject[1].value === 0){
 					player.diceObject = [];
 				}
 			}
+			*/
 			
 			for (var j = 0; j < gameData.diceIds.length; ++j)
 			{

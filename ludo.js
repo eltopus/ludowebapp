@@ -55,31 +55,23 @@ exports.initGame = function(gameio, socket){
 	gameSocket.on('updateGameOnDisconnection', updateGameOnDisconnection);
 	gameSocket.on('playerReconnected', playerReconnected);
 	gameSocket.on('browserInBackground', browserInBackground);
-	gameSocket.on('browserInFocus', browserInFocus);
 	gameSocket.on('loadGame', loadTwoPlayerMultiplayerGame);
 	gameSocket.on('updatePieceInfo', updatePieceInfo);
 	gameSocket.on('diceIsPlayed', diceIsPlayed);
-	
+
 };
 
 
-function browserInFocus(gameId, callback){
-	
-	
+
+function browserInBackground(player, callback){
 	var sock = this;
-	//console.log(sock.id + " is in focus");
-	var game = games[gameId];
+	console.log(sock.id + " is in background: " + player.playerName);
+	var game = games[player.gameId];
 	if (game){
-		game.getUpdatedGameData(function(updatedGame){
-			callback(updatedGame);
+		game.addPlayerinBackground(player.playerName, function(status){
+			callback(true);
 		});
 	}
-}
-
-function browserInBackground(gameId, callback){
-	var sock = this;
-	callback('I am in background');
-	//console.log(sock.id + " is in background");
 }
 
 function playerReconnected(data){
@@ -91,9 +83,9 @@ function playerReconnected(data){
 function updateGame(gameId, callback){
 	var game = games[gameId];
 	if (game){
-		game.getUpdatedGameData(function(gameData){
+		game.getUpdatedGameData(function(updatedGame){
 			//console.log("On Update : " + JSON.stringify(games[gameId].gameData));
-			callback(gameData.updatedGame);
+			callback(updatedGame);
 		});
 	}else{
 		callback(null);
@@ -132,15 +124,22 @@ function emitNextPlayer(data, callback)
 {
 	var sock = this;
 	processNextTurn(data, sock.id, function(nextPlayer){
-		if (nextPlayer !== null){
-			data.newId = nextPlayer.socketId;
-			callback(data);
-			//console.log("On Next turn : " + JSON.stringify(games[data.gameId].gameData));
-			//console.log('Current ScreenName : ' + data.screenName + ' Emitting new Id to : ' + nextPlayer.screenName);
-			io.sockets.in(data.gameId).emit('nextTurn', nextPlayer);
+
+		if (nextPlayer.gameData){
+			if (!nextPlayer.playerWentInBackground){
+				data.newId = nextPlayer.socketId;
+				//console.log('Current ScreenName : ' + data.screenName + ' Emitting new Id to : ' + nextPlayer.screenName + ' ' + nextPlayer.gameData);
+				io.sockets.in(data.gameId).emit('nextTurn', nextPlayer);
+				callback(data);
+			}else{
+				games[data.gameId].resetInBackground();
+				io.sockets.in(data.gameId).emit('updatePlayerInBackground', true);
+				callback(null);
+			}
 		}else{
 			callback(null);
 		}
+
 	});
 }
 
@@ -170,11 +169,15 @@ function awaitingStartGame(data){
 }
 
 function startGame(gameId, callback){
+
 	var sock = this;
-	var gameData = games[gameId.toString()].gameData;
-	sock.broadcast.to(gameId).emit('startGame', gameData);
-	//console.log("Start: " + JSON.stringify(gameData));
-	callback(gameData);
+	var gameInstance = games[gameId];
+	if (gameInstance){
+		gameInstance.updateStartGame(function(gameData){
+			sock.broadcast.to(gameId).emit('startGame', gameData);
+			callback(gameData);
+		});
+	}
 }
 
 
@@ -195,12 +198,12 @@ function createTwoPlayerMultiplayerGame(preparedData, callback){
 			ludoInstance.gameData.screenName = screenName;
 			console.log("Two-PlayerGame Created by: " + screenName + " with game ID: " + gameId + " on " + new Date());
 			callback(ludoInstance.gameData);
-		//sock.broadcast.to(gameId).emit('awaitingStartGame', ludoInstance.gameData);
+			//sock.broadcast.to(gameId).emit('awaitingStartGame', ludoInstance.gameData);
 			sock.join(gameId.toString());
 		});
-		
+
 	});
-	
+
 }
 
 function createFourPlayerMultiplayerGame(preparedData, callback){
@@ -223,11 +226,11 @@ function createFourPlayerMultiplayerGame(preparedData, callback){
 			ludoInstance.gameData.screenName = screenName;
 			callback(ludoInstance.gameData);
 			sock.join(gameId.toString());
-			
+
 		});
-		
+
 	});
-	
+
 }
 
 
@@ -244,7 +247,7 @@ function connectMultiplayerGame(newPlayer, callback){
 				sock.join(gameId.toString());
 				callback(gameData);
 			});
-			
+
 		}else{
 
 			games[gameId].addPlayer(gameId, sock.id, screenName, false, function(data){
@@ -279,13 +282,9 @@ function connectMultiplayerGame(newPlayer, callback){
 
 		}
 
-
-
 	}else{
 		callback({ok : false, message : "Game ID: " + newPlayer.gameId + " does not exist!" });
 	}
-
-
 }
 
 function pieceSelection(pieceSelectionObject){
@@ -296,7 +295,7 @@ function pieceSelection(pieceSelectionObject){
 			if (status){
 				//console.log("Final Piece Selection: " + JSON.stringify(games[pieceSelectionObject.gameId].gameData));
 			}
-			
+
 		});
 	}
 	sock.broadcast.to(pieceSelectionObject.gameId).emit('pieceSelection', pieceSelectionObject.uniqueId);
@@ -311,7 +310,7 @@ function diceSelection(diceObject){
 			if (status){
 				//console.log("Final: " + JSON.stringify(games[diceObject.gameId].gameData));
 			}
-			
+
 		});
 	}
 	sock.broadcast.to(diceObject.gameId).emit('diceSelection', diceObject);
@@ -334,7 +333,7 @@ function diceUnSelection(diceObject){
 			if (status){
 				//console.log("Final: " + JSON.stringify(games[diceObject.gameId].gameData));
 			}
-			
+
 		});
 	}
 	sock.broadcast.to(diceObject.gameId).emit('diceUnSelection', diceObject);
@@ -349,14 +348,14 @@ function diceRoll(diceObject){
 			if (status){
 				//console.log("Final After Roll : " + JSON.stringify(games[diceObject.gameId].gameData));
 			}
-			
+
 		});
 	}
 	sock.broadcast.to(diceObject.gameId).emit('diceRoll', diceObject);
 }
 
 function updatePieceInfo(pieceInfo){
-	
+
 	var gameInstance = games[pieceInfo.gameId];
 	if (gameInstance){
 		gameInstance.updatePieceInfo(pieceInfo, function(status){
@@ -365,7 +364,7 @@ function updatePieceInfo(pieceInfo){
 			}else{
 				//console.log("Final Piece Info...");
 			}
-			
+
 		});
 	}
 }
@@ -408,7 +407,7 @@ function disconnected(data){
 					console.log('Game is empty. Deleting ' + gameId);
 					//_.without(games, gameId);
 					delete games[gameId];
-					
+
 				}else{
 					sock.broadcast.to(gameId).emit('disconnected', screenName);
 				}
@@ -450,86 +449,86 @@ function randomString(length) {
 }
 
 function loadTwoPlayerMultiplayerGame(name, callback){
-	
-	
+
+
 	fs.readFile('gameData.json', 'utf8', function (err, data) {
-	    if (err)
-	    {
-	    	//throw err; // we'll not consider error handling for now
-	    	callback(false);
-	    	
-	    }else{
-	    	var preparedDataL = JSON.parse(data);
-	    	var sock = this;
-	    	var gameId = preparedDataL.gameId;
-	    	var players = preparedDataL.players;
-	    	var playerName1 = null;
-	    	var playerName2 = null;
-	    	console.log("GameId: " + gameId);
-	    	preparedDataL.ok = true;
-	    	preparedDataL.message = 'OK';
-	    	preparedDataL.complete = false;
-	    	preparedDataL.inprogress = false;
-	    	preparedDataL.setSessionTurn = false;
-	    	console.log("Pulling from DB GameId: " + gameId);
-	    	
-	    	
-	    	
-	    	for (var i = 0; i < players.length; ++i)
-	    	{
-	    		
-	    		if (i === 0)
-	    		{
-	    			var player1 = players[i];
-	    			playerName1 = player1.playerName;
-	    			var gameInstance = new ludoGameInstance(gameId, null, playerName1, preparedDataL, null);
-	    			gameInstance.gameInProgress = true;
-	    			gameInstance.numOfPlayers = 0;
-	    		
-	    			var disconnetedPlayer1 = {};
-	    			disconnetedPlayer1.screenName = playerName1;
-	    			disconnetedPlayer1.index = 1;
-	    			disconnetedPlayer1.turn = player1.turn;
-	    			disconnetedPlayer1.isOwner = true;
-	    			gameInstance.disconnectedPlayers.push(disconnetedPlayer1);
-	    			games[gameId] = gameInstance;
-	    			//console.log("Player One: " + JSON.stringify(gameInstance.gameData));
-	    			
-	    			
-	    		}
-	    		
-	    		if (i === 1)
-	    		{
-	    			var player2 = players[i];
-	    			playerName2 = player2.playerName;
-	    			var disconnetedPlayer2 = {};
-	    			disconnetedPlayer2.screenName = playerName2;
-	    			disconnetedPlayer2.index = 2;
-	    			disconnetedPlayer2.turn = player2.turn;
-	    			disconnetedPlayer2.isOwner = true;
-	    			var gameInstance2 = games[gameId];
-	    			
-	    			gameInstance2.disconnectedPlayers.push(disconnetedPlayer2);
-	    			gameInstance2.addPlayer(gameId, null, playerName2, true, function(data){
-	    				gameInstance2.gameData.inprogress = false;
-	    				if (data !== null)
-	    				{
-	    					gameInstance2.numOfPlayers = 0;
-	    					//console.log("Player Game Data: " + JSON.stringify(data.gameData));
-	    				}
-	    				
-	    			});
-	    		}
-	    	}
-	    	
-	    	
-	    }
-	    
+		if (err)
+		{
+			//throw err; // we'll not consider error handling for now
+			callback(false);
+
+		}else{
+			var preparedDataL = JSON.parse(data);
+			var sock = this;
+			var gameId = preparedDataL.gameId;
+			var players = preparedDataL.players;
+			var playerName1 = null;
+			var playerName2 = null;
+			console.log("GameId: " + gameId);
+			preparedDataL.ok = true;
+			preparedDataL.message = 'OK';
+			preparedDataL.complete = false;
+			preparedDataL.inprogress = false;
+			preparedDataL.setSessionTurn = false;
+			console.log("Pulling from DB GameId: " + gameId);
+
+
+
+			for (var i = 0; i < players.length; ++i)
+			{
+
+				if (i === 0)
+				{
+					var player1 = players[i];
+					playerName1 = player1.playerName;
+					var gameInstance = new ludoGameInstance(gameId, null, playerName1, preparedDataL, null);
+					gameInstance.gameInProgress = true;
+					gameInstance.numOfPlayers = 0;
+
+					var disconnetedPlayer1 = {};
+					disconnetedPlayer1.screenName = playerName1;
+					disconnetedPlayer1.index = 1;
+					disconnetedPlayer1.turn = player1.turn;
+					disconnetedPlayer1.isOwner = true;
+					gameInstance.disconnectedPlayers.push(disconnetedPlayer1);
+					games[gameId] = gameInstance;
+					//console.log("Player One: " + JSON.stringify(gameInstance.gameData));
+
+
+				}
+
+				if (i === 1)
+				{
+					var player2 = players[i];
+					playerName2 = player2.playerName;
+					var disconnetedPlayer2 = {};
+					disconnetedPlayer2.screenName = playerName2;
+					disconnetedPlayer2.index = 2;
+					disconnetedPlayer2.turn = player2.turn;
+					disconnetedPlayer2.isOwner = true;
+					var gameInstance2 = games[gameId];
+
+					gameInstance2.disconnectedPlayers.push(disconnetedPlayer2);
+					gameInstance2.addPlayer(gameId, null, playerName2, true, function(data){
+						gameInstance2.gameData.inprogress = false;
+						if (data !== null)
+						{
+							gameInstance2.numOfPlayers = 0;
+							//console.log("Player Game Data: " + JSON.stringify(data.gameData));
+						}
+
+					});
+				}
+			}
+
+
+		}
+
 	});
 
 	//console.log("Player Final: " + JSON.stringify(games[gameId].disconnectedPlayers));
 	callback(true);
-	
+
 }
 
 
@@ -546,7 +545,7 @@ function getTwoPlayerGame(callback) {
 				        {piece:"blue", state :0, index : 14, x :503, y :118, x_home :503, y_home :118, imageId :"blue_piece", uniqueId :"d082c0f2-7fda-44b3-9409-e08acc1575a0", homeIndex :14},
 				        {piece :"blue", state :0, index :14, x :600, y :118, x_home :600, y_home :118, imageId :"blue_piece", uniqueId :"f461039d-4fce-40b7-9ffe-941edf65275b", homeIndex :14},
 				        {piece : "blue" , state :0, index :14, x :552, y :168, x_home :552, y_home :168, imageId :"blue_piece", uniqueId :"db947c8e-c8b4-4f8c-80bd-3698d0f8dfbf", homeIndex :14}],
-				        diceObject :[], turn :false, selectedPieceId :null, exitingGraphicsPositions :[740,780,820,860]},
+				        diceObject :[{uniqueId :"0fa40a32-8102-40be-85ae-595e7845d62a",value : 0, playerName : null, selected : false},{uniqueId :"601b50bb-ed85-4323-8cfd-61262f924748", value : 0, playerName : null, selected : false}], turn :false, selectedPieceId :null, exitingGraphicsPositions :[740,780,820,860]},
 				        { piecesNames :["yellow","green"], playerName : null, hasRolled :false, index :1, playerMode :2, endOfPlay :0, 
 				        	pieces :[{ piece :"yellow", state :0, index :27, x :552, y :503, x_home :552, y_home :503, imageId :"yellow_piece", uniqueId :"2753916e-d3d6-4546-8edd-e52a9f67ca69", homeIndex:27},
 				        	         { piece :"yellow", state :0, index :27, x :503, y :552, x_home :503, y_home :552, imageId :"yellow_piece", uniqueId :"7c22843d-7255-4672-b691-9a8db162d5ab", homeIndex :27},
@@ -556,7 +555,7 @@ function getTwoPlayerGame(callback) {
 				        	         { piece :"green", state :0, index :40, x :72, y :552, x_home :72, y_home :552, imageId :"green_piece", uniqueId :"dbfb79bf-30c6-433a-a2f4-d0dc059d08ec", homeIndex :40},
 				        	         { piece :"green", state :0, index :40, x :168, y :552, x_home :168, y_home :552, imageId :"green_piece", uniqueId :"0cdbdbd8-dbbb-42aa-b723-69eea1ebbe86", homeIndex :40},
 				        	         { piece :"green", state :0, index :40, x :118,  y :600, x_home :118, y_home :600, imageId :"green_piece", uniqueId :"313f6444-cc96-45b4-ae9f-3c9dfddff8a8", homeIndex :40}],
-				        	         diceObject :[], turn :false, selectedPieceId :null, exitingGraphicsPositions :[740,780,820,860]}]};
+				        	         diceObject :[{uniqueId :"0fa40a32-8102-40be-85ae-595e7845d62a",value : 0, playerName : null, selected : false},{uniqueId :"601b50bb-ed85-4323-8cfd-61262f924748", value : 0, playerName : null, selected : false}], turn :false, selectedPieceId :null, exitingGraphicsPositions :[740,780,820,860]}]};
 	callback(twoPlayerGame);
 }
 
@@ -568,24 +567,24 @@ function getFourPlayerGame(callback){
 				         { piece :"red", state :0, index :1, x :72, y :118, x_home :72, y_home :118, imageId :"red_piece",uniqueId :"062258e6-dec1-459e-8484-c9f442195093", homeIndex :1},
 				         { piece :"red", state :0, index :1, x :168, y :118, x_home :168, y_home :118, imageId :"red_piece", uniqueId :"a8ceb866-611f-4adc-9e74-0cc76a06ba9e", homeIndex :1},
 				         { piece :"red", state :0, index :1, x :120, y :168, x_home :120, y_home :168, imageId :"red_piece", uniqueId :"305206ff-efb8-4abf-9b92-dc2425056270", homeIndex :1}],
-				         diceObject :[], turn :false, selectedPieceId :null, exitingGraphicsPositions :[740,780,820,860]},
+				         diceObject :[{uniqueId :"de55d5af-6cda-4ebf-80d7-8ae5f6f7698f",value : 0, playerName : null, selected : false},{uniqueId : "8c89ca63-6a54-4088-8957-9280732b957d", value : 0, playerName : null, selected : false}], turn :false, selectedPieceId :null, exitingGraphicsPositions :[740,780,820,860]},
 				         { piecesNames :["blue"], playerName : null, hasRolled :false, index :1, playerMode :4, endOfPlay :0,
 				        	 pieces :[{ piece :"blue", state :0, index :14, x :552, y :72, x_home :552, y_home :72, imageId :"blue_piece", uniqueId :"e4e6af75-b9ea-42b4-970a-d648d249fceb", homeIndex :14},
 				        	          { piece :"blue", state :0, index :14, x :503, y :118, x_home :503, y_home :118, imageId :"blue_piece", uniqueId :"80eb50f3-1fec-45bb-9174-ad6f2522eda9", homeIndex :14},
 				        	          { piece :"blue", state :0, index :14, x :600, y :118, x_home :600, y_home :118, imageId :"blue_piece", uniqueId :"92861a29-b37a-42b0-afc1-afe048182498", homeIndex :14},
 				        	          { piece :"blue", state :0, index :14, x :552, y :168, x_home :552, y_home :168, imageId :"blue_piece", uniqueId :"38c6c1f9-6d04-4117-8434-aad907d49aa5", homeIndex :14}],
-				        	          diceObject :[], turn :false, selectedPieceId :null, exitingGraphicsPositions :[740,780,820,860]},
+				        	          diceObject :[{uniqueId :"de55d5af-6cda-4ebf-80d7-8ae5f6f7698f",value : 0, playerName : null, selected : false},{uniqueId : "8c89ca63-6a54-4088-8957-9280732b957d", value : 0, playerName : null, selected : false}], turn :false, selectedPieceId :null, exitingGraphicsPositions :[740,780,820,860]},
 				        	          { piecesNames :["yellow"], playerName : null, hasRolled :false, index :2, playerMode :4, endOfPlay :0, 
 				        	        	  pieces:[{ piece :"yellow", state :0, index :27, x :552, y :503, x_home :552, y_home :503, imageId :"yellow_piece", uniqueId :"659bb79b-7d05-48c6-80ec-c7129d96ac9c", homeIndex :27},
 				        	        	          { piece :"yellow", state :0, index :27, x :503, y :552, x_home :503, y_home :552, imageId :"yellow_piece", uniqueId :"502bf906-49d4-4933-88ee-232076748573", homeIndex :27},
 				        	        	          { piece :"yellow", state :0, index :27, x :600, y :552, x_home :600, y_home :552, imageId :"yellow_piece", uniqueId :"9dd7de72-4033-429c-9b70-9e7d00fd254d", homeIndex :27},
 				        	        	          { piece :"yellow", state :0, index :27, x :552, y :600, x_home :552, y_home :600, imageId :"yellow_piece", uniqueId :"6924e88b-a7e3-4872-855a-746b0bbaa1f6", homeIndex :27}],
-				        	        	          diceObject :[], turn :false, selectedPieceId :null, exitingGraphicsPositions :[740,780,820,860]},
+				        	        	          diceObject :[{uniqueId :"de55d5af-6cda-4ebf-80d7-8ae5f6f7698f",value : 0, playerName : null, selected : false},{uniqueId : "8c89ca63-6a54-4088-8957-9280732b957d", value : 0, playerName : null, selected : false}], turn :false, selectedPieceId :null, exitingGraphicsPositions :[740,780,820,860]},
 				        	        	          { piecesNames :["green"], playerName : null, hasRolled :false, index :3, playerMode :4, endOfPlay :0,
 				        	        	        	  pieces :[{ piece :"green", state :0, index :40, x :118, y :503, x_home :118, y_home :503, imageId :"green_piece", uniqueId :"07f17e29-609b-4058-8f25-e07977e7dccf", homeIndex :40},
 				        	        	        	           { piece :"green", state :0, index :40, x :72, y :552, x_home :72, y_home :552, imageId :"green_piece", uniqueId :"0a6d7022-2b7a-44da-b77e-781e59df61a0", homeIndex :40},
 				        	        	        	           { piece :"green", state :0, index :40, x :168, y :552, x_home :168, y_home :552, imageId :"green_piece", uniqueId :"2a41f4b8-775e-4ab7-84c8-e4bbfa98eebf", homeIndex :40},
 				        	        	        	           { piece :"green", state :0, index :40, x :118, y :600, x_home :118, y_home :600, imageId :"green_piece", uniqueId :"8730a218-f1dc-453b-9c5f-02b0d062358b", homeIndex :40}],
-				        	        	        	           diceObject :[], turn :false, selectedPieceId :null, exitingGraphicsPositions :[740,780,820,860]}]};
+				        	        	        	           diceObject :[{uniqueId :"de55d5af-6cda-4ebf-80d7-8ae5f6f7698f",value : 0, playerName : null, selected : false},{uniqueId : "8c89ca63-6a54-4088-8957-9280732b957d", value : 0, playerName : null, selected : false}], turn :false, selectedPieceId :null, exitingGraphicsPositions :[740,780,820,860]}]};
 	callback(fourPlayerGame);
 }

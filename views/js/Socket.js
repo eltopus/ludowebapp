@@ -5,6 +5,8 @@
 var sockId = null;
 var game = null;
 var gameio = null;
+var inBackground = false;
+
 Socket = function(ludogame){
 
 	game = ludogame;
@@ -25,56 +27,83 @@ Socket = function(ludogame){
 
 
 	gameio.on('pieceSelection', function(pieceId){
-		game.selectPieceEmissionById(pieceId);
+		if (!inBackground){
+			game.selectPieceEmissionById(pieceId);
+		}
+
 
 	});
 
 	gameio.on('diceRoll', function(diceObject){
-		game.rollDiceEmission(diceObject);
+		if (!inBackground){
+			game.rollDiceEmission(diceObject);
+		}
+
 
 	});
 
 	gameio.on('diceSelection', function(diceObject){
-		game.setSelectedDieById(diceObject);
+		if (!inBackground){
+			game.setSelectedDieById(diceObject);
+		}
+
 
 	});
 
 	gameio.on('diceUnSelection', function(diceObject){
-		game.setUnSelectedDieById(diceObject);
+		if (!inBackground){
+			game.setUnSelectedDieById(diceObject);
+		}
+
 
 	});
 
 	gameio.on('piecePosition', function(pieceObject){
-		console.log('Id: ' + pieceObject.uniqueId + ' x: ' + pieceObject.x + ' y: ' + pieceObject.y);
+		
 
 	});
 
 	gameio.on('play', function(playObject){
-		game.playDiceEmission(playObject.playerName);
+		if (!inBackground){
+			game.playDiceEmission(playObject.playerName);
+		}
+
 
 	});
 
 	gameio.on('releaseGame', function(data){
-		game.restartEmission();
+		if (!inBackground){
+			game.restartEmission();
+		}
+
+	});
+
+	gameio.on('updatePlayerInBackground', function(status){
+		if (inBackground){
+			inBackground = false;
+			game.restartEmission();
+		}
+
+
 	});
 
 	gameio.on('nextTurn', function(nextPlayer){
 
-
-		if (game.playerName == nextPlayer.screenName)
-		{
-			game.myTurn = true;
-			game.playDing();
-			game.updateGame(nextPlayer.gameData);
-			//game.saveGame(nextPlayer.gameData);
-			//console.log("I am unlocked! " + nextPlayer.screenName);
-		}else{
-			game.myTurn = false;
-			game.playDong();
-			game.updateGame(nextPlayer.gameData);
-			//game.saveGame(nextPlayer.gameData);
-			//console.log("I am locked! " + nextPlayer.screenName);
+		if (!inBackground){
+			if (game.playerName === nextPlayer.screenName)
+			{
+				
+				game.playDing();
+				game.updateGame(nextPlayer);
+				game.myTurn = true;
+				
+			}else{
+				game.playDong();
+				game.updateGame(nextPlayer);
+				game.myTurn = false;
+			}
 		}
+
 	});
 
 	gameio.on('updateGame', function(gameData){
@@ -83,15 +112,49 @@ Socket = function(ludogame){
 
 
 	gameio.on('playerReconnected', function(screenName){
-		if (screenName !== null){
-			alertMessage(screenName + " has reconnected", "Reconnection",  false);
-			game.connectionNotificationAlert(screenName, true);
+		if (!inBackground){
+			if (screenName !== null){
+				alertMessage(screenName + " has reconnected", "Reconnection",  false);
+				game.connectionNotificationAlert(screenName, true);
+			}
+
 		}
+
 	});
 
 	gameio.on('disconnected', function(screenName){
-		game.connectionNotificationAlert(screenName, false);
+		if (!inBackground){
+			game.connectionNotificationAlert(screenName, false);
+		}
+
 	});
+
+	if (game.isMobile){
+
+		var gameId = game.savedGameId;
+		var playerName = game.playerName;
+		window.addEventListener("focus", function(evt){
+
+			if (inBackground){
+				game.controller.consumeDice();
+				game.consumeCurrentPlayerDice();
+				
+			}
+
+		}, false);
+
+		window.addEventListener("blur", function(evt){
+			if (!game.myTurn){
+				inBackground = true;
+				gameio.emit('browserInBackground', {gameId: gameId, playerName : playerName}, function(status){
+					
+				});
+
+			}
+
+		}, false);
+
+	}
 
 
 };
@@ -135,15 +198,13 @@ Socket.prototype.emitPlay = function(playObject){
 
 Socket.prototype.emitNextPlayer = function(nextPlayerObject){
 	gameio.emit('emitNextPlayer', nextPlayerObject, function(data){
-		//var newSockId = data.newId;
-		//console.log("I am locked! " + sockId + " does not equals " + newSockId);
-		//game.myTurn = false;
+		
 	});
 };
 
 Socket.prototype.updateGameOnDisconnection = function(updateGameData){
 	gameio.emit('updateGameOnDisconnection', updateGameData, function(status){
-		//console.log("Status! " + status);
+		
 	});
 };
 

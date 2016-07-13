@@ -4,24 +4,11 @@ Ludo.StartMenu = function(game){
 Ludo.StartMenu.prototype = {
 
 		init : function(isMobile){
-			this.startBG = null;
 			this.gameMode = 2;
 			this.loadGame = false;
 			this.socket = null;
 			this.isMobile = isMobile;
 			this.menuMusic = null;
-			if (this.isMobile === false){
-
-				/*
-				this.menuMusic = this.game.add.audio('menuMusic', 1, true);
-				if (this.menuMusic.isPlaying == false)
-				{ 
-					this.menuMusic.play('',0,1,true); 
-
-				} 
-				*/
-			}
-
 		},
 
 		create: function() {
@@ -197,8 +184,9 @@ Ludo.StartMenu.prototype = {
 
 			this.fourPlayerScreenNameBg.alpha = 0.0;
 			this.fourPlayerScreenName.alpha = 0.0;
-			
-			//alertMessage("Two Player selected", "Diconnection");
+			if (this.isMobile){
+				this.twoPlayerScreenName.value = "Adeses";
+			}
 		},
 
 		fourPlayer : function(){
@@ -485,7 +473,7 @@ Ludo.StartMenu.prototype = {
 						
 						if (data.ok)
 						{
-							//console.log(JSON.stringify(data));
+						
 							state.start('WaitMenu', true, false, data, true, socket, data.setSessionTurn, true, isMobile, menuMusic);
 						}
 						else
@@ -499,8 +487,6 @@ Ludo.StartMenu.prototype = {
 					socket.emit('createFourPlayerMultiplayerGame', {screenName : fourPlayerScreenName, colors : this.colors}, function (data){
 						if (data.ok)
 						{
-							//console.log("ScreenName: " + data.screenName);
-							//console.log(JSON.stringify(data));
 							state.start('WaitMenu', true, false, data, true, socket, data.setSessionTurn, true, isMobile, menuMusic);
 						}
 						else
@@ -537,7 +523,7 @@ Ludo.StartMenu.prototype = {
 
 		muteMusic : function(){
 			
-			
+			/*
 			if (this.socket === null){
 				this.socket = io();
 				this.socket.emit('loadGame', "name", function(message){
@@ -548,7 +534,7 @@ Ludo.StartMenu.prototype = {
 					alertMessage(message, "Game Loading...", false);
 				});
 			}
-			
+			*/
 			
 			if (this.game.sound.mute === true){
 				this.game.sound.mute = false;

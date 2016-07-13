@@ -5,7 +5,6 @@ DiceController = function (game, gameId, myTurn, diceIds) {
     this.dice = this.getNewDice(game, gameId, myTurn, diceIds);
     for (var i = 0; i < this.dice.length; ++i){
         var uuid = this.getUuid();
-        //this.dice[i].uniqueId = uuid;
     }
         
 };
@@ -20,15 +19,15 @@ DiceController.prototype.rollDice = function(currentPlayer, pusher, diceObjects)
 };
 
 DiceController.prototype.setDiceValue = function(currentPlayer){
-	//this.consumeDice();
-    if (currentPlayer.diceObject.length > 0){
-        for (var i = 0; i < this.dice.length; ++i){
-            this.dice[i].setSavedCurrentPlayer(currentPlayer);
-        }
-        return true;
-    }
-    
-    return false;
+	
+	var isDiceOne = this.dice[0].setSavedCurrentPlayer(currentPlayer);
+	var isDiceTwo = this.dice[1].setSavedCurrentPlayer(currentPlayer);
+	
+	if (isDiceOne || isDiceTwo){
+		return true;
+	}else{
+		return false;
+	}
 };
 
 
