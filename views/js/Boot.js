@@ -95,6 +95,8 @@ Ludo.Boot.prototype = {
         this.load.image('cblue', 'images/cblue.png');
         this.load.image('cgreen', 'images/cgreen.png');
         this.load.image('cyellow', 'images/cyellow.png');
+        this.load.image('success', 'images/successAlert.png');
+        this.load.image('failure', 'images/failureAlert.png');
         this.load.image('soundIcon', 'images/sound.ico');
         //this.load.image('welcomepage', 'images/welcomepage.png');
         this.load.spritesheet("die", "images/diceRed.png", 64, 64);
@@ -107,6 +109,7 @@ Ludo.Boot.prototype = {
         this.load.script("BlurY", "js/BlurY.js");
         this.load.script("queue", "js/Queue.js");
         this.load.script("rules", "js/Rules.js");
+        this.load.script("actions", "js/Alert.js");
         this.load.script("err", "js/Error.js");
         this.load.script("jquery", "js/jquery-1.12.2.min.js");
         this.load.script("gamedef", "js/Gamedef.js");

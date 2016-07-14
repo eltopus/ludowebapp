@@ -114,7 +114,8 @@ Socket = function(ludogame){
 	gameio.on('playerReconnected', function(screenName){
 		if (!inBackground){
 			if (screenName !== null){
-				alertMessage(screenName + " has reconnected", "Reconnection",  false);
+				//alertMessage(screenName + " has reconnected", "Reconnection",  false);
+				game.successAlert.displayMessage(screenName + " has reconnected");
 				game.connectionNotificationAlert(screenName, true);
 			}
 
@@ -203,9 +204,9 @@ Socket.prototype.emitNextPlayer = function(nextPlayerObject){
 };
 
 Socket.prototype.updateGameOnDisconnection = function(updateGameData){
-	gameio.emit('updateGameOnDisconnection', updateGameData, function(status){
+	//gameio.emit('updateGameOnDisconnection', updateGameData, function(status){
 		
-	});
+	//});
 };
 
 

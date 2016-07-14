@@ -261,22 +261,8 @@ Ludo.Game.prototype = {
 			var ludo = this.ludo;
 			var playerMode = this.playerMode;
 			var gameId = this.newGameId;
-			this.socket.on('disconnected', function(message){
-				/*
-				if (currentPlayer!== null){
-					var gamedef = new Gamedef(controller, gameId);
-					gamedef.savedef(ludo);
-					gamedef.gameMode = playerMode;
-					currentPlayer.updateGameOnDisconnection(gamedef);
-					//console.log("Sending updates..." + JSON.stringify(gamedef));
-				}
-				 */
-			});
 
-			if (this.rejoin){
-				//console.log("Updation player turn for: " + this.playerName);
-				//this.updatePlayerTurnOnRejoin();
-			}
+			
 
 			this.redPlayerConnection = this.getConnectionText(70, 30, "red");
 			this.bluePlayerConnection = this.getConnectionText(650, 30, "blue");
@@ -288,6 +274,11 @@ Ludo.Game.prototype = {
 				this.playDing();
 				this.currentPlayer.playerTurn();
 			}
+			
+			this.successAlert = new Alert(this, this.game.world.centerX, this.game.world.centerY, "success");
+            this.failureAlert = new Alert(this, this.game.world.centerX, this.game.world.centerY, "failure");
+            this.successAlert.anchor.setTo(0.5);
+            this.failureAlert.anchor.setTo(0.5);
 
 		},
 
@@ -559,6 +550,8 @@ Ludo.Game.prototype = {
 				var myTurn = this.myTurn;
 				var playDing = this.playDing;
 				var playDong = this.playDong;
+				var successAlert = this.successAlert;
+				var failureAlert = this.failureAlert;
 				
 
 				this.socket.emit('updateGame', this.gameId, function(data){
@@ -603,9 +596,11 @@ Ludo.Game.prototype = {
 						}
 						
 						//console.log("currentPlayerName: "+ currentPlayerName + " PlayerName: " + playerName + " myTurn: " + myTurn);
-						alertMessage("Game Updated Successfully!", "Success", false);
+						//alertMessage("Game Updated Successfully!", "Success", false);
+						successAlert.displayMessage("Game Updated Successfully!");
 					}else{
-						alertMessage("Game Update failed!", "Error!", false);
+						failureAlert.displayMessage("Game Update failed!");
+						//alertMessage("Game Update failed!", "Error!", false);
 					}
 				});
 			}
@@ -859,7 +854,8 @@ Ludo.Game.prototype = {
 			}
 
 			if (this.currentPlayer.hasAllPiecesExited()){
-				alertMessage("Winner is " + this.currentPlayer.playerName, "Winner!", true);
+				//alertMessage("Winner is " + this.currentPlayer.playerName, "Winner!", true);
+				this.successAlert.displayMessage("Winner is " + this.currentPlayer.playerName);
 				this.socket.emit('endOfGame', {gameId : this.savedGameId});
 				this.currentPlayer.resetAllPiecesExited();
 			}

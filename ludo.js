@@ -52,7 +52,6 @@ exports.initGame = function(gameio, socket){
 	gameSocket.on('releaseGame', releaseGame);
 	gameSocket.on('disconnect', disconnected);
 	gameSocket.on('updateGame', updateGame);
-	gameSocket.on('updateGameOnDisconnection', updateGameOnDisconnection);
 	gameSocket.on('playerReconnected', playerReconnected);
 	gameSocket.on('browserInBackground', browserInBackground);
 	gameSocket.on('loadGame', loadTwoPlayerMultiplayerGame);
@@ -65,7 +64,7 @@ exports.initGame = function(gameio, socket){
 
 function browserInBackground(player, callback){
 	var sock = this;
-	console.log(sock.id + " is in background: " + player.playerName);
+	//console.log(sock.id + " is in background: " + player.playerName);
 	var game = games[player.gameId];
 	if (game){
 		game.addPlayerinBackground(player.playerName, function(status){
@@ -89,21 +88,6 @@ function updateGame(gameId, callback){
 		});
 	}else{
 		callback(null);
-	}
-
-}
-
-
-function updateGameOnDisconnection(gameData, callback){
-	var sock = this;
-	var game = games[gameData.gameId];
-	if (game){
-		game.setUpdatedGameData(gameData, function(status){
-			callback(status);
-		});
-
-	}else{
-		callback(false);
 	}
 
 }

@@ -220,8 +220,22 @@ LudoGameInstance.prototype.getNextSocketId = function(screenName, callback){
 		if (player === null)
 		{
 			//Unreachable Code
-			console.log('Next Player migth have been disconnected...');
+			//console.log('Next Player migth have been disconnected...' + screenName + " " + this.currentPlayerName);
 			this.notifyEndOfPlay = [];
+			this.gameData.screenName = this.currentPlayerName;
+			var players = this.gameData.players;
+			var currentPlayerName = this.currentPlayerName;
+			//console.log('Preparing next player on connection' + currentPlayerName);
+			_.any(players, function(player){
+				if (player.playerName === currentPlayerName){
+					player.hasRolled = false;
+					player.turn = true;
+					//console.log(player.playerName + ' would be next  on connection');
+				}else{
+					player.hasRolled = false;
+					player.turn = false;
+				}
+			});
 			callback({socketId : null, screenName : this.currentPlayerName, gameData : this.gameData, playerWentInBackground : this.playerWentInBackground});
 
 		}else
@@ -320,11 +334,14 @@ LudoGameInstance.prototype.stillInTheGame = function(index){
 				this.disconnectedPlayers[i].turn = true;
 				this.currentPlayerName = this.disconnectedPlayers[i].screenName;
 				//console.log(this.currentPlayerName + ' Found and turn set to true');
+				
 				break;
 			}
 		}
 
 	}
+	
+	//console.log("After Disconnection: " + JSON.stringify(this.disconnectedPlayers) + "PlayerName: " + playerName);
 	return playerName;
 };
 
@@ -357,18 +374,6 @@ LudoGameInstance.prototype.validateScreenName = function(screenName) {
 LudoGameInstance.prototype.updateNotifyEndOfPlay = function(screenName) {
 
 	this.notifyEndOfPlay.push(screenName);
-	
-	/*
-	var size = this.notifyEndOfPlay.length + this.inBackground.length;
-	if (size >= this.gameMode){
-		for (var j = 0; j < this.inBackground.length; ++j){
-			console.log("Pushing " + this.inBackground[j]);
-			this.notifyEndOfPlay.push(this.inBackground[j]);
-		}
-		this.inBackground = [];
-	}
-	*/
-	
 	return {size :this.notifyEndOfPlay.length, ok : true};
 	
 };
@@ -618,14 +623,6 @@ LudoGameInstance.prototype.updateDiceInfo = function(diceInfo, callback) {
 				}
 				
 			}
-			
-			/*
-			if (player.diceObject.length > 1){
-				if (player.diceObject[0].value === 0 && player.diceObject[1].value === 0){
-					player.diceObject = [];
-				}
-			}
-			*/
 			
 			for (var j = 0; j < gameData.diceIds.length; ++j)
 			{
