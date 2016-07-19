@@ -3,25 +3,6 @@ var groupIndex = -1;
 var diceDisplayStyle = { font: "25px Revalia", fill: "#F70C0C", wordWrap: true, wordWrapWidth: 100, align: "center" };
 var playerTurnDisplayStyle = { font: "20px Revalia", fill: "#F70C0C", wordWrap: true, wordWrapWidth: 200, align: "center" };
 var gameIdDisplayStyle = { font: "20px Revalia", fill: "#F70C0C", wordWrap: true, wordWrapWidth: 200, align: "center" };
-
-createPieceGroups = function(game){
-    
-    for (var i = 0; i < 17; ++i){
-        groups[i] = game.add.group();
-    }
-};
-
-getNextGroup = function(){
-    
-    if (groupIndex == groups.length){
-        groupIndex = 0;
-        return groups[groupIndex];
-    }
-    ++groupIndex;
-    
-    return groups[groupIndex];
-}
-
     
 var redConfig = {
     
@@ -219,4 +200,4 @@ alertMessage = function(message, messageTitle, mod){
 	}
 	$( "#dialog" ).text(message);
 	$( "#dialog" ).dialog();
-}
+};

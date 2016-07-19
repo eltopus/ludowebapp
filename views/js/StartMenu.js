@@ -1,3 +1,4 @@
+
 Ludo.StartMenu = function(game){
 };
 
@@ -30,9 +31,13 @@ Ludo.StartMenu.prototype = {
 				this.filter = this.game.add.filter('Fire', 900, 720);
 				this.filter.alpha = 0.0;
 				this.sprite.filters = [ this.filter ];
+				//Change style attribute for Desktop Application
+				var $elem = $('#orient');
+				$elem.attr('style', $elem.attr('style') + '; ' + 'padding-top: 100px; !important');
 			}else{
 
 				this.game.stage.backgroundColor = "#171642";
+
 			}
 
 
@@ -165,6 +170,191 @@ Ludo.StartMenu.prototype = {
 			this.fourPlayerScreenNameBg.alpha = 0.0;
 			this.fourPlayerScreenName.alpha = 0.0;
 			this.colors = [];
+			this.gameObj = new GameObj();
+
+			/*
+			$('.btn').click(function(e) {
+			    $('.btn').not(this).removeClass('active');    
+			    $(this).toggleClass('active');
+			    e.preventDefault();
+			    //alert("ME IS YOU");
+			});
+			 */
+			var gameObj = this.gameObj;
+
+			$('.dropdown-menu > li').click(function() {
+				var $toggle = $(this).parent().siblings('.dropdown-toggle');
+				$toggle.html($(this).text() + "<span class=\"caret\"></span>");
+
+				if ($(this).text() === "2-PLAYER"){
+					console.log( "2-PlayerMode " + $(this).text());
+					gameObj.playerMode = 2;
+				}
+				else if ($(this).text() === "4-PLAYER"){
+					console.log( "4-PlayerMode " + $(this).text());
+					gameObj.playerMode = 4;
+				}
+
+			});
+
+			$('#redBtn').parent().on("click", function () {
+				if (gameObj.playerMode === 0){
+					alertMessage("Please select Player Mode", "Missing Player Mode", true);
+				}else{
+					gameObj.addPlayerColors("red");
+				}
+
+			});
+
+			$('#blueBtn').parent().on("click", function () {
+				if (gameObj.playerMode === 0){
+					alertMessage("Please select Player Mode", "Missing Player Mode", true);
+				}else{
+					gameObj.addPlayerColors("blue");
+				}
+			});
+
+			$('#yellowBtn').parent().on("click", function () {
+				if (gameObj.playerMode === 0){
+					alertMessage("Please select Player Mode", "Missing Player Mode", true);
+				}else{
+					gameObj.addPlayerColors("yellow");
+				}
+			});
+
+			$('#greenBtn').parent().on("click", function () {
+				if (gameObj.playerMode === 0){
+					alertMessage("Please select Player Mode", "Missing Player Mode", true);
+				}else{
+					gameObj.addPlayerColors("green");
+				}
+			});
+
+			var socket = this.socket;
+			var state = this.game.state;
+			var isMobile = this.isMobile;
+			var menuMusic = this.menuMusic;
+
+			$('#createBtn').parent().on("click", function () {
+				gameObj.playerName = $('#playerName').val();
+				var message = gameObj.verifyCreateGame();
+				console.log("Message " + message);
+
+				if (message === "ok")
+				{
+
+
+					//$('#main.hidden').css('visibility','visible').hide().fadeIn().removeClass('hidden');
+					if (socket === null)
+					{
+						socket = io();
+						socket.on('disconnected', function(message){
+							alertMessage(message + ' has disconnected.', "Diconnection",  false);
+						});
+
+					}
+
+					socket.on("disconnect", function(){
+						socket.emit('disconnect', {gameId : gameId, screenName : loadScreenName});
+					});
+
+					switch (gameObj.playerMode)
+					{
+					case 2:
+					{
+						socket.emit('createTwoPlayerMultiplayerGame', {screenName : gameObj.playerName, colors : gameObj.playerColors}, function (data){
+
+							if (data.ok)
+							{
+								 $("#main").fadeOut(1000);
+								 //$("#main").hide( "slide", { direction: "up"  }, 2000 );
+								state.start('WaitMenu', true, false, data, true, socket, data.setSessionTurn, true, isMobile, menuMusic);
+							}
+							else
+							{
+								alertMessage(data.message, "Error", true);
+							}
+						});
+
+						break;
+					}
+					case 4:
+					{	socket.emit('createFourPlayerMultiplayerGame', {screenName : gameObj.playerName, colors : gameObj.playerColors}, function (data){
+						if (data.ok)
+						{
+							 $("#main").fadeOut(1000);
+							state.start('WaitMenu', true, false, data, true, socket, data.setSessionTurn, true, isMobile, menuMusic);
+						}
+						else
+						{
+							alertMessage(data.message, "Error", true);
+						}
+					});
+					break;
+					}
+					}
+				}else{
+					alertMessage(message, "Error", true);
+				}
+
+			});
+
+			$('#joinGameBtn').parent().on("click", function () {
+				gameObj.joinPlayerName = $('#joinPlayerName').val();
+				gameObj.gameCode = $('#gameCode').val();
+				var message = gameObj.verifyJoinGame();
+				if (message === "ok"){
+					
+					if (socket === null)
+					{
+						socket = io();
+						socket.on('disconnected', function(message){
+							alertMessage(message + ' has disconnected.', "Diconnection",  false);
+						});
+
+					}
+
+					socket.on("disconnect", function(){
+						socket.emit('disconnect', {gameId : gameId, screenName : loadScreenName});
+					});
+
+					socket.emit('connectMultiplayerGame', {screenName :  gameObj.joinPlayerName, gameId : gameObj.gameCode}, function (data){
+
+						if (data.ok)
+						{	
+							if (data.inprogress)
+							{
+								if (menuMusic !== null){
+									menuMusic.destroy();
+								}
+
+								if (data.screenName === 'ADMIN'){
+									 $("#main").fadeOut(1000);
+									state.start('Game', true, false, data, true, socket, data.setSessionTurn, false, isMobile, data.sockId, data.screenName, true);
+								}else{
+									 $("#main").fadeOut(1000);
+									socket.emit('playerReconnected', {gameId : gameObj.gameCode, screenName : data.screenName });
+									state.start('Game', true, false, data, true, socket, data.setSessionTurn, data.owner, isMobile, data.sockId, data.screenName, true);
+								}
+							}
+							else
+							{
+								 $("#main").fadeOut(1000);
+								state.start('WaitMenu', true, false, data, true, socket, data.setSessionTurn, data.owner, isMobile, menuMusic);
+							}
+
+						}
+						else
+						{
+							alertMessage(data.message, "Error", true);
+						}
+					});
+				}else{
+					
+					alertMessage(message, "Error", true);
+				}
+
+			});
 
 		},
 
@@ -184,9 +374,7 @@ Ludo.StartMenu.prototype = {
 
 			this.fourPlayerScreenNameBg.alpha = 0.0;
 			this.fourPlayerScreenName.alpha = 0.0;
-			if (this.isMobile){
-				this.twoPlayerScreenName.value = "Adeses";
-			}
+
 		},
 
 		fourPlayer : function(){
@@ -201,15 +389,14 @@ Ludo.StartMenu.prototype = {
 			this.screenName.alpha = 0.0;
 			this.twoPlayerScreenNameBg.alpha  = 0.0;
 			this.twoPlayerScreenName.alpha = 0.0;
-
 			this.fourPlayerScreenNameBg.alpha = 0.5;
 			this.fourPlayerScreenName.alpha = 1;
 
 			this.twoPlayerScreenNameBg.alpha  = 0.0;
 			this.twoPlayerScreenName.alpha = 0.0;
-			
+
 			this.verifyChosenColors();
-			
+
 		},
 
 		retrieveGame : function()
@@ -408,22 +595,22 @@ Ludo.StartMenu.prototype = {
 
 					if (data.ok)
 					{	
-						
+
 						if (data.inprogress)
 						{
 							if (menuMusic !== null){
 								menuMusic.destroy();
 							}
 
-							
-							
+
+
 							if (data.screenName === 'ADMIN'){
 								state.start('Game', true, false, data, true, socket, data.setSessionTurn, false, isMobile, data.sockId, data.screenName, true);
 							}else{
 								socket.emit('playerReconnected', {gameId : gameId, screenName : data.screenName });
 								state.start('Game', true, false, data, true, socket, data.setSessionTurn, data.owner, isMobile, data.sockId, data.screenName, true);
 							}
-							
+
 						}
 						else
 						{
@@ -470,10 +657,10 @@ Ludo.StartMenu.prototype = {
 				switch (this.gameMode){
 				case 2:
 					socket.emit('createTwoPlayerMultiplayerGame', {screenName : twoPlayerScreenName, colors : this.colors}, function (data){
-						
+
 						if (data.ok)
 						{
-						
+
 							state.start('WaitMenu', true, false, data, true, socket, data.setSessionTurn, true, isMobile, menuMusic);
 						}
 						else
@@ -522,7 +709,7 @@ Ludo.StartMenu.prototype = {
 		},
 
 		muteMusic : function(){
-			
+
 			/*
 			if (this.socket === null){
 				this.socket = io();
@@ -534,8 +721,8 @@ Ludo.StartMenu.prototype = {
 					alertMessage(message, "Game Loading...", false);
 				});
 			}
-			*/
-			
+			 */
+
 			if (this.game.sound.mute === true){
 				this.game.sound.mute = false;
 				this.soundIcon.scale.x = 0.2;

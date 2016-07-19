@@ -14,10 +14,9 @@ Ludo.Game.prototype = {
 		init : function (gameData, saveFlag, socket, myTurn, owner, isMobile, sockId, screenName, rejoin)
 		{
 			this.gameData = gameData;
-			this.savedGameId = this.gameData.gameId;
+			this.gameId = this.gameData.gameId;
 			this.saveFlag = saveFlag;
 			this.socket = socket;
-			this.newGameId = this.gameData.gameId;
 			this.playerMode = this.gameData.playerMode;
 			this.myTurn = myTurn;
 			this.access = myTurn;
@@ -26,7 +25,6 @@ Ludo.Game.prototype = {
 			this.sockId = sockId;
 			this.playerName = screenName;
 			this.rejoin = rejoin;
-
 			this.gameMusic = null;
 
 
@@ -174,75 +172,20 @@ Ludo.Game.prototype = {
 
 			this.rule = new Rules(this, this.play, this.myTurn);
 			this.buildWorld();
-			this.controller = new DiceController(this, this.savedGameId, this.myTurn, this.gameData.diceIds);
+			this.controller = new DiceController(this, this.gameId, this.myTurn, this.gameData.diceIds);
 			this.ludo = this.buildPlayers(this.playerMode, this.controller, this.saveFlag);
 			this.populateWorld(this.ludo);
 			this.currentPlayer = null;
 
-			if (this.saveFlag)
-			{
-				this.newGameId = this.savedGameId;
-				gameIdText = this.add.text(725, 410, "Game ID: " + this.savedGameId, gameIdDisplayStyle);
-				this.gameId = this.gameData.gameId;
-				for (var i = 0; i < this.ludo.length; ++i)
-				{
-					if (this.ludo[i].myTurn())
-					{
-						this.currentPlayer = this.ludo[i];
-						if (this.controller.setDiceValue(this.currentPlayer)){
-							this.play.visible = true;
-							this.diceBtn.visible = false;
-							this.currentPlayer.rolled();
-							this.currentPlayer.playerTurn();
-							break;
-						}
-					}  
-				}
-			}else
-			{
-				this.currentPlayer = this.ludo[0];
-				gameIdText = this.add.text(725, 410, "Game ID: ", gameIdDisplayStyle);
-			}
-
-
-			if (this.currentPlayer === null){
-				this.currentPlayer = this.ludo[0];
-			}
-
-
-			if (this.currentPlayer.selectedPiece !== null){
-				this.select(this.currentPlayer.selectedPiece, this);
-			}
-
-			for (var j = 0; j < this.ludo.length; ++j){
-				if (this.currentPlayer !== this.ludo[j]){
-					this.ludo[j].deSelectAll();
-					this.ludo[j].exitAll();
-				}
-			}
-
-			this.currentPlayer.exitAll();
+			gameIdText = this.add.text(725, 410, "Game ID: " + this.gameId, gameIdDisplayStyle);
+			this.initialSetup();
 
 			diceDisplayText = this.add.text(720, 0, "D-One: 0 D-Two: 0", diceDisplayStyle);
 			playerTurnText = this.add.text(720, 286, this.currentPlayer.playerName+"'s Turn", playerTurnDisplayStyle);
 			this.graphics = this.game.add.graphics(0, 0);
-
-			if (this.saveFlag){
-
-				for (var k = 0; k < this.ludo.length; ++k){
-					this.ludo[k].drawSavedExitedPieces(this.graphics);
-				}
-			}
-
-
+			this.drawExitedPieces();
 			this.gameio = new Socket(this);
 			this.game.input.onTap.add(this.onTap, this);
-
-			if (!this.saveFlag)
-			{
-				//this.createNewGame();
-			}
-
 
 			this.soundIcon = this.game.add.sprite(850, 30, "soundIcon");
 			this.soundIcon.anchor.set(0.5);
@@ -253,33 +196,33 @@ Ludo.Game.prototype = {
 			this.soundIcon.input.enableDrag();
 			this.soundIcon.events.onInputDown.add(this.muteMusic, this);
 
-			tempPlayer = this.currentPlayer;
 
-			//Update Game when player disconnects
-			var currentPlayer = this.currentPlayer;
-			var controller = this.controller;
-			var ludo = this.ludo;
-			var playerMode = this.playerMode;
-			var gameId = this.newGameId;
-
-			
 
 			this.redPlayerConnection = this.getConnectionText(70, 30, "red");
 			this.bluePlayerConnection = this.getConnectionText(650, 30, "blue");
 			this.yellowPlayerConnection = this.getConnectionText(650, 700, "yellow");
 			this.greenPlayerConnection = this.getConnectionText(70, 700, "green");
 
+			this.successAlert = new Alert(this, this.game.world.centerX, this.game.world.centerY, "success");
+			this.failureAlert = new Alert(this, this.game.world.centerX, this.game.world.centerY, "failure");
+			this.successAlert.anchor.setTo(0.5);
+			this.failureAlert.anchor.setTo(0.5);
 
-			if (this.myTurn){
+
+			if (this.myTurn && this.currentPlayer !== null){
 				this.playDing();
 				this.currentPlayer.playerTurn();
 			}
-			
-			this.successAlert = new Alert(this, this.game.world.centerX, this.game.world.centerY, "success");
-            this.failureAlert = new Alert(this, this.game.world.centerX, this.game.world.centerY, "failure");
-            this.successAlert.anchor.setTo(0.5);
-            this.failureAlert.anchor.setTo(0.5);
+			tempPlayer = this.currentPlayer;
+			this.connectivity = true;
 
+		},
+
+		drawExitedPieces : function(){
+
+			for (var k = 0; k < this.ludo.length; ++k){
+				this.ludo[k].drawSavedExitedPieces(this.graphics);
+			}
 		},
 
 
@@ -292,15 +235,6 @@ Ludo.Game.prototype = {
 				window.open(url, '_blank');
 				window.focus();
 			});
-
-			/*
-			if (this.isMobile === false){
-				var data = JSON.stringify(this.getUpdatedGame());
-				var url = 'data:text/json;charset=utf8,' + encodeURIComponent(data);
-				window.open(url, '_blank');
-				window.focus();
-			}
-			*/
 		},
 
 		getConnectionText : function(x, y, color){
@@ -422,15 +356,10 @@ Ludo.Game.prototype = {
 		},
 
 
-		updatePlayerTurnOnRejoin : function(){
+		reconnect : function(){
 
-			for (var player in this.gameData.players){
-				if (player.playerName === this.playerName && player.turn === true){
-					this.myTurn = true;
-					//console.log("Updating player turn for: " + this.playerName);
-				}
-
-			}
+			var gameId = this.gameId;
+			var playerName = this.playerName;
 		},
 
 		onTap : function(pointer, doubleTap) {
@@ -459,7 +388,6 @@ Ludo.Game.prototype = {
 				this.controller.rollDice(this.currentPlayer, false, this.diceObjects);
 				this.diceObjects = [];
 			}
-			//console.log(this.sockId);
 		},
 
 		playRedneckRoll : function(){
@@ -476,8 +404,8 @@ Ludo.Game.prototype = {
 				this.controller.rollDice(this.currentPlayer, true, diceObject);
 				this.diceBtn.visible = false;
 			}
-				
-			
+
+
 		},
 
 
@@ -498,7 +426,7 @@ Ludo.Game.prototype = {
 				this.currentPlayer.releasePlay();
 			}
 		},
-		
+
 		consumeCurrentPlayerDice : function(){
 			if (this.currentPlayer !== null){
 				this.currentPlayer.consumeDice();
@@ -517,22 +445,24 @@ Ludo.Game.prototype = {
 			var playerName = this.playerName;
 			var rejoin = this.rejoin;
 			var game = this.game;
+			
+			this.checkConnectivity();
 
 			/*
 			this.socket.emit('updateGame', this.gameId, function(gameData){
 				//game.state.restart(true, false, gameData, saveFlag, socket, true, owner, isMobile, sockId, playerName, rejoin);
 				alertMessage("Game Updated Successfully!", "Success", false);
 			});
-			*/
+			
 			if (confirm("Skip Turn?") === true) {
 				if (this.myTurn && this.currentPlayer !== null)
 				{
 					this.currentPlayer.releasePlay();
-					this.socket.emit('releaseGame', {gameId : this.savedGameId});
+					this.socket.emit('releaseGame', {gameId : this.gameId});
 
 				}
 			} 
-			
+			 */
 		},
 
 		saveGame : function(){
@@ -552,7 +482,7 @@ Ludo.Game.prototype = {
 				var playDong = this.playDong;
 				var successAlert = this.successAlert;
 				var failureAlert = this.failureAlert;
-				
+
 
 				this.socket.emit('updateGame', this.gameId, function(data){
 
@@ -579,23 +509,22 @@ Ludo.Game.prototype = {
 							else{
 								ludo[i].deSelectAll();
 							}
-							
+
 						}
 
 						if (currentPlayer.selectedPiece !== null){
 							select(currentPlayer.selectedPiece, cgame);
 						}
-						
+
 						if (playerName === currentPlayerName){
-							myTurn = true;
 							playDing();
+							myTurn = true;
 
 						}else {
-							myTurn = false;
 							playDong();
+							myTurn = false;
 						}
-						
-						//console.log("currentPlayerName: "+ currentPlayerName + " PlayerName: " + playerName + " myTurn: " + myTurn);
+
 						//alertMessage("Game Updated Successfully!", "Success", false);
 						successAlert.displayMessage("Game Updated Successfully!");
 					}else{
@@ -604,103 +533,40 @@ Ludo.Game.prototype = {
 					}
 				});
 			}
-			
-			//console.log(" this.playerName: " + this.playerName + " this.myTurn: " + this.myTurn);
 		},
 
-
-		createNewGame : function(){
-
-		},
 
 		onStopMoving : function(piece){
-			//console.log("Stop Moving: " + piece.uniqueId);
-			//this.game.saveGame();
 		},
 
 
 		buildWorld: function(world) {
 
-			if (!world){
-
-				arena = this.add.sprite(0, 0,'board');
-				arena.inputEnabled = true;
-				this.physics.arcade.enable(arena);
-				arena.body.enable = false;
-				boardGroup = this.add.group();
-				boardGroup.add(arena);
-
-				this.bmd = this.add.bitmapData(this.game.width, this.game.height);
-				this.bmd.addToWorld();
-
-				this.cursors = this.input.keyboard.createCursorKeys(); 
-
-			}
-			else{
-				//world is built from saved game
-			}
+			arena = this.add.sprite(0, 0,'board');
+			arena.inputEnabled = true;
+			this.physics.arcade.enable(arena);
+			arena.body.enable = false;
+			boardGroup = this.add.group();
+			boardGroup.add(arena);
+			this.bmd = this.add.bitmapData(this.game.width, this.game.height);
+			this.bmd.addToWorld();
+			this.cursors = this.input.keyboard.createCursorKeys(); 
 
 		},
 
 		buildPlayers : function(mode, controller, retrieveflag){
-			createPieceGroups(this.game);
 			var players = [];
-
-			if (retrieveflag === false)
+			var obj = this.gameData.players; 
+			for (var i = 0; i < obj.length; ++i)
 			{
-				switch(mode)
-				{
-				case 2:
-					var playerOne = new Player(this, "Player One", false, this.playerOne, 0, this.playerMode, controller); 
-					playerOne.error = new Error(this, this.errorX, this.errorY);
-					playerOne.buildPieces(this);
-					var playerTwo = new Player(this, "Player Two", false, this.playerTwo, 1, this.playerMode, controller);
-					playerTwo.error = new Error(this, this.errorX, this.errorY);
-					playerTwo.buildPieces(this);
-					players.push(playerOne);
-					players.push(playerTwo);
-					break;
-
-				case 4:
-					var playerRed = new Player(this, "Player Red", false, this.playerRed, 0, this.playerMode, controller);
-					playerRed.error = new Error(this, this.errorX, this.errorY);
-					playerRed.buildPieces(this);
-					var playerBlue = new Player(this, "Player Blue", false, this.playerBlue, 1, this.playerMode, controller);
-					playerBlue.error = new Error(this, this.errorX, this.errorY);
-					playerBlue.buildPieces(this);
-
-					var playerYellow = new Player(this, "Player Yellow", false, this.playerYellow, 2, this.playerMode, controller); 
-					playerYellow.error = new Error(this, this.errorX, this.errorY);
-					playerYellow.buildPieces(this);
-					var playerGreen = new Player(this, "Player Green", false, this.playerGreen, 3, this.playerMode, controller);
-					playerGreen.error = new Error(this, this.errorX, this.errorY);
-					playerGreen.buildPieces(this);
-
-					players.push(playerRed);
-					players.push(playerBlue);
-					players.push(playerYellow);
-					players.push(playerGreen);
-					break;
-				}  
-
-
-			}
-			else
-			{
-				var obj = this.gameData.players; 
-				for (var i = 0; i < obj.length; ++i)
-				{
-					var player = new Player(this, obj[i].playerName, obj[i].turn, obj[i].piecesNames, obj[i].index, obj[i].playerMode, controller, this.gameData.gameId);
-					player.setPieces(this, obj[i].pieces, obj[i].playerName);
-					player.setDice(obj[i].diceObject);
-					player.setSelectedPieceById(obj[i].selectedPieceId);
-					player.exitingGraphicsPositions = obj[i].exitingGraphicsPositions;
-					player.error = new Error(this, this.errorX, this.errorY);
-					players.push(player);
-				} 
-
-			}
-
+				var player = new Player(this, obj[i].playerName, obj[i].turn, obj[i].piecesNames, obj[i].index, obj[i].playerMode, controller, this.gameData.gameId);
+				player.setPieces(this, obj[i].pieces, obj[i].playerName);
+				player.setDice(obj[i].diceObject);
+				player.setSelectedPieceById(obj[i].selectedPieceId);
+				player.exitingGraphicsPositions = obj[i].exitingGraphicsPositions;
+				player.error = new Error(this, this.errorX, this.errorY);
+				players.push(player);
+			} 
 			return players;
 		},
 
@@ -856,7 +722,7 @@ Ludo.Game.prototype = {
 			if (this.currentPlayer.hasAllPiecesExited()){
 				//alertMessage("Winner is " + this.currentPlayer.playerName, "Winner!", true);
 				this.successAlert.displayMessage("Winner is " + this.currentPlayer.playerName);
-				this.socket.emit('endOfGame', {gameId : this.savedGameId});
+				this.socket.emit('endOfGame', {gameId : this.gameId});
 				this.currentPlayer.resetAllPiecesExited();
 			}
 
@@ -912,19 +778,19 @@ Ludo.Game.prototype = {
 								this.currentPlayer.rolled();
 								this.currentPlayer.playerTurn();
 							} 
-							
+
 						}    
 						else{
 							this.ludo[i].deSelectAll();
 						} 
-						
+
 					}
 
 					if (this.currentPlayer.selectedPiece !== null){
 						this.select(this.currentPlayer.selectedPiece, this);
 					}
-					
-					
+
+
 					if (currentPlayerName === this.playerName){
 						this.myTurn = true;
 						this.playDing();
@@ -979,6 +845,56 @@ Ludo.Game.prototype = {
 
 		},
 
+		initialSetup : function(){
+
+			for (var i = 0; i < this.ludo.length; ++i)
+			{
+				if (this.ludo[i].myTurn())
+				{
+					this.currentPlayer = this.ludo[i];
+					if (this.controller.setDiceValue(this.currentPlayer)){
+						this.play.visible = true;
+						this.diceBtn.visible = false;
+						this.currentPlayer.rolled();
+						this.currentPlayer.playerTurn();
+						break;
+					}
+				}  
+			}
+
+			if (this.currentPlayer === null){
+				this.currentPlayer = this.ludo[0];
+			}
+
+			if (this.currentPlayer.selectedPiece !== null){
+				this.select(this.currentPlayer.selectedPiece, this);
+			}
+
+			for (var j = 0; j < this.ludo.length; ++j){
+				if (this.currentPlayer !== this.ludo[j]){
+					this.ludo[j].deSelectAll();
+					this.ludo[j].exitAll();
+				}
+			}
+
+			this.currentPlayer.exitAll();
+
+		},
+
+		checkConnectivity : function(){
+			if(navigator.onLine)
+			{
+				//this.socket.connect();
+				//alert("Browser is online");
+				return true;
+			}
+			else
+			{
+				//this.socket.disconnect();
+				return false;
+			}
+		},
+
 		update: function() {
 
 			if (this.isMobile === false){
@@ -1019,12 +935,18 @@ Ludo.Game.prototype = {
 				if (this.playerName === 'ADMIN'){
 
 				}else{
+					this.playDong();
 					tempPlayer.emitNextPlayer();
 					this.myTurn = false;
 				}
 
 				//console.log("UpdatedGame: " + JSON.stringify(this.getUpdatedGame()));
 				tempPlayer = this.currentPlayer;
+			}
+			
+			if (!this.checkConnectivity() && this.connectivity){
+				alertMessage("Lost Internet Connectivity!", "Failed Connection!", false);
+				this.connectivity = false;
 			}
 		}
 

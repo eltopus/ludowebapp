@@ -64,7 +64,6 @@ Player.prototype.setPieces = function(game, pieces, playername){
 
 	for (var i = 0; i < pieces.length; ++i)
 	{
-
 		var group = this.game.add.group();
 		var piece = new Piece(game, pieces[i].x, pieces[i].y, pieces[i].piece, pieces[i].imageId, pieces[i].uniqueId, false, pieces[i].state, pieces[i].index, false, group, playername);   
 		piece.x_home = pieces[i].x_home;         
@@ -112,49 +111,6 @@ Player.prototype.drawSavedExitedPieces = function(graphics){
 			this.drawExitedPiece(this.playerPieces[i], graphics);
 		}
 	}
-
-};
-
-Player.prototype.getPieces = function(game, name){
-
-	switch(name){
-
-	case "red":
-		for (var i = 0; i < 4; ++i){
-
-			var piece = new Piece(game, redConfig.x[i], redConfig.y[i], redConfig.name, redConfig.imageId, this.game.getUuid(), redConfig.isMovable, redConfig.state, redConfig.index, redConfig.isMovable, getNextGroup(), this.playerName);
-			piece.uniqueId = createUUID();
-			this.playerPieces.push(piece);
-		}
-		break;
-	case "blue":
-
-		for (var i = 0; i < 4; ++i){
-
-
-			var piece = new Piece(game, blueConfig.x[i], blueConfig.y[i], blueConfig.name, blueConfig.imageId, this.game.getUuid(), blueConfig.isMovable, blueConfig.state, blueConfig.index, blueConfig.isMovable, getNextGroup(), this.playerName); 
-			piece.uniqueId = createUUID();
-			this.playerPieces.push(piece);
-		} 
-		break;
-	case "yellow": 
-		for (var i = 0; i < 4; ++i){
-
-			var piece = new Piece(game, yellowConfig.x[i], yellowConfig.y[i], yellowConfig.name, yellowConfig.imageId, this.game.getUuid(), yellowConfig.isMovable, yellowConfig.state, yellowConfig.index, yellowConfig.isMovable, getNextGroup(), this.playerName);
-			piece.uniqueId = createUUID();
-			this.playerPieces.push(piece);
-		} 
-		break;
-	case "green":
-		for (var i = 0; i < 4; ++i){
-
-			var piece = new Piece(game, greenConfig.x[i], greenConfig.y[i], greenConfig.name, greenConfig.imageId, this.game.getUuid(), greenConfig.isMovable, greenConfig.state, greenConfig.index, greenConfig.isMovable, getNextGroup(), this.playerName);
-			piece.uniqueId = createUUID();
-			this.playerPieces.push(piece);
-		}
-		break;
-	}
-
 
 };
 
@@ -492,15 +448,17 @@ Player.prototype.rollDice = function(dice, pusher, diceObjects){
 	this.consumeDice();
 	this.controller.consumeDice();
 	this.pusher = pusher;
+	var i;
+	
 	if (this.pusher){
-		for (var i = 0; i < dice.length; ++i){
+		for (i = 0; i < dice.length; ++i){
 			dice[i].setCurrentPlayer(this);
 			dice[i].pusher = pusher;
 			dice[i].roll(null);
 		}
 
 	}else{
-		for (var i = 0; i < dice.length; ++i){
+		for (i = 0; i < dice.length; ++i){
 			dice[i].setCurrentPlayer(this);
 			dice[i].pusher = pusher;
 			dice[i].roll(diceObjects);

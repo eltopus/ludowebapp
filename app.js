@@ -2,7 +2,7 @@
  * 
  */
 
-//var compression = require('compression');
+var compression = require('compression');
 var express = require('express');
 var app = express();
 var logger = require('morgan');
@@ -16,13 +16,11 @@ var path = require('path');
 
 
 //app.use(logger('dev'));
-//app.use(compression());
+app.use(compression());
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json({limit: '5mb'}));
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({limit: '50mb', extended: true, parameterLimit:50000}));
 app.use(cookieParser());
-
-
 
 
 app.use('/phaser-input', express.static(path.join(__dirname, 'node_modules/phaser-input/build/')));
@@ -37,22 +35,23 @@ app.get('/', function(req, res){
     res.sendFile(__dirname + '/views/index.html');
 });
 
-app.get('/login', function(req, res){
-    res.sendFile(__dirname + '/views/login.html');
+app.get('/ludo', function(req, res){
+    res.sendFile(__dirname + '/views/ludo.html');
 });
 
-app.get('/register', function(req, res){
-    res.sendFile(__dirname + '/views/register.html');
+app.get('/ludoindex', function(req, res){
+    res.sendFile(__dirname + '/views/ludoindex.html');
 });
 
 app.get('/setup', function(req, res){
     res.sendFile(__dirname + '/views/setup.html');
 });
 
+/*
 app.post('/ludo', function (req, res) {
 	res.sendFile(__dirname + '/views/index.html');
 });
-
+*/
 
 
 

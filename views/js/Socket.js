@@ -59,7 +59,7 @@ Socket = function(ludogame){
 	});
 
 	gameio.on('piecePosition', function(pieceObject){
-		
+
 
 	});
 
@@ -92,11 +92,11 @@ Socket = function(ludogame){
 		if (!inBackground){
 			if (game.playerName === nextPlayer.screenName)
 			{
-				
+
 				game.playDing();
 				game.updateGame(nextPlayer);
 				game.myTurn = true;
-				
+
 			}else{
 				game.playDong();
 				game.updateGame(nextPlayer);
@@ -130,34 +130,39 @@ Socket = function(ludogame){
 
 	});
 
-	if (game.isMobile){
+	gameio.on('disconnect', function(screenName){
+		//console.log("I am RE connecting............");
+		//gameio.socket.reconnect();
 
-		var gameId = game.savedGameId;
+
+	});
+
+
+
+	if (game.isMobile)
+	{
+		var gameId = game.gameId;
 		var playerName = game.playerName;
 		window.addEventListener("focus", function(evt){
-
 			if (inBackground){
 				game.controller.consumeDice();
 				game.consumeCurrentPlayerDice();
-				
 			}
-
 		}, false);
 
 		window.addEventListener("blur", function(evt){
 			if (!game.myTurn){
 				inBackground = true;
 				gameio.emit('browserInBackground', {gameId: gameId, playerName : playerName}, function(status){
-					
+
 				});
-
 			}
-
 		}, false);
-
 	}
-
-
+	
+	
+	
+	
 };
 
 Socket.prototype.emitDiceIsPlayed = function(diceInfo){
@@ -199,13 +204,13 @@ Socket.prototype.emitPlay = function(playObject){
 
 Socket.prototype.emitNextPlayer = function(nextPlayerObject){
 	gameio.emit('emitNextPlayer', nextPlayerObject, function(data){
-		
+
 	});
 };
 
 Socket.prototype.updateGameOnDisconnection = function(updateGameData){
 	//gameio.emit('updateGameOnDisconnection', updateGameData, function(status){
-		
+
 	//});
 };
 
