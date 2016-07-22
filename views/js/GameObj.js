@@ -3,49 +3,71 @@ GameObj = function () {
 	this.playerMode = 0;
 	this.playerName = "";
 	this.playerColors = [];
-	
+
 	this.gameCode ="";
 	this.joinPlayerName="";
-    
+
+};
+
+GameObj.prototype.resetColors = function(color) {
+	this.playerColors = [];
 };
 
 GameObj.prototype.addPlayerColors = function(color) {
-	
-	for ( var i = 0; i < this.playerColors.length; ++i){
+
+
+	if (this.playerColors.length === 0){
+		this.playerColors.push(color);
+		//console.log("Adding First Color: " + this.playerColors);
+		return true;
 		
-		if (this.playerColors[i] === color){
-			console.log("Colors: " + this.playerColors[i] + " is already chosen");
-			return;
-		}
-	}
-	
-	switch(this.playerMode){
-	
-		case 2:{
-			if (this.playerColors.length <= 1){
-				this.playerColors.push(color);
-			}else{
-				this.playerColors.shift();
-				this.playerColors.push(color);
+	}else
+	{
+		for ( var i = 0; i < this.playerColors.length; ++i)
+		{
+
+			if (this.playerColors[i] === color){
+				this.playerColors.splice(i, 1);
+				//console.log("Removing Colors: " + this.playerColors);
+				return true;
 			}
-			console.log("Colors: " + this.playerColors);
-			break;
 		}
-		case 4:{
-			if (this.playerColors.length < 1){
-				this.playerColors.push(color);
-			}else{
-				this.playerColors.shift();
-				this.playerColors.push(color);
+
+		switch(this.playerMode)
+		{
+
+			case 2:
+			{
+				if (this.playerColors.length <= 1)
+				{
+					this.playerColors.push(color);
+					//console.log("Adding 2-Player Colors: " + this.playerColors);
+					return true;
+				}
+				
+				return false;
+				
 			}
-			console.log("Colors: " + this.playerColors);
-			break;
+		case 4:
+			{
+				if (this.playerColors.length < 1){
+					this.playerColors.push(color);
+					//console.log("Adding 4 Player Colors: " + this.playerColors);
+					return true;
+				}
+					
+				return false;
+				
+			}
 		}
+		
+		return false;
 	}
+
 };
 
 GameObj.prototype.verifyCreateGame = function(){
-	
+
 	if (this.playerMode === 0){
 		return "Please Select Player Mode";
 	}
@@ -68,8 +90,8 @@ GameObj.prototype.verifyCreateGame = function(){
 };
 
 GameObj.prototype.verifyJoinGame = function(){
-	
-	
+
+
 	if (this.joinPlayerName === ""){
 		return "Please Enter Valid Player Name";
 	}

@@ -5,8 +5,6 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta content="width=device-width, initial-scale=1, maximum-scale=1" name="viewport">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
 	<title>Ludo Africa</title>
 	<link href="/assets/css/bootstrap.min.css" rel="stylesheet">
 	<link href="/assets/css/font-awesome.min.css" rel="stylesheet">
@@ -20,7 +18,7 @@
         <script src="js/EZGUI/EZGUI.js"></script>
         <script src="js/Boot.js"></script>
         <script src="js/WaitMenu.js"></script>
-        <script src="js/StartMenu.js"></script>
+        <script src="js/GameSetup.js"></script>
         <script src="js/Utility.js"></script>
         <script src="js/BlurX.js"></script>
         <script src="js/BlurY.js"></script>
@@ -50,14 +48,17 @@ btn.sharp {
   border-radius:0;
 }
 
+
 #center{
 
-	position: fixed;
-    top: 0;
-    left: 0;
-    opacity: 0.3;
-    z-index: 1;
-    display: inline;   	
+   position:absolute;
+   opacity : 0.5;
+   top: 55px;
+   margin: auto;
+   right: 45px;
+   z-index: 1;
+   display: inline;
+       	
  }
 </style>
 
@@ -91,16 +92,16 @@ btn.sharp {
 	</nav>
 	<div id="main" class="container">
 		<div class="row">
-			
 				<nav class="navbar navbar-default" role="navigation">
 					<div class="navbar-header">
 						 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse"> <span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
 						 </button> <a class="navbar-brand" href="#">CREATE LUDO GAME</a>
 					</div>
 					<div class="collapse navbar-collapse navbar-ex1-collapse">
+						
 						<ul class="nav nav-pills left">
-                			<li class="dropdown active span8">
-	                    		<a class="dropdown-toggle" id="inp_impact" data-toggle="dropdown">
+                			<li class="dropdown active">
+	                    		<a class="dropdown-toggle  btn-md" id="inp_impact" data-toggle="dropdown">
 	                        	 PLAYER MODE<span class="caret"></span></a>
 	                    		<ul ID="divNewNotifications" class="dropdown-menu">
 	                            	<li><a>2-PLAYER</a></li> 
@@ -110,7 +111,7 @@ btn.sharp {
             			</ul>
             			
             				<form class="navbar-form">
-								<div class="form-group">
+								<div class="form-group no-padding-top">
 									<input id="playerName" class="form-control" placeholder="PLAYER NAME" type="text" />
 								</div> 
 								<div  class = "btn-group" data-toggle = "buttons">
@@ -173,12 +174,15 @@ btn.sharp {
 	</div>
 </section>
 
-<section class="blurred " style="display: block; padding-top: 250px;" id="orient">
+<div id="center">
+       <div class="radionomy-player"></div>
+</div>
+
+<section class="blurred " style="display: block; padding-top: 20px; padding-bottom: 20px;" id="orient">
 	<div class="container">
 		<div class="row">
 			<div id="dialog" title=" " class="selector"> </div>
-			<div id="gameContainer">
- 			</div>
+				<div id="gameContainer"></div>
 		</div>
 	</div>
 </section>
@@ -186,8 +190,8 @@ btn.sharp {
 <section class="no-padding-bottom no-padding-top" style="display: block;">
 
 	<div class="input-group">
-    		<textarea class="form-control custom-control" rows="3" style="resize:none"></textarea>     
-    		<span class="input-group-addon btn btn-primary">Send</span>
+    		<textarea id="chat" class="form-control custom-control" rows="3" style="resize:none"></textarea>     
+    		<span id="sendBtn" class="input-group-addon btn btn-primary">Send</span>
 		</div>
 </section>
 

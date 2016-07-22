@@ -1,0 +1,89 @@
+<html>
+    <head>
+    
+    	<meta name='viewport' content='initial-scale=1, maximum-scale=1, user-scalable=0, width=device-width' />
+    	<meta charset="utf-8">
+        <title>Ludo Africa</title>
+        <link href="/jquery-ui/jquery-ui.min.css" rel="stylesheet">
+        <script src="js/phaser.min.js"></script>
+        <script src="js/EZGUI/phaser-compat-2.4.js"></script>
+        <script src="js/EZGUI/EZGUI.js"></script>
+        <script src="js/Boot.js"></script>
+        <script src="js/WaitMenu.js"></script>
+        <script src="js/StartMenu.js"></script>
+        <script src="js/Utility.js"></script>
+        <script src="js/BlurX.js"></script>
+        <script src="js/BlurY.js"></script>
+        <script src="js/Dice.js"></script>
+        <script src="js/Queue.js"></script>
+        <script src="js/Piece.js"></script>
+        <script src="js/Player.js"></script>
+        <script src="js/Game.js"></script>
+        <script src="js/DiceController.js"></script>
+        <script src="js/Rules.js"></script>
+        <script src="js/Gamedef.js"></script>
+        <script src="js/jquery-1.12.2.min.js"></script>
+        <script src="js/socket.io.js"></script>
+        <script src="js/Socket.js"></script>
+        <script src="js/Error.js"></script>
+        <script src="js/Alert.js"></script>
+        <script src="js/phaser-state-transition-plugin.min.js"></script>
+		<script src="jquery-ui/jquery-ui.min.js"></script>
+		<script src="/phaser-input/phaser-input.min.js"></script>
+		<script src="/phaser-nineslice/phaser-nineslice.js"></script>
+		<script src="/underscore/underscore-min.js"></script>
+
+        <style>
+        
+        	* {
+    			box-sizing: border-box;
+			}
+			
+            body{
+                padding: 0;
+                margin: 0;
+                background-color: #171642
+            }
+            
+            .ui-widget-header,.ui-state-default, ui-button{
+            	background:#b9cd6d;
+            	border: 1px solid #b9cd6d;
+            	color: #FFFFFF;
+            	font-weight: bold;
+         	}
+        
+         	.radionomy-player{
+         		
+         	}
+         	
+         	#center{
+         		
+    			position: fixed;
+    			top: 0;
+    			left: 0;
+    			opacity: 0.3;
+    			z-index: 1;
+    			display: inline;
+         	}
+        
+        </style>
+        
+       
+        
+        
+        
+    </head>
+    <body>
+		
+        <div id="dialog" title=" " class="selector"> </div>
+        <div id="gameContainer">
+        </div>
+        <div id="center">
+        	<div class="radionomy-player"></div>
+        </div>
+        
+        <script src="js/index.js"></script>
+        
+                
+    </body>
+</html>

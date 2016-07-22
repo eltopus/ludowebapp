@@ -13,7 +13,7 @@ Ludo.Boot.prototype = {
 		
 		var device = Phaser.Device;
 		//console.log("Is Device " + device.windows);
-		/*
+		
 		if(device.desktop){
 			(function (win, doc, script, source, objectName) { (win.RadionomyPlayerObject = win.RadionomyPlayerObject || []).push(objectName); win[objectName] = win[objectName] || function (k, v) { (win[objectName].parameters = win[objectName].parameters || { src: source, version: '1.1' })[k] = v; }; var js, rjs = doc.getElementsByTagName(script)[0]; js = doc.createElement(script); js.async = 1; js.src = source; rjs.parentNode.insertBefore(js, rjs); }(window, document, 'script', 'https://www.radionomy.com/js/radionomy.player.js', 'radplayer'));
 			radplayer('url', 'ludo');
@@ -23,7 +23,8 @@ Ludo.Boot.prototype = {
 			radplayer('color1', '#f1ffc4');
 			radplayer('color2', '#ff844f');
 		}
-		*/
+		
+	
 	},
 	
 	create: function() {
@@ -48,15 +49,9 @@ Ludo.Boot.prototype = {
     		 this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
     		 this.game.add.plugin(Fabrique.Plugins.InputField);
     		 this.game.stage.smoothed = true;
-    	     this.scale.pageAlignHorizontally = true;
-    	     this.stage.forcePortrait = true;
     	     this.game.orientated = true;
-    	     this.game.scale.minWidth = this.game.width /2.7;
-    	     this.game.scale.minHeight = this.game.height /2.7;
     	     this.game.scale.pageAlignHorizontally = true;
     	     this.game.scale.pageAlignVertically = true;
-     		 this.game.scale.maxWidth = this.game.width * 2.5;
-  			 this.game.scale.maxHeight = this.game.height * 2.5;
   			 this.game.scale.forceOrientation(false, true);
   			 this.isMobile = true;
     		 
@@ -98,7 +93,6 @@ Ludo.Boot.prototype = {
         this.load.image('success', 'images/successAlert.png');
         this.load.image('failure', 'images/failureAlert.png');
         this.load.image('soundIcon', 'images/sound.ico');
-        //this.load.image('welcomepage', 'images/welcomepage.png');
         this.load.spritesheet("die", "images/diceRed.png", 64, 64);
         this.load.script('helpher', 'js/Utility.js');
         this.load.script('piece', 'js/Piece.js');
@@ -120,9 +114,6 @@ Ludo.Boot.prototype = {
         this.load.script("jquery-ui", "jquery-ui/jquery-ui.min.js");
         this.load.script("index", "js/index.js");
         this.load.script('webfont', '//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js');
-        //this.load.json('save', 'js/save.json');
-        //this.load.audio("menuMusic", "audio/Motivated.mp3");
-        //this.load.audio("gameMusic", "audio/LittleSwansGame.wav");
         this.load.audio("shakeAndroll", "audio/ShakeAndRollDice.mp3");
         this.load.audio("redneckRoll", "audio/RedneckRollsDice.mp3");
         this.load.audio("ding", "audio/ding.mp3");
@@ -145,7 +136,7 @@ Ludo.Boot.prototype = {
     
     loadComplete : function(){
     	this.text.setText("Load Complete");
-    	this.state.start('StartMenu', true, false, this.isMobile);
+    	this.state.start('GameSetup', true, false, this.isMobile);
     },
     
     

@@ -187,11 +187,11 @@ Ludo.StartMenu.prototype = {
 				$toggle.html($(this).text() + "<span class=\"caret\"></span>");
 
 				if ($(this).text() === "2-PLAYER"){
-					console.log( "2-PlayerMode " + $(this).text());
+					//console.log( "2-PlayerMode " + $(this).text());
 					gameObj.playerMode = 2;
 				}
 				else if ($(this).text() === "4-PLAYER"){
-					console.log( "4-PlayerMode " + $(this).text());
+					//console.log( "4-PlayerMode " + $(this).text());
 					gameObj.playerMode = 4;
 				}
 
@@ -238,7 +238,7 @@ Ludo.StartMenu.prototype = {
 			$('#createBtn').parent().on("click", function () {
 				gameObj.playerName = $('#playerName').val();
 				var message = gameObj.verifyCreateGame();
-				console.log("Message " + message);
+				//console.log("Message " + message);
 
 				if (message === "ok")
 				{

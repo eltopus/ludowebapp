@@ -32,6 +32,7 @@ Ludo.WaitMenu.prototype = {
 				borderColor: '#000',
 				borderRadius: 6,
 				placeHolder: ' ',
+				readonly : true,
 				textAlign: 'center'
 			});
 
@@ -41,6 +42,7 @@ Ludo.WaitMenu.prototype = {
 			this.gameCode.updateText();
 			this.gameCodeBg.inputEnabled  = false;
 			this.gameCode.inputEnabled = false;
+			
 
 
 			this.userGameCodeBg = this.game.add.nineSlice((this.game.width / 2), (this.game.height /2), 'input', 600, 250);
@@ -59,11 +61,11 @@ Ludo.WaitMenu.prototype = {
 				borderColor: '#000',
 				borderRadius: 6,
 				placeHolder: ' ',
-				zoom : false,
 				textAlign: 'left'
 			});
 
 			this.userGameCodeBg.alpha = 0.5;
+			this.userGameCodeBg.inputEnabled = false;
 
 			this.userTwo = this.game.add.inputField((this.game.width / 2) - 300 , (this.game.height /2) - 50, {
 				font: '15px Arial',
@@ -79,10 +81,10 @@ Ludo.WaitMenu.prototype = {
 				borderColor: '#000',
 				borderRadius: 6,
 				placeHolder: ' ',
-				zoom : false,
 				textAlign: 'left'
 			});
 
+			this.userTwo.inputEnabled = false;
 			this.userThree = this.game.add.inputField((this.game.width / 2) - 300 , (this.game.height /2), {
 				font: '15px Arial',
 				fill: '#212121',
@@ -97,10 +99,9 @@ Ludo.WaitMenu.prototype = {
 				borderColor: '#000',
 				borderRadius: 6,
 				placeHolder: ' ',
-				zoom : false,
 				textAlign: 'left'
 			});
-
+			this.userThree.inputEnabled = false;
 			this.userFour = this.game.add.inputField((this.game.width / 2) - 300 , (this.game.height /2) + 50, {
 				font: '15px Arial',
 				fill: '#212121',
@@ -116,9 +117,9 @@ Ludo.WaitMenu.prototype = {
 				borderRadius: 6,
 				placeHolder: ' ',
 				zoom : false,
+				readonly : true,
 				textAlign: 'left'
 			});
-
 
 			var saveFlag = loadGame;
 			var state = this.game.state;
