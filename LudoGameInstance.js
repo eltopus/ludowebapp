@@ -94,6 +94,8 @@ function LudoGameInstance(gameId, socketId, screenName, gameData, colors, callba
 	this.gameData.screenNames = this.screenNames;
 	this.inBackground = [];
 	this.playerWentInBackground = false;
+	this.date = new Date();
+	this.gameEnded = false;
 	callback(this);
 
 }
@@ -109,6 +111,13 @@ LudoGameInstance.prototype.addAdminPlayer = function(screenName, callback) {
 		callback(null);
 	}
 
+};
+
+
+LudoGameInstance.prototype.gameEnded = function(callback){
+	this.gameData.gameEnded = true;
+	this.gameEnded = true;
+	callback(true);
 };
 
 LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, fromDB, callback) {

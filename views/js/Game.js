@@ -26,8 +26,34 @@ Ludo.Game.prototype = {
 			this.playerName = screenName;
 			this.rejoin = rejoin;
 			this.gameMusic = null;
+			this.colorClassName = null;
 
+			var chatColor = null;
+			for (var i = 0; i < gameData.players.length; ++i)
+			{
+				if (gameData.players[i].playerName === this.playerName){
+					chatColor = gameData.players[i].piecesNames[0];
+					break;
+				}
+			}
 
+			switch(chatColor)
+			{
+				case 'red':
+					this.colorClassName = "text-danger";
+					break;
+				case 'blue':
+					this.colorClassName = "text-primary";
+					break;
+				case 'yellow':
+					this.colorClassName =  "text-warning";
+					break;
+				case 'green':
+					this.colorClassName =  "text-success";
+					break;
+				default:
+					this.colorClassName = "text-info";
+			}
 		},
 
 
@@ -215,7 +241,40 @@ Ludo.Game.prototype = {
 			}
 			tempPlayer = this.currentPlayer;
 			this.connectivity = true;
+			var socket = this.socket;
+			var playerName = this.playerName;
+			var gameId = this.gameId;
+			var colorClassName = this.colorClassName;
 
+			$('#sendBtn').click(function() {
+				var message = $('#chat').val();
+				if (message && message.length > 0){
+					message =  "<p class='" + colorClassName + " italic'><strong>" + playerName + ": </strong>" +  message + "</p>";
+					$('#chat').val('');
+					socket.emit('onMessage', {gameId : gameId, screenName  : playerName,  message : message}, function(msg){
+						$('#chatLog').append(msg);
+						var chatLogDiv = document.getElementById("chatLog");
+						chatLogDiv.scrollTop = chatLogDiv.scrollHeight;
+					});
+				}
+
+			});
+
+			$('#chat').keypress(function(e){
+				if(e.which == 13){
+					e.preventDefault();
+					var message = $('#chat').val();
+					if (message && message.length > 0){
+						message =  "<p class='" + colorClassName + " italic'><strong>" + playerName + ": </strong>" +  message + "</p>";
+						$('#chat').val('');
+						socket.emit('onMessage', {gameId : gameId, screenName  : playerName,  message : message}, function(msg){
+							$('#chatLog').append(msg);
+							var chatLogDiv = document.getElementById("chatLog");
+							chatLogDiv.scrollTop = chatLogDiv.scrollHeight;
+						});
+					}
+				}
+			});
 		},
 
 		drawExitedPieces : function(){
@@ -356,12 +415,6 @@ Ludo.Game.prototype = {
 		},
 
 
-		reconnect : function(){
-
-			var gameId = this.gameId;
-			var playerName = this.playerName;
-		},
-
 		onTap : function(pointer, doubleTap) {
 
 			if (doubleTap)
@@ -436,6 +489,7 @@ Ludo.Game.prototype = {
 
 		restart: function(){
 
+			/*
 			var saveFlag = this.saveFlag;
 			var socket = this.socket;
 			var myTurn = this.myTurn;
@@ -445,14 +499,15 @@ Ludo.Game.prototype = {
 			var playerName = this.playerName;
 			var rejoin = this.rejoin;
 			var game = this.game;
-			
+
 			this.checkConnectivity();
 
-			/*
+			
 			this.socket.emit('updateGame', this.gameId, function(gameData){
 				//game.state.restart(true, false, gameData, saveFlag, socket, true, owner, isMobile, sockId, playerName, rejoin);
 				alertMessage("Game Updated Successfully!", "Success", false);
 			});
+			 */
 			
 			if (confirm("Skip Turn?") === true) {
 				if (this.myTurn && this.currentPlayer !== null)
@@ -462,7 +517,7 @@ Ludo.Game.prototype = {
 
 				}
 			} 
-			 */
+			
 		},
 
 		saveGame : function(){
@@ -491,7 +546,7 @@ Ludo.Game.prototype = {
 
 					if (gameData !== null)
 					{
-						//console.log("currentPlayerName: "+ currentPlayerName);
+						
 						for (var i = 0; i < ludo.length; ++i)
 						{
 							ludo[i].updatePlayer(gameData.players);
@@ -525,11 +580,9 @@ Ludo.Game.prototype = {
 							myTurn = false;
 						}
 
-						//alertMessage("Game Updated Successfully!", "Success", false);
-						successAlert.displayMessage("Game Updated Successfully!");
+						alertMessage("Game Updated Successfully!", "Success", false);
 					}else{
-						failureAlert.displayMessage("Game Update failed!");
-						//alertMessage("Game Update failed!", "Error!", false);
+						alertMessage("Game Update failed!", "Error!", false);
 					}
 				});
 			}
@@ -720,8 +773,9 @@ Ludo.Game.prototype = {
 			}
 
 			if (this.currentPlayer.hasAllPiecesExited()){
-				//alertMessage("Winner is " + this.currentPlayer.playerName, "Winner!", true);
-				this.successAlert.displayMessage("Winner is " + this.currentPlayer.playerName);
+				
+				this.exitFullScreen();
+				alertMessage("Winner is " + this.currentPlayer.playerName, "Winner!", true);
 				this.socket.emit('endOfGame', {gameId : this.gameId});
 				this.currentPlayer.resetAllPiecesExited();
 			}
@@ -732,6 +786,12 @@ Ludo.Game.prototype = {
 				this.currentPlayer = this.rule.applyNextPlayerRule(this.currentPlayer);
 			}
 
+		},
+		
+		exitFullScreen : function(){
+			if (this.scale.isFullScreen){
+				this.scale.stopFullScreen();
+			}
 		},
 
 		drawExitingGrahics : function(piece){
@@ -799,7 +859,7 @@ Ludo.Game.prototype = {
 						this.myTurn = false;
 						this.playDong();
 					}
-					//console.log("currentPlayerName: "+ currentPlayerName + " this.playerName: " + this.playerName + " this.myTurn: " + this.myTurn);
+					
 				}
 			}
 
@@ -940,10 +1000,10 @@ Ludo.Game.prototype = {
 					this.myTurn = false;
 				}
 
-				//console.log("UpdatedGame: " + JSON.stringify(this.getUpdatedGame()));
+				
 				tempPlayer = this.currentPlayer;
 			}
-			
+
 			if (!this.checkConnectivity() && this.connectivity){
 				alertMessage("Lost Internet Connectivity!", "Failed Connection!", false);
 				this.connectivity = false;

@@ -14,6 +14,7 @@ Ludo.Boot.prototype = {
 		var device = Phaser.Device;
 		//console.log("Is Device " + device.windows);
 		
+		/*
 		if(device.desktop){
 			(function (win, doc, script, source, objectName) { (win.RadionomyPlayerObject = win.RadionomyPlayerObject || []).push(objectName); win[objectName] = win[objectName] || function (k, v) { (win[objectName].parameters = win[objectName].parameters || { src: source, version: '1.1' })[k] = v; }; var js, rjs = doc.getElementsByTagName(script)[0]; js = doc.createElement(script); js.async = 1; js.src = source; rjs.parentNode.insertBefore(js, rjs); }(window, document, 'script', 'https://www.radionomy.com/js/radionomy.player.js', 'radplayer'));
 			radplayer('url', 'ludo');
@@ -23,7 +24,7 @@ Ludo.Boot.prototype = {
 			radplayer('color1', '#f1ffc4');
 			radplayer('color2', '#ff844f');
 		}
-		
+		*/
 	
 	},
 	

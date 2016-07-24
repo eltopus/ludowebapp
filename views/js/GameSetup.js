@@ -79,17 +79,16 @@ Ludo.GameSetup.prototype = {
 			};
 
 			var selectColors = function(color){
-				console.log(color);
+				//console.log(color);
 
 				if ("c" + color === cred.key)
 				{
 					
 					if (isSelected(cred)){
 						unselectBtn(cred);
-						//document.getElementById("redBtn").style.opacity = "1";
 					}else{
 						selectBtn(cred);
-						//document.getElementById("redBtn").style.opacity = "0.5";
+						
 					}
 					
 					return;
@@ -100,10 +99,10 @@ Ludo.GameSetup.prototype = {
 					
 					if (isSelected(cblue)){
 						unselectBtn(cblue);
-						//document.getElementById("blueBtn").style.opacity = "1";
+						
 					}else{
 						selectBtn(cblue);
-						//document.getElementById("blueBtn").style.opacity = "0.5";
+						
 					}
 					
 					return;
@@ -114,10 +113,10 @@ Ludo.GameSetup.prototype = {
 					
 					if (isSelected(cyellow)){
 						unselectBtn(cyellow);
-						//document.getElementById("yellowBtn").style.opacity = "1";
+						
 					}else{
 						selectBtn(cyellow);
-						//document.getElementById("yellowBtn").style.opacity = "0.5";
+						
 					}
 					return;
 				}
@@ -126,16 +125,16 @@ Ludo.GameSetup.prototype = {
 					
 					if (isSelected(cgreen)){
 						unselectBtn(cgreen);
-						//document.getElementById("greenBtn").style.opacity = "1";
+					
 					}else{
 						selectBtn(cgreen);
-						//document.getElementById("greenBtn").style.opacity = "0.5";
+						
 					}
 					return;
 				}
 			};
 
-
+			
 			this.gameObj = new GameObj();
 			var gameObj = this.gameObj;
 
@@ -144,7 +143,7 @@ Ludo.GameSetup.prototype = {
 				$toggle.html($(this).text() + "<span class=\"caret\"></span>");
 
 				if ($(this).text() === "2-PLAYER"){
-					console.log( "2-PlayerMode " + $(this).text());
+					//console.log( "2-PlayerMode " + $(this).text());
 					gameObj.playerMode = 2;
 					gameObj.resetColors();
 					unselectBtn(cred);
@@ -153,7 +152,7 @@ Ludo.GameSetup.prototype = {
 					unselectBtn(cgreen);
 				}
 				else if ($(this).text() === "4-PLAYER"){
-					console.log( "4-PlayerMode " + $(this).text());
+					//console.log( "4-PlayerMode " + $(this).text());
 					gameObj.playerMode = 4;
 					gameObj.resetColors();
 					unselectBtn(cred);
@@ -228,7 +227,7 @@ Ludo.GameSetup.prototype = {
 			$('#createBtn').parent().on("click", function () {
 				gameObj.playerName = $('#playerName').val();
 				var message = gameObj.verifyCreateGame();
-				console.log("Message " + message);
+				//console.log("Message " + message);
 
 				if (message === "ok")
 				{

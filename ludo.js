@@ -57,14 +57,47 @@ exports.initGame = function(gameio, socket){
 	gameSocket.on('loadGame', loadTwoPlayerMultiplayerGame);
 	gameSocket.on('updatePieceInfo', updatePieceInfo);
 	gameSocket.on('diceIsPlayed', diceIsPlayed);
+	gameSocket.on('onMessage', sendMessage);
 
 };
 
 
+exports.getGameData = function(callback){
+	callback(games);
+};
+
+exports.deleteGameData = function(gameId, callback){
+
+	deleteGame(gameId, function(message){
+		callback(message);
+	});
+	
+};
+
+function deleteGame(gameId, callback){
+
+	var game = games[gameId];
+	if (game)
+	{
+		if (game.isEmpty()){
+			delete games[gameId];
+			callback({ok : true, message :  gameId + " was deleted sucessfully"});
+		}else{
+			callback({ok : false, message : "Error!!! " + gameId + " is NOT empty"});
+		}
+	}else{
+		callback({ok : false, message : "Error!!! " + gameId + " does NOT exist"});
+	}
+}
+
+function sendMessage(player, callback){
+	var sock = this;
+	sock.broadcast.to(player.gameId).emit('onMessage', player.message);
+	callback(player.message);
+}
 
 function browserInBackground(player, callback){
 	var sock = this;
-	//console.log(sock.id + " is in background: " + player.playerName);
 	var game = games[player.gameId];
 	if (game){
 		game.addPlayerinBackground(player.playerName, function(status){
@@ -112,7 +145,6 @@ function emitNextPlayer(data, callback)
 		if (nextPlayer.gameData){
 			if (!nextPlayer.playerWentInBackground){
 				data.newId = nextPlayer.socketId;
-				//console.log('Current ScreenName : ' + data.screenName + ' Emitting new Id to : ' + nextPlayer.screenName + ' ' + nextPlayer.gameData);
 				io.sockets.in(data.gameId).emit('nextTurn', nextPlayer);
 				callback(data);
 			}else{
@@ -133,15 +165,22 @@ function processNextTurn(data, id, callback){
 	{
 		var screenName = socketIds[id].screenName;
 		games[data.gameId].getNextSocketId(data.screenName, function(nextPlayer){
-			//console.log('CurrentPlayerName: ' +games[data.gameId].currentPlayerName);
 			callback(nextPlayer);
 		});
 	}
-	//console.log('------------------------------------------------------------ ');
 
 }
 
 function endOfGame(data){
+	var sock = this;
+	var gameInstance = games[data.gameId];
+	if (gameInstance){
+		gameInstance.gameEnded(function(status){
+			console.log("Game: " + data.gameId + " ended at " + new Date() + " Game will be deleted");
+			delete games[data.gameId];
+			
+		});
+	}
 
 }
 
@@ -182,13 +221,14 @@ function createTwoPlayerMultiplayerGame(preparedData, callback){
 			ludoInstance.gameData.screenName = screenName;
 			console.log("Two-PlayerGame Created by: " + screenName + " with game ID: " + gameId + " on " + new Date());
 			callback(ludoInstance.gameData);
-			//sock.broadcast.to(gameId).emit('awaitingStartGame', ludoInstance.gameData);
+			io.sockets.in(gameId).emit('onMessage', screenName + ' joined the game');
 			sock.join(gameId.toString());
 		});
 
 	});
 
 }
+
 
 function createFourPlayerMultiplayerGame(preparedData, callback){
 	var sock = this;
@@ -209,6 +249,7 @@ function createFourPlayerMultiplayerGame(preparedData, callback){
 			console.log("Four-PlayerGame Created by: " + screenName + " with game ID: " + gameId + " on " + new Date());
 			ludoInstance.gameData.screenName = screenName;
 			callback(ludoInstance.gameData);
+			io.sockets.in(gameId).emit('onMessage', screenName + ' joined the game');
 			sock.join(gameId.toString());
 
 		});
@@ -287,7 +328,6 @@ function pieceSelection(pieceSelectionObject){
 
 function diceSelection(diceObject){
 	var sock = this;
-	//console.log("Selection: " + JSON.stringify(diceObject));
 	var gameInstance = games[diceObject.gameId];
 	if (gameInstance){
 		gameInstance.updateDiceSelection(diceObject, function(status){
@@ -310,7 +350,6 @@ function piecePosition(pieceObject){
 
 function diceUnSelection(diceObject){
 	var sock = this;
-	//console.log("UnSelection: " + JSON.stringify(diceObject));
 	var gameInstance = games[diceObject.gameId];
 	if (gameInstance){
 		gameInstance.updateDiceUnSelection(diceObject, function(status){
@@ -358,7 +397,7 @@ function diceIsPlayed(diceInfo){
 	if (gameInstance){
 		gameInstance.updateDiceInfo(diceInfo, function(status){
 			if (status){
-				//console.log("Final Dice Info : " + JSON.stringify(gameInstance.gameData));
+
 			}else{
 				//console.log("Final Dice Info...");
 			}
@@ -388,9 +427,9 @@ function disconnected(data){
 				console.log("Player: " + screenName + " was removed from game " + gameId + " on " + new Date());
 				delete socketIds[sock.id];
 				if (game.isEmpty()){
-					console.log('Game is empty. Deleting ' + gameId);
+					console.log('Game is empty. Persisting ' + gameId);
 					//_.without(games, gameId);
-					delete games[gameId];
+					//delete games[gameId];
 
 				}else{
 					sock.broadcast.to(gameId).emit('disconnected', screenName);
@@ -419,7 +458,6 @@ function saveNewGame(data, callback){
 		data.gameMode = gameData.gameMode;
 		data.inprogress = true;
 		games[data.gameId].gameData = data;
-		//console.log("Save Data: " + JSON.stringify(games[data.gameId].gameData));
 
 	}else{
 
@@ -518,7 +556,7 @@ function loadTwoPlayerMultiplayerGame(name, callback){
 
 
 function getTwoPlayerGame(callback) {
-	var twoPlayerGame = {gameId: null, gameMode : 2, setSessionTurn : false, owner : false, howManyPlayersJoined : 0,
+	var twoPlayerGame = {gameId: null, gameMode : 2, setSessionTurn : false, owner : false, howManyPlayersJoined : 0, gameEnded : false,
 			diceIds:[{ uniqueId :"0fa40a32-8102-40be-85ae-595e7845d62a", value: 0 }, {uniqueId :"601b50bb-ed85-4323-8cfd-61262f924748", value : 0}],
 			players :[{ piecesNames :["red","blue"], playerName : null, hasRolled :false, index : 0, playerMode : 2, endOfPlay : 0,
 				pieces:[{piece :"red", state : 0, index : 1, x :118, y:72, x_home:118, y_home:72, imageId:"red_piece", uniqueId :"8d4329e4-bb84-4ef5-97ec-593669ff197c", homeIndex:1 },
@@ -544,7 +582,7 @@ function getTwoPlayerGame(callback) {
 }
 
 function getFourPlayerGame(callback){
-	var fourPlayerGame = {gameId :null, gameMode : 4, setSessionTurn : false, owner : false, howManyPlayersJoined : 0,
+	var fourPlayerGame = {gameId :null, gameMode : 4, setSessionTurn : false, owner : false, howManyPlayersJoined : 0, gameEnded : false,
 			diceIds :[{ uniqueId :"de55d5af-6cda-4ebf-80d7-8ae5f6f7698f", value :0},{ uniqueId :"8c89ca63-6a54-4088-8957-9280732b957d", value :0}],
 			players :[{ piecesNames :["red"], playerName : null, hasRolled :false, index :0, playerMode :4, endOfPlay :0, 
 				pieces :[{ piece :"red", state :0, index :1, x :118, y :72, x_home :118, y_home :72, imageId :"red_piece", uniqueId :"8fa049ea-336a-4211-8248-ced65b8fe3f0", homeIndex :1},

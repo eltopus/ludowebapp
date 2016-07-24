@@ -48,6 +48,10 @@ btn.sharp {
   border-radius:0;
 }
 
+div#chatLog{
+  overflow-y: auto;
+  height: 80px;
+}
 
 #center{
 
@@ -112,7 +116,7 @@ btn.sharp {
             			
             				<form class="navbar-form">
 								<div class="form-group no-padding-top">
-									<input id="playerName" class="form-control" placeholder="PLAYER NAME" type="text" />
+									<input id="playerName" class="form-control" placeholder="PLAYER NAME" type="text" maxlength="10"/>
 								</div> 
 								<div  class = "btn-group" data-toggle = "buttons">
    								<label class = "btn btn-danger">
@@ -157,9 +161,9 @@ btn.sharp {
 						
 						<form class="navbar-form">
 								<div class="form-group">
-									<input id="joinPlayerName" class="form-control" placeholder="PLAYER NAME" type="text" />
+									<input id="joinPlayerName" class="form-control" placeholder="PLAYER NAME" type="text" maxlength="10"/>
 								</div> 
-								<input id="gameCode" class="form-control" placeholder="GAME CODE" type="text" />
+								<input id="gameCode" class="form-control" placeholder="GAME CODE" type="text"  maxlength="10" />
 						</form>	
 							<div class="form-group">
      							<div class="margin-top-15">
@@ -189,9 +193,12 @@ btn.sharp {
 
 <section class="no-padding-bottom no-padding-top" style="display: block;">
 
-	<div class="input-group">
-    		<textarea id="chat" class="form-control custom-control" rows="3" style="resize:none"></textarea>     
-    		<span id="sendBtn" class="input-group-addon btn btn-primary">Send</span>
+<div id="formContainer">
+		<div class="input-group">
+			<div id="chatLog"></div>
+    			<input id="chat" class="form-control custom-control" placeholder="Enter your message" autocomplete="off" style="resize:none" />     
+    			<span id="sendBtn" class="input-group-addon btn btn-primary">Send</span>
+			</div>
 		</div>
 </section>
 

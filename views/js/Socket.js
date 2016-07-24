@@ -109,13 +109,19 @@ Socket = function(ludogame){
 	gameio.on('updateGame', function(gameData){
 		//game.updateGame(gameData);
 	});
+	
+	
+	gameio.on('onMessage', function(message){
+		$('#chatLog').append(message);
+		var chatLogDiv = document.getElementById("chatLog");
+		chatLogDiv.scrollTop = chatLogDiv.scrollHeight;
+	});
 
 
 	gameio.on('playerReconnected', function(screenName){
 		if (!inBackground){
 			if (screenName !== null){
-				//alertMessage(screenName + " has reconnected", "Reconnection",  false);
-				game.successAlert.displayMessage(screenName + " has reconnected");
+				alertMessage(screenName + " has reconnected", "Reconnection",  false);
 				game.connectionNotificationAlert(screenName, true);
 			}
 
@@ -131,10 +137,7 @@ Socket = function(ludogame){
 	});
 
 	gameio.on('disconnect', function(screenName){
-		//console.log("I am RE connecting............");
-		//gameio.socket.reconnect();
-
-
+		//alertMessage(screenName + " has reconnected", "Reconnection",  false);
 	});
 
 
