@@ -4,7 +4,8 @@ var playerTurnText = null;
 var gameIdText = null;
 var diceDisplayText = null;
 var ding = null;
-var inBackground = false;
+var socketIsConnected = true;
+var diceBtnReference = null;
 Ludo.Game = function (game) {
 };
 
@@ -153,29 +154,44 @@ Ludo.Game.prototype = {
 			}
 
 
-			this.diceBtn = this.make.button(760, 450, 'diceBtn', this.rollDice, this, 2, 1, 0);
+			this.diceBtn = this.make.button(770, 440, 'diceBtn', this.rollDice, this, 2, 1, 0);
 			this.diceBtn.alpha = 0.5;
 			this.diceBtn.scale.x = 0.2;
 			this.diceBtn.scale.y = 0.2;
-			this.play = this.make.button(760, 560, 'play', this.playDice, this, 2, 1, 0);
+			diceBtnReference = this.diceBtn;
+			this.play = this.make.button(763, 540, 'play', this.playDice, this, 2, 1, 0);
 			this.play.alpha = 0.5;
 			this.play.visible = false;
 
 
-			this.updateBtn = this.make.button(795, 320, 'updateBtn', this.saveGame, this, 2, 1, 0);
-			this.updateBtn.alpha = 0.5;
-			this.updateBtn.scale.x = 0.6;
-			this.updateBtn.scale.y = 0.6;
+			/*
 
 			this.savebutton = this.make.button(720, 320, 'savebutton', this.generateGameJson, this, 2, 1, 0);
 			this.savebutton.alpha = 0.5;
 			this.savebutton.scale.x = 0.3;
 			this.savebutton.scale.y = 0.3;
+			*/
+			
+			this.powerBtn = this.make.button(730, 655, 'power', null, this, 2, 1, 0);
+			this.powerBtn.scale.x = 0.5;
+			this.powerBtn.scale.y = 0.5;
+			this.powerBtn.alpha = 0.5;
 
-			this.restartBtn = this.make.button(750, 670, 'restart', this.restart, this, 2, 1, 0);
-			this.restartBtn.alpha = 0.5;
-			this.restartBtn.scale.x = 0.7;
-			this.restartBtn.scale.y = 0.7;
+			this.skipBtn = this.make.button(800, 640, 'skipturn', this.restart, this, 2, 1, 0);
+			this.skipBtn.scale.x = 0.2;
+			this.skipBtn.scale.y = 0.2;
+			this.skipBtn.alpha = 0.5;
+			
+			this.report = this.make.button(730, 320, 'report', this.ireport, this, 2, 1, 0);
+			this.report.alpha = 0.5;
+			this.report.scale.x = 0.3;
+			this.report.scale.y = 0.3;
+            
+			this.updateBtn = this.make.button(810, 323, 'updateBtn', this.saveGame, this, 2, 1, 0);
+			this.updateBtn.alpha = 0.5;
+			this.updateBtn.scale.x = 0.6;
+			this.updateBtn.scale.y = 0.6;
+
 
 			this.play.onInputOver.add(this.over, this);
 			this.play.onInputOut.add(this.out, this);
@@ -188,13 +204,13 @@ Ludo.Game.prototype = {
 			this.diceBtn.onInputDown.add(this.down, this);
 
 
-			//Play Button and Text display group
 			buttonGroup = this.add.group();
-			buttonGroup.add(this.savebutton);
-			buttonGroup.add(this.restartBtn);
+			buttonGroup.add(this.report);
+			buttonGroup.add(this.skipBtn);
 			buttonGroup.add(this.updateBtn);
 			buttonGroup.add(this.play);
 			buttonGroup.add(this.diceBtn);
+			buttonGroup.add(this.powerBtn);
 
 			this.rule = new Rules(this, this.play, this.myTurn);
 			this.buildWorld();
@@ -203,11 +219,14 @@ Ludo.Game.prototype = {
 			this.populateWorld(this.ludo);
 			this.currentPlayer = null;
 
-			gameIdText = this.add.text(725, 410, "Game ID: " + this.gameId, gameIdDisplayStyle);
+			gameIdText = this.add.text(0, 0, this.gameId, gameIdDisplayStyle);
+            gameIdText.setTextBounds(720, 290, 175, 30);
 			this.initialSetup();
 
-			diceDisplayText = this.add.text(720, 0, "D-One: 0 D-Two: 0", diceDisplayStyle);
-			playerTurnText = this.add.text(720, 286, this.currentPlayer.playerName+"'s Turn", playerTurnDisplayStyle);
+			diceDisplayText = this.add.text(720, 0, "Die1: 0 Die2: 0", diceDisplayStyle);
+			playerTurnText = this.add.text(0, 0, this.currentPlayer.playerName+"'s Turn", playerTurnDisplayStyle);
+            playerTurnText.setTextBounds(720, 400, 175, 30);
+			
 			this.graphics = this.game.add.graphics(0, 0);
 			this.drawExitedPieces();
 			this.gameio = new Socket(this);
@@ -240,7 +259,6 @@ Ludo.Game.prototype = {
 				this.currentPlayer.playerTurn();
 			}
 			tempPlayer = this.currentPlayer;
-			this.connectivity = true;
 			var socket = this.socket;
 			var playerName = this.playerName;
 			var gameId = this.gameId;
@@ -275,6 +293,56 @@ Ludo.Game.prototype = {
 					}
 				}
 			});
+			
+			this.reportBug = function(){
+				
+				var socket = this.socket;
+				var gameId = this.gameId;
+				var playerName = this.playerName;
+				
+				bootbox.dialog({
+					message: '<div class="well">' +
+									'<textarea class="form-control noresize" rows="4" id="comment" placeholder="ENTER DESCRIPTION HERE" maxlength="300">' +
+									'</textArea>'+
+								'</div>',
+					title: "Send Anonymous Bug Report?",
+					buttons: {
+						danger: {
+							label: "DON'T SEND",
+							className: "btn-danger",
+							callback: function() {							
+								Example.show("Report Not Sent");
+							}
+						},
+						success: {
+							label: "SEND",
+							className: "btn-success",
+							callback: function() {
+								var message = $('#comment').val();
+								if (message !== ''){
+									$.ajax({
+							        	type: "POST",
+							        	url: "report",
+							        	data: {gameId : gameId, playerName : playerName,  message : message},
+							        	success: function(msg){
+							        		Example.show(msg);
+							            },
+							        	error: function(){
+							        		Example.show("Report NOT sent");
+							        	}
+							        });
+								}else{
+									Example.show("Report cannot be empty");
+								}
+							} 
+						}
+					}
+				});
+			};
+		},
+		
+		ireport : function(){
+			this.reportBug();
 		},
 
 		drawExitedPieces : function(){
@@ -488,21 +556,7 @@ Ludo.Game.prototype = {
 
 
 		restart: function(){
-
-			/*
-			var saveFlag = this.saveFlag;
-			var socket = this.socket;
-			var myTurn = this.myTurn;
-			var owner = this.owner;
-			var isMobile = this.isMobile;
-			var sockId = this.sockId;
-			var playerName = this.playerName;
-			var rejoin = this.rejoin;
-			var game = this.game;
-
-			this.checkConnectivity();
-
-			
+				/*
 			this.socket.emit('updateGame', this.gameId, function(gameData){
 				//game.state.restart(true, false, gameData, saveFlag, socket, true, owner, isMobile, sockId, playerName, rejoin);
 				alertMessage("Game Updated Successfully!", "Success", false);
@@ -888,12 +942,18 @@ Ludo.Game.prototype = {
 			playerTurnText.fill = '#00ffff';
 			gameIdText.fill = '#00ffff';
 			diceDisplayText.fill = '#00ffff';
+			if (diceBtnReference !== null){
+				diceBtnReference.alpha = 1;
+			}
 		},
 
 		playDong : function(){
 			playerTurnText.fill = '#F70C0C';
 			gameIdText.fill = '#F70C0C';
 			diceDisplayText.fill = '#F70C0C';
+			if (diceBtnReference !== null){
+				diceBtnReference.alpha = 0.5;
+			}
 		},
 
 		getUpdatedGame : function(){
@@ -942,15 +1002,10 @@ Ludo.Game.prototype = {
 		},
 
 		checkConnectivity : function(){
-			if(navigator.onLine)
-			{
-				//this.socket.connect();
-				//alert("Browser is online");
+			if(navigator.onLine){
 				return true;
 			}
-			else
-			{
-				//this.socket.disconnect();
+			else{
 				return false;
 			}
 		},
@@ -980,7 +1035,7 @@ Ludo.Game.prototype = {
 			});
 			this.dieValueTwo = valueTwo;
 
-			diceDisplayText.setText("D-One: " + this.dieValueOne + " D-Two: " + this.dieValueTwo);
+			diceDisplayText.setText("Die1: " + this.dieValueOne + " Die2: " + this.dieValueTwo);
 			playerTurnText.setText(this.currentPlayer.playerName+"'s Turn");
 
 			if (this.currentPlayer.hasMovingPiece()){
@@ -1004,9 +1059,9 @@ Ludo.Game.prototype = {
 				tempPlayer = this.currentPlayer;
 			}
 
-			if (!this.checkConnectivity() && this.connectivity){
-				alertMessage("Lost Internet Connectivity!", "Failed Connection!", false);
-				this.connectivity = false;
+			if (!this.socket.connected && socketIsConnected){
+				alertMessage("You have been disconnect!", "Failed Connection!", true);
+				socketIsConnected = false;
 			}
 		}
 

@@ -63,16 +63,16 @@ Ludo.GameSetup.prototype = {
 
 			this.game.stateTransition = this.game.plugins.add(Phaser.Plugin.StateTransition);
 			this.game.stateTransition.configure({ duration: 1000, ease: Phaser.Easing.Linear.None, properties: { alpha: 0, scale: { x: 1.4, y: 1.4 } }});
-			
+
 			var isSelected = function(cbtn){
 				return (cbtn.scale.x === 0.5 && cbtn.scale.y === 0.5);
 			};
-			
+
 			var selectBtn = function(cbtn){
 				cbtn.scale.x = 0.5;
 				cbtn.scale.y = 0.5;
 			};
-			
+
 			var unselectBtn = function(cbtn){
 				cbtn.scale.x = 1;
 				cbtn.scale.y = 1;
@@ -83,60 +83,310 @@ Ludo.GameSetup.prototype = {
 
 				if ("c" + color === cred.key)
 				{
-					
+
 					if (isSelected(cred)){
 						unselectBtn(cred);
 					}else{
 						selectBtn(cred);
-						
+
 					}
-					
+
 					return;
 				}
 
 				if ("c" +color === cblue.key){
-					
-					
+
+
 					if (isSelected(cblue)){
 						unselectBtn(cblue);
-						
+
 					}else{
 						selectBtn(cblue);
-						
+
 					}
-					
+
 					return;
 				}
 
 				if ("c" + color === cyellow.key){
-					
-					
+
+
 					if (isSelected(cyellow)){
 						unselectBtn(cyellow);
-						
+
 					}else{
 						selectBtn(cyellow);
-						
+
 					}
 					return;
 				}
 
 				if ("c" + color === cgreen.key){
-					
+
 					if (isSelected(cgreen)){
 						unselectBtn(cgreen);
-					
+
 					}else{
 						selectBtn(cgreen);
-						
+
 					}
 					return;
 				}
 			};
 
+			var escapeHandler = function(){
+				gameObj.playerName = '';
+				gameObj.playerMode = 0;
+				gameObj.playerColors = [];
+				gameObj.createGame = false;
+				gameObj.joinGame = false;
+				gameObj.gameCode = '';
+			};
+
+			var gameSetupPrompt = function(){
+
+				bootbox.dialog({
+					message: "<b> Do you want to create or join a game? </b>",
+					title: "How can I help you?",
+					buttons: {
+						main: {
+
+							label: "NO THANKS",
+							className: "btn-danger",
+							callback: function() {
+								gameObj.createGame = false;
+								gameObj.joinGame = false;
+								Example.show("Oh Oh....");
+							}
+						},
+						danger: {
+							label: "JOIN",
+							className: "btn-info",
+							callback: function() {
+								gameObj.createGame = false;
+								gameObj.joinGame = true;
+								Example.show("Do you have a Game Code?");
+								gameSetupJoinGame();
+								
+							}
+						},
+						success: {
+							label: "CREATE",
+							className: "btn-success",
+							callback: function() {
+								gameObj.createGame = true;
+								gameObj.joinGame = false;
+								gameSetupSelectPlayerMode();
+
+							}
+						}
+
+					}
+
+				});
+			};
+
+			var gameSetupSelectPlayerMode = function(){
+
+				bootbox.dialog({
+					message: '<div class="btn-toolbar text-center well">'+
+					'<button class="btn btn-primary" id="selectTwoPlayer" type="button" onclick="selectTwoPlayerHandler()"> 2-PLAYER </button>'+
+					'<button class="btn btn-primary" id="selectFourPlayer" type="button" onclick="selectFourPlayerHandler()"> 4-PLAYER </button>'+ 
+					'<div class="playerModeKlass" id="playerModeText">' + 
+					'<h5 class="red-text text-center">PLAYER MODE</h5>'+
+					'</div>'+
+					'</div>',
+					title: "Please Select PLAYER-MODE",
+					buttons: {
+						danger: {
+							label: "BACK",
+							className: "btn-danger",
+							callback: function() {
+								gameObj.playerMode = 0;
+								gameSetupPrompt();
+							}
+						},
+						success: {
+							label: "NEXT",
+							className: "btn-success",
+							callback: function() {
+								if (gameObj.playerMode === 0){
+									Example.show("SELECT 2-PLAYER OR 4-PLAYER");
+									gameSetupSelectPlayerMode();
+									
+								}else{
+									gameSetupCreateGame();
+								}
+
+							}
+						}
+					}
+
+				});
+
+			};
+
+			var gameSetupFinished = function(){
+				Example.show("Welcome <b>"+gameObj.playerName+"</b>" + "!!!");
+				$('#createBtn').click();
+
+			};
+
+			var joinGameSetupFinished = function(){
+				Example.show("What took you so long? <b>"+gameObj.playerName+"</b>");
+				$('#joinGameBtn').click();
+
+			};
+
+			var gameSetupSelectColors = function(){
+
+				var optionText = "Please Select # colors";
+				if (gameObj.playerMode === 2){
+					optionText = "Please Select 2 colors";
+				}else if (gameObj.playerMode === 4){
+					optionText = "Please Select 4 colors";
+				}
+
+				bootbox.dialog({
+					message: '<div class="btn-toolbar text-center well" data-toggle="buttons">'+
+					'<button id="redBtn1" class="btn btn-danger" type="button" onclick="selectRedColorHandler()"> RED </button>'+
+					'<button id="blueBtn1" class="btn btn-primary" type="button" onclick="selectBlueColorHandler()"> BLU </button>'+
+					'<button id="yellowBtn1" class="btn btn-warning" type="button" onclick="selectYellowColorHandler()"> YLW </button>'+
+					'<button id="greenBtn1" class="btn btn-success" type="button" onclick="selectGreenColorHandler()"> GRN </button>'+
+					'</div>'+
+					'<div class="btn-toolbar text-center">'+
+					'<canvas id="circleOne" width="40" height="40"></canvas>'+
+					'<canvas id="circleTwo" width="40" height="40"></canvas>'+
+					'<canvas id="circleThree" width="40" height="40"></canvas>'+
+					'<canvas id="circleFour" width="40" height="40"></canvas>'+
+					'</div>',
+					title: optionText,
+					buttons: {
+						danger: {
+							label: "BACK",
+							className: "btn-danger",
+							callback: function() {
+								Example.show("What the...");
+								gameObj.playerColors = [];
+								gameSetupCreateGame();
+							}
+						},
+						success: {
+							label: "FINISH",
+							className: "btn-success",
+							callback: function() {
+								var message = gameObj.verifyCreateGame();
+								if (message === "ok")
+								{
+									gameSetupFinished();
+								}else
+								{
+									Example.show(message);
+									gameObj.playerColors = [];
+									gameSetupSelectColors();
+								}
+							}
+						}
+					}
+
+				});
+
+			};
+
+
+			var gameSetupCreateGame = function(){
+				bootbox.dialog({
+					message: '<form class="navbar-form">'+
+					'<div class="form-group">' +
+					'<input id="playerNameInput" class="form-control" placeholder="PLAYER NAME" type="text" maxlength="10"/></div>' + 
+					'</form>',
+					title: "Please Enter Name",
+					buttons: {
+						danger: {
+							label: "BACK",
+							className: "btn-danger",
+							callback: function() {
+								Example.show("You are very funny!");
+								gameObj.playerName = '';
+								$('#playerName').val('');
+								gameSetupSelectPlayerMode();
+							}
+						},
+						success: {
+							label: "NEXT",
+							className: "btn-success",
+							callback: function() {
+								var playerName = $('#playerNameInput').val();
+								if (playerName === ''){
+									gameSetupCreateGame();
+									Example.show("Invalid Player Name"); 
+								}else{
+									gameObj.playerName = playerName;
+									$('#playerName').val(playerName);
+									gameSetupSelectColors();
+								}
+							}
+						}
+					}
+
+				});
+
+
+			};
 			
-			this.gameObj = new GameObj();
-			var gameObj = this.gameObj;
+			var gameSetupJoinGame = function(){
+				bootbox.dialog({
+					message: '<form class="navbar-form">'+
+									'<div class="form-group">' +
+										'<input id="joinPlayerNameInput" class="form-control" placeholder="PLAYER NAME" type="text" maxlength="10"/>' + 
+									'</div>'+
+									'<input id="joinGameCodeInput" class="form-control" placeholder="GAME CODE" type="text" maxlength="10"/>' + 
+								'</form>',
+					title: "Enter Player Name and Game Code",
+					buttons: {
+						danger: {
+							label: "BACK",
+							className: "btn-danger",
+							callback: function() {
+								Example.show("Ummm.I see...");
+								gameObj.joinPlayerName = '';
+								gameObj.gameCode = '';
+								$('#joinPlayerName').val('');
+								$('#gameCode').val('');
+								gameSetupPrompt();
+							}
+						},
+						success: {
+							label: "FINISH",
+							className: "btn-success",
+							callback: function() {
+								var playerName = $('#joinPlayerNameInput').val();
+								var gameCode = $('#joinGameCodeInput').val();
+
+								gameObj.joinPlayerName = playerName;
+								gameObj.gameCode = gameCode;
+								console.log(playerName + " " + gameCode);
+								var message = gameObj.verifyJoinGame();
+								if (message === "ok")
+								{
+									$('#joinPlayerName').val(playerName);
+									$('#gameCode').val(gameCode); 
+									joinGameSetupFinished();
+
+								}else
+								{
+									$('#joinPlayerName').val('');
+									$('#gameCode').val('');
+									Example.show(message);
+									gameSetupJoinGame();	
+								}
+							}
+						}
+					}
+				});
+			};
+
+
 
 			$('.dropdown-menu > li').click(function() {
 				var $toggle = $(this).parent().siblings('.dropdown-toggle');
@@ -173,7 +423,7 @@ Ludo.GameSetup.prototype = {
 					}else{
 						alertMessage("Number of Selected Colors Allowed Reached!", "Error!", true);
 					}
-					
+
 				}
 
 			});
@@ -187,7 +437,7 @@ Ludo.GameSetup.prototype = {
 					}else{
 						alertMessage("Number of Selected Colors Allowed Reached!", "Error!", true);
 					}
-					
+
 				}
 			});
 
@@ -200,7 +450,7 @@ Ludo.GameSetup.prototype = {
 					}else{
 						alertMessage("Number of Selected Colors Allowed Reached!", "Error!", true);
 					}
-					
+
 				}
 			});
 
@@ -213,7 +463,7 @@ Ludo.GameSetup.prototype = {
 					}else{
 						alertMessage("Number of Selected Colors Allowed Reached!", "Error!", true);
 					}
-					
+
 				}
 			});
 
@@ -225,6 +475,8 @@ Ludo.GameSetup.prototype = {
 			var menuMusic = this.menuMusic;
 
 			$('#createBtn').parent().on("click", function () {
+
+
 				gameObj.playerName = $('#playerName').val();
 				var message = gameObj.verifyCreateGame();
 				//console.log("Message " + message);
@@ -238,6 +490,10 @@ Ludo.GameSetup.prototype = {
 						socket = io();
 						socket.on('disconnected', function(message){
 							alertMessage(message + ' has disconnected.', "Diconnection",  false);
+						});
+
+						socket.on('disconnect', function(){
+							alertMessage("You have been Disconnencted", "Disconnection",  true);
 						});
 
 					}
@@ -299,10 +555,16 @@ Ludo.GameSetup.prototype = {
 							alertMessage(message + ' has disconnected.', "Diconnection",  false);
 						});
 
+
 					}
 
 					socket.on("disconnect", function(){
-						socket.emit('disconnect', {gameId : gameId, screenName : loadScreenName});
+						socket.emit('disconnect', {gameId : gameObj.gameCode, screenName : loadScreenName});
+					});
+
+					socket.on('disconnect', function(){
+						alertMessage("Yo have been Disconnencted. Refresh Page and enter GameCode: " + gameObj.gameCode, "Disconnection",  true);
+
 					});
 
 					socket.emit('connectMultiplayerGame', {screenName :  gameObj.joinPlayerName, gameId : gameObj.gameCode}, function (data){
@@ -333,7 +595,13 @@ Ludo.GameSetup.prototype = {
 						}
 						else
 						{
-							alertMessage(data.message, "Error", true);
+							if (gameObj.createGame || gameObj.joinGame){
+								Example.show(data.message);
+								gameSetupJoinGame();
+							}else{
+								alertMessage(data.message, "Error", true);
+							}
+							
 						}
 					});
 				}else{
@@ -343,10 +611,33 @@ Ludo.GameSetup.prototype = {
 
 			});
 
+
+			(function () {
+				bootbox.dialog({
+					message: "<b>Do you need help creating or joining a game? </b>",
+					title: "Guest Option",
+					buttons: {
+						danger: {
+							label: "NO THANKS",
+							className: "btn-info",
+							callback: function() {
+								Example.show("Got it...");
+							}
+						},
+						success: {
+							label: "YES PLEASE",
+							className: "btn-success",
+							callback: function() {
+								gameSetupPrompt();
+							}
+						}
+					}
+
+				});
+			})();
+
+
 		},
-
-
-
 
 		colorChooser : function(){
 

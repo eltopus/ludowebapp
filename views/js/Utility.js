@@ -1,9 +1,10 @@
 var groups = [];
 var groupIndex = -1;
-var diceDisplayStyle = { font: "25px Revalia", fill: "#F70C0C", wordWrap: true, wordWrapWidth: 100, align: "center" };
-var playerTurnDisplayStyle = { font: "20px Revalia", fill: "#F70C0C", wordWrap: true, wordWrapWidth: 200, align: "center" };
-var gameIdDisplayStyle = { font: "20px Revalia", fill: "#F70C0C", wordWrap: true, wordWrapWidth: 200, align: "center" };
-    
+var diceDisplayStyle = { font: "25px Revalia", fill: "#F70C0C", wordWrap: true, wordWrapWidth: 90, align: "center" };
+var playerTurnDisplayStyle = { font: "20px Revalia", fill: "#F70C0C", boundsAlignH: "center", boundsAlignV: "middle" };
+var gameIdDisplayStyle = { font: "30px Revalia", fill: "#F70C0C", boundsAlignH: "center", boundsAlignV: "middle" };
+var gameObj = new GameObj();
+
 var redConfig = {
     
     'x' : [118, 72, 168, 120], 
@@ -201,3 +202,4 @@ alertMessage = function(message, messageTitle, mod){
 	$( "#dialog" ).text(message);
 	$( "#dialog" ).dialog();
 };
+

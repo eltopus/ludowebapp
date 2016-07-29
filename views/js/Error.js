@@ -14,7 +14,6 @@ Error = function (game, x, y) {
     this.tween = null;
     this.tweenText;
     this.errorText;
-    this.game = game;
     this.style = { font: "15px Revalia", fill: "#ff0000", wordWrap: true, wordWrapWidth: 200, align: "center" };
     game.add.existing(this);
 };

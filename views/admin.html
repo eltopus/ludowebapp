@@ -126,6 +126,7 @@ btn.sharp {
 									placeholder="GAME CODE" type="text" />
 							</div>
 							<button type="button" class="btn btn-info" id="delete">Submit</button>
+							<button type="button" class="btn btn-warning" id="loadGameData">Load GameData</button>
 						</form>
 					</div>
 
@@ -168,6 +169,21 @@ btn.sharp {
 		        	}
 		        });
 			}
+		});
+		
+		$("#loadGameData").click(function(e){
+    	e.preventDefault();
+    	$.ajax({
+    	
+    		type: "GET",
+		    url: "load",
+		    success: function(msg){
+		        alert(msg);
+		     },
+		     error: function(){
+		         alert("Failed to connect to server!!!");
+		        }
+		     });
 		});
 		
 });

@@ -114,12 +114,6 @@ LudoGameInstance.prototype.addAdminPlayer = function(screenName, callback) {
 };
 
 
-LudoGameInstance.prototype.gameEnded = function(callback){
-	this.gameData.gameEnded = true;
-	this.gameEnded = true;
-	callback(true);
-};
-
 LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, fromDB, callback) {
 
 	if (this.isNotFull()) 

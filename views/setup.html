@@ -19,7 +19,6 @@
         <script src="js/Boot.js"></script>
         <script src="js/WaitMenu.js"></script>
         <script src="js/GameSetup.js"></script>
-        <script src="js/Utility.js"></script>
         <script src="js/BlurX.js"></script>
         <script src="js/BlurY.js"></script>
         <script src="js/Dice.js"></script>
@@ -35,6 +34,10 @@
         <script src="js/Error.js"></script>
         <script src="js/Alert.js"></script>
         <script src="js/GameObj.js"></script>
+        <script src="js/bootbox.js"></script>
+        <script src="js/Example.js"></script>
+        <script src="js/GameSetupHandler.js"></script>
+        <script src="js/Utility.js"></script>
         <script src="js/phaser-state-transition-plugin.min.js"></script>
 		<script src="jquery-ui/jquery-ui.min.js"></script>
 		<script src="/phaser-input/phaser-input.min.js"></script>
@@ -64,6 +67,18 @@ div#chatLog{
    display: inline;
        	
  }
+ .bb-alert
+{
+    position : fixed;
+    bottom: 25%;
+    right: 0;
+    margin-bottom: 0;
+    font-size: 1.2em;
+    padding: 1em 1.3em;
+    z-index: 2000;
+}
+
+
 </style>
 
 </head>
@@ -105,8 +120,8 @@ div#chatLog{
 						
 						<ul class="nav nav-pills left">
                 			<li class="dropdown active">
-	                    		<a class="dropdown-toggle  btn-md" id="inp_impact" data-toggle="dropdown">
-	                        	 PLAYER MODE<span class="caret"></span></a>
+	                    		<a class="dropdown-toggle  btn-sm" id="inp_impact" data-toggle="dropdown">
+	                        	 SELECT MODE<span class="caret"></span></a>
 	                    		<ul ID="divNewNotifications" class="dropdown-menu">
 	                            	<li><a>2-PLAYER</a></li> 
 									<li><a>4-PLAYER</a></li>                             
@@ -144,10 +159,6 @@ div#chatLog{
     						</div>
 							
 					</div>
-					
-						
-							
-														
 							
 					
 				</nav>
@@ -186,6 +197,9 @@ div#chatLog{
 	<div class="container">
 		<div class="row">
 			<div id="dialog" title=" " class="selector"> </div>
+			<div class="bb-alert alert alert-info" id="bootModal" style="display:none;">
+       					<span></span>
+ 					</div>
 				<div id="gameContainer"></div>
 		</div>
 	</div>
@@ -204,7 +218,15 @@ div#chatLog{
 
 <script src="js/index.js"></script>
 <script type="text/javascript">
-$('.dropdown-toggle').dropdown();
+$(document).ready(function() {
+    $('.dropdown-toggle').dropdown();
+		$(function () {
+            Example.init({
+                "selector": ".bb-alert"
+            });
+        });
+});
+
 </script>
 
 </body>

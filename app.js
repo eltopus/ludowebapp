@@ -7,6 +7,19 @@ var express = require('express');
 var passport = require('passport');
 var Strategy = require('passport-local').Strategy;
 var db = require('./db');
+var nodemailer = require("nodemailer");
+var smtpTransport = require("nodemailer-smtp-transport");
+
+var smtpTransport = nodemailer.createTransport(smtpTransport({
+    host : "smtp.ipage.com",
+    secureConnection : false,
+    port: 587,
+    auth : {
+       
+    },
+    tls: {rejectUnauthorized: false},
+    debug:true
+}));
 
 passport.use(new Strategy(
   function(username, password, cb) {
@@ -41,6 +54,8 @@ var debug = require('debug');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var path = require('path');
+
+
 
 
 //app.use(logger('dev'));
@@ -104,6 +119,15 @@ app.get('/fetch', function(req, res){
     
 });
 
+app.get('/load', function(req, res){
+	
+	loadTwoPlayerMultiplayerGame(function(data){
+		res.send(data);
+	});
+    
+});
+
+
 app.post('/delete', function(req, res) {
 	var gameId = req.body.gameCode;
 	if (gameId){
@@ -116,7 +140,39 @@ app.post('/delete', function(req, res) {
 	}
 });
 
-//deleteGameData
+app.post('/report', function(req, res) {
+	var report = req.body;
+	if (report){
+		sendAnonymousReport(report, function(message){
+			if (message.ok){
+				var messageBody = JSON.stringify(message.gameData);
+				console.log("Message is ok");
+				 var mailOptions={
+					        from : "ludo@efizzypoint.com",
+					        to : "ludo@efizzypoint.com",
+					        subject : "Bug reported by: " + report.playerName,
+					        text : messageBody,
+					        html : "<html> <body> <p>" + report.message + "</p> <p>" + messageBody + "</p> </body> </html>"
+					    };
+				    smtpTransport.sendMail(mailOptions, function(error, response){
+				        if(error){
+				            console.log(error);
+				        }else{
+				            console.log(response.response.toString());
+				            console.log("Message sent: " + response.message);
+				           
+				        }
+				    });
+			}
+			res.send(message.message);
+			
+			
+		});
+		
+	}else{
+		res.send("A Great error has occurred");
+	}
+});
 
 
 io.on('connection', function(socket){
@@ -182,6 +238,22 @@ function getGameData(callback){
 function deleteGameData(gameId, callback){
 	
 	ldx.deleteGameData(gameId, function(message){
+		callback(message);
+	});
+	
+}
+
+function loadTwoPlayerMultiplayerGame(callback){
+	
+	ldx.loadTwoPlayerMultiplayerGame(function(message){
+		callback(message);
+	});
+	
+}
+
+function sendAnonymousReport(report, callback){
+	
+	ldx.onReport(report, function(message){
 		callback(message);
 	});
 	

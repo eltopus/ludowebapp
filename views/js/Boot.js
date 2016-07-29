@@ -93,6 +93,10 @@ Ludo.Boot.prototype = {
         this.load.image('cyellow', 'images/cyellow.png');
         this.load.image('success', 'images/successAlert.png');
         this.load.image('failure', 'images/failureAlert.png');
+        this.load.image('skipturn', 'images/skipTurn.png');
+        this.load.image('report', 'images/ireport.png');
+        this.load.image('power', 'images/power.png');
+        this.load.image('refresh', 'images/refresh.png');
         this.load.image('soundIcon', 'images/sound.ico');
         this.load.spritesheet("die", "images/diceRed.png", 64, 64);
         this.load.script('helpher', 'js/Utility.js');

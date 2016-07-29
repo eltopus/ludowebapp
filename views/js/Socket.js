@@ -135,11 +135,10 @@ Socket = function(ludogame){
 		}
 
 	});
-
-	gameio.on('disconnect', function(screenName){
-		//alertMessage(screenName + " has reconnected", "Reconnection",  false);
+	
+	gameio.on('connect', function(){
+		alertMessage("You have been reconnected", "Reconnection",  false);
 	});
-
 
 
 	if (game.isMobile)

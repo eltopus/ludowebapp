@@ -54,10 +54,12 @@ exports.initGame = function(gameio, socket){
 	gameSocket.on('updateGame', updateGame);
 	gameSocket.on('playerReconnected', playerReconnected);
 	gameSocket.on('browserInBackground', browserInBackground);
-	gameSocket.on('loadGame', loadTwoPlayerMultiplayerGame);
+	//gameSocket.on('loadGame', loadTwoPlayerMultiplayerGame);
 	gameSocket.on('updatePieceInfo', updatePieceInfo);
 	gameSocket.on('diceIsPlayed', diceIsPlayed);
 	gameSocket.on('onMessage', sendMessage);
+	//gameSocket.on('onReport', onReport);
+	
 
 };
 
@@ -71,7 +73,102 @@ exports.deleteGameData = function(gameId, callback){
 	deleteGame(gameId, function(message){
 		callback(message);
 	});
-	
+
+};
+
+exports.loadTwoPlayerMultiplayerGame = function(callback){
+
+
+	fs.readFile('gameData.json', 'utf8', function (err, data) {
+		if (err)
+		{
+			//throw err; // we'll not consider error handling for now
+			callback(false);
+
+		}else{
+			var preparedDataL = JSON.parse(data);
+			var sock = this;
+			var gameId = preparedDataL.gameId;
+			var players = preparedDataL.players;
+			var playerName1 = null;
+			var playerName2 = null;
+			console.log("GameId: " + gameId);
+			preparedDataL.ok = true;
+			preparedDataL.message = 'OK';
+			preparedDataL.complete = false;
+			preparedDataL.inprogress = false;
+			preparedDataL.setSessionTurn = false;
+			console.log("Pulling from DB GameId: " + gameId);
+
+			var playerMode = players.length;
+
+			switch (playerMode){
+
+			case 2:{
+				var player1 = players[0];
+				playerName1 = player1.playerName;
+
+
+				new ludoGameInstance(gameId, null, playerName1, preparedDataL, null, function(gameInstance){
+					gameInstance.gameInProgress = true;
+					gameInstance.numOfPlayers = 0;
+
+					var disconnetedPlayer1 = {};
+					disconnetedPlayer1.screenName = playerName1;
+					disconnetedPlayer1.index = 1;
+					disconnetedPlayer1.turn = player1.turn;
+					disconnetedPlayer1.isOwner = true;
+					gameInstance.disconnectedPlayers.push(disconnetedPlayer1);
+					games[gameId] = gameInstance;
+
+					var player2 = players[1];
+					playerName2 = player2.playerName;
+					var disconnetedPlayer2 = {};
+					disconnetedPlayer2.screenName = playerName2;
+					disconnetedPlayer2.index = 2;
+					disconnetedPlayer2.turn = player2.turn;
+					disconnetedPlayer2.isOwner = true;
+					var gameInstance2 = games[gameId];
+
+					gameInstance2.disconnectedPlayers.push(disconnetedPlayer2);
+					gameInstance2.addPlayer(gameId, null, playerName2, true, function(data){
+						gameInstance2.gameData.inprogress = false;
+						if (data !== null)
+						{
+							gameInstance2.numOfPlayers = 0;
+							console.log("Player Game Data: " + JSON.stringify(data.gameData));
+						}
+
+					});
+				});
+
+				break;
+			}
+			case 4:{
+				console.log("$ Player not implemented");
+				break;
+			}
+			default : break;
+			}
+
+			callback(true);
+
+		}
+
+	});
+
+};
+
+exports.onReport = function(report, callback){
+	var game = games[report.gameId];
+	if (game){
+		game.getUpdatedGameData(function(updatedGame){
+			//console.log("On Update : " + JSON.stringify(updatedGame) + " PlayerName: " + report.playerName);
+			callback({ok : true, message : "Report sent successfully!", gameData : updatedGame});
+		});
+	}else{
+		callback({ok : false, message : "Error occured while sending report..."});
+	}
 };
 
 function deleteGame(gameId, callback){
@@ -173,13 +270,9 @@ function processNextTurn(data, id, callback){
 
 function endOfGame(data){
 	var sock = this;
-	var gameInstance = games[data.gameId];
-	if (gameInstance){
-		gameInstance.gameEnded(function(status){
-			console.log("Game: " + data.gameId + " ended at " + new Date() + " Game will be deleted");
-			delete games[data.gameId];
-			
-		});
+	if (games[data.gameId]){
+		console.log("Game: " + data.gameId + " ended at " + new Date() + " Game will be deleted");
+		delete games[data.gameId];
 	}
 
 }
@@ -468,89 +561,6 @@ function saveNewGame(data, callback){
 
 function randomString(length) {
 	return Math.round((Math.pow(36, length + 1) - Math.random() * Math.pow(36, length))).toString(36).slice(1);
-}
-
-function loadTwoPlayerMultiplayerGame(name, callback){
-
-
-	fs.readFile('gameData.json', 'utf8', function (err, data) {
-		if (err)
-		{
-			//throw err; // we'll not consider error handling for now
-			callback(false);
-
-		}else{
-			var preparedDataL = JSON.parse(data);
-			var sock = this;
-			var gameId = preparedDataL.gameId;
-			var players = preparedDataL.players;
-			var playerName1 = null;
-			var playerName2 = null;
-			console.log("GameId: " + gameId);
-			preparedDataL.ok = true;
-			preparedDataL.message = 'OK';
-			preparedDataL.complete = false;
-			preparedDataL.inprogress = false;
-			preparedDataL.setSessionTurn = false;
-			console.log("Pulling from DB GameId: " + gameId);
-
-
-
-			for (var i = 0; i < players.length; ++i)
-			{
-
-				if (i === 0)
-				{
-					var player1 = players[i];
-					playerName1 = player1.playerName;
-					var gameInstance = new ludoGameInstance(gameId, null, playerName1, preparedDataL, null);
-					gameInstance.gameInProgress = true;
-					gameInstance.numOfPlayers = 0;
-
-					var disconnetedPlayer1 = {};
-					disconnetedPlayer1.screenName = playerName1;
-					disconnetedPlayer1.index = 1;
-					disconnetedPlayer1.turn = player1.turn;
-					disconnetedPlayer1.isOwner = true;
-					gameInstance.disconnectedPlayers.push(disconnetedPlayer1);
-					games[gameId] = gameInstance;
-					//console.log("Player One: " + JSON.stringify(gameInstance.gameData));
-
-
-				}
-
-				if (i === 1)
-				{
-					var player2 = players[i];
-					playerName2 = player2.playerName;
-					var disconnetedPlayer2 = {};
-					disconnetedPlayer2.screenName = playerName2;
-					disconnetedPlayer2.index = 2;
-					disconnetedPlayer2.turn = player2.turn;
-					disconnetedPlayer2.isOwner = true;
-					var gameInstance2 = games[gameId];
-
-					gameInstance2.disconnectedPlayers.push(disconnetedPlayer2);
-					gameInstance2.addPlayer(gameId, null, playerName2, true, function(data){
-						gameInstance2.gameData.inprogress = false;
-						if (data !== null)
-						{
-							gameInstance2.numOfPlayers = 0;
-							//console.log("Player Game Data: " + JSON.stringify(data.gameData));
-						}
-
-					});
-				}
-			}
-
-
-		}
-
-	});
-
-	//console.log("Player Final: " + JSON.stringify(games[gameId].disconnectedPlayers));
-	callback(true);
-
 }
 
 
