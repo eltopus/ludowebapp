@@ -21,7 +21,7 @@ GameObj.prototype.addPlayerColors = function(color) {
 
 	if (this.playerColors.length === 0){
 		this.playerColors.push(color);
-		console.log("Adding First Color: " + this.playerColors);
+		//console.log("Adding First Color: " + this.playerColors);
 		return true;
 		
 	}else
@@ -31,7 +31,7 @@ GameObj.prototype.addPlayerColors = function(color) {
 
 			if (this.playerColors[i] === color){
 				this.playerColors.splice(i, 1);
-			console.log("Removing Colors: " + this.playerColors);
+			//console.log("Removing Colors: " + this.playerColors);
 				return false;
 			}
 		}
@@ -44,7 +44,7 @@ GameObj.prototype.addPlayerColors = function(color) {
 				if (this.playerColors.length <= 1)
 				{
 					this.playerColors.push(color);
-					console.log("Adding 2-Player Colors: " + this.playerColors);
+					//console.log("Adding 2-Player Colors: " + this.playerColors);
 					return true;
 				}
 				

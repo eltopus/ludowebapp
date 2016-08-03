@@ -24,9 +24,7 @@
 
 <link href="" rel="stylesheet">
 <link href="assets/css/sections-frmwrk-styles.css" rel="stylesheet">
-
-<script src="//code.jquery.com/jquery-1.12.3.js">
-</script>
+<script src="//code.jquery.com/jquery-1.12.3.js"></script>
 <script
 	src="http://netdna.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 <script
@@ -35,12 +33,25 @@
 	src="https://cdn.datatables.net/1.10.12/js/dataTables.bootstrap.min.js"></script>
 <script
 	src="https://cdn.datatables.net/responsive/2.1.0/js/dataTables.responsive.min.js"> </script>
-<script
-	src="https://cdn.datatables.net/responsive/2.1.0/js/responsive.bootstrap.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.1.0/js/responsive.bootstrap.min.js"></script>
+<script src="js/bootstrap-filestyle.min.js"></script>
+<script src="js/Example.js"></script>
+	
 
 <style>
 btn.sharp {
 	border-radius: 0;
+}
+
+.bb-alert
+{
+    position : fixed;
+    bottom: 25%;
+    right: 0;
+    margin-bottom: 0;
+    font-size: 1.2em;
+    padding: 1em 1.3em;
+    z-index: 2000;
 }
 </style>
 
@@ -104,7 +115,11 @@ btn.sharp {
 			</table>
 		</div>
 	</section>
-	<section style="display: block; padding-top: 1px;" class=" ">
+	
+	
+	
+	
+	<section style="display: block; padding-top: 1px;" class="no-padding-bottom">
 		<div class="row">
 			<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 margin-top-100">
 				<nav style="position: relative; opacity: 1; left: 0px; top: 0px;"
@@ -116,30 +131,94 @@ btn.sharp {
 								class="icon-bar"></span><span class="icon-bar"></span><span
 								class="icon-bar"></span>
 						</button>
-						<a class="navbar-brand" href="#">Delete</a>
 					</div>
 
+					<div class="row">
+							<div class="bb-alert alert alert-info" id="bootModal" style="display:none;">
+       							<span></span>
+ 							</div>
+					</div>
 					<div class="collapse navbar-collapse navbar-ex1-collapse">
-						<form class="navbar-form navbar-left" role="search">
+						<form class="navbar-form navbar-left" role="search" name="jsonFile" enctype="multipart/form-data" method="post">
 							<div class="form-group">
-								<input id="gameCode" class="form-control"
-									placeholder="GAME CODE" type="text" />
+								<input id="gameCode" class="form-control" placeholder="GAME CODE" type="text" />
 							</div>
-							<button type="button" class="btn btn-info" id="delete">Submit</button>
-							<button type="button" class="btn btn-warning" id="loadGameData">Load GameData</button>
+							<button type="button" class="btn btn-danger" id="delete">DELETE</button>
+							<button type="button" class="btn btn-info" id="download">DOWNLOAD</button>
+							<div class="form-group">
+								<input type="file" name="example" id="input01">
+							</div>
+							<button type="button" class="btn btn-warning" id="loadGameData" onclick="loadFile()">Load GameData</button>
 						</form>
-					</div>
-
+					</div>			
 				</nav>
 			</div>
 		</div>
 	</section>
-
+	
 	<script type="text/javascript">
 	
+	
+	var loadFile = function() 
+		{
+		    var input, file, fr;
+		
+		    if (typeof window.FileReader !== 'function') {
+		      alert("The file API isn't supported on this browser yet.");
+		      return;
+		    }
+		
+		    input = document.getElementById('input01');
+		    if (!input) {
+		      alert("Um, couldn't find the fileinput element.");
+		    }
+		    else if (!input.files) {
+		      alert("This browser doesn't seem to support the `files` property of file inputs.");
+		    }
+		    else if (!input.files[0]) {
+		      alert("Please select a file before clicking 'Load'");
+		    }
+		    else {
+		      file = input.files[0];
+		      fr = new FileReader();
+		      fr.onload = receivedText;
+		      fr.readAsText(file);
+		    }
+		
+		    function receivedText(e) {
+		      lines = e.target.result;
+		      	$.ajax({
+		            type: "POST",
+		            url: "loaddata",
+		            data: lines,
+    				processData: false,
+    				contentType: "application/json; charset=UTF-8",
+		            success: function () {
+		                alert("Data Uploaded: ");
+		            },
+		            error: function(){
+			            	alert("Failed to upload file");
+			        }
+		        });
+		      
+		      
+		    }
+  
+  	};
+	
     $(document).ready(function() {
+    	
+		$(function () {
+            Example.init({
+                "selector": ".bb-alert"
+            });
+        });
+
     
-    
+    $('#input01').filestyle({
+				'placeholder' : '*.json'
+			});
+			
 	  var table =  $('#table').dataTable( {
 	  			"ajax": {
 	    		"url": "fetch",
@@ -152,38 +231,61 @@ btn.sharp {
 			}, 10000 );
 
 
-    $("#delete").click(function(e){
+	$("#download").click(function(e){
     	e.preventDefault();
-		var code = $('#gameCode').val();
-			if (code && code.length > 0)
-			{
+    	var gameCode = $('#gameCode').val();
+    	if (gameCode && gameCode.length > 0){
+		   	 	
 		   	 	$.ajax({
-		        	type: "POST",
-		        	url: "delete",
-		        	data: {gameCode : $('#gameCode').val()},
-		        	success: function(msg){
-		        		alert(msg.message);
-		            },
-		        	error: function(){
-		            	alert("Failed to connect to server!!!");
-		        	}
-		        });
+			        type: "POST",
+			        url: "download",
+			        data: {gameCode : gameCode},
+			        success: function(data){
+			        	if (data.ok){
+			        		var dataStr = JSON.stringify(data.gameData);
+							var url = 'data:text/json;charset=utf8,' + encodeURIComponent(dataStr);
+							window.open(url, '_blank');
+							window.focus();
+			        	}else{
+			        		alert(data.message);
+			        	}
+			        	
+			           },
+			        error: function(){
+			            Example.show("Failed to download file!!!");
+			        }
+			     });
+			}else{
+				Example.show("Invalid Game Code!!!");
 			}
 		});
-		
-		$("#loadGameData").click(function(e){
+
+
+
+    $("#delete").click(function(e)
+    {
     	e.preventDefault();
-    	$.ajax({
-    	
-    		type: "GET",
-		    url: "load",
-		    success: function(msg){
-		        alert(msg);
-		     },
-		     error: function(){
-		         alert("Failed to connect to server!!!");
-		        }
-		     });
+    	var gameCode = $('#gameCode').val();
+    	if (gameCode && gameCode.length > 0){
+		   	 	
+		   	 	if (confirm("Delete " + gameCode + "?") === true) {
+					$.ajax({
+			        	type: "POST",
+			        	url: "delete",
+			        	data: {gameCode : gameCode},
+			        	success: function(msg){
+			        		Example.show(msg.message);
+			            },
+			        	error: function(){
+			            	Example.show("Failed to connect to server!!!");
+			        	}
+			        });
+			
+				} 
+		   	 	
+			}else{
+				Example.show("Invalid Game Code!!!");
+			}
 		});
 		
 });

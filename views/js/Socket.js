@@ -89,19 +89,8 @@ Socket = function(ludogame){
 
 	gameio.on('nextTurn', function(nextPlayer){
 
+		game.updateGame(nextPlayer);
 		if (!inBackground){
-			if (game.playerName === nextPlayer.screenName)
-			{
-
-				game.playDing();
-				game.updateGame(nextPlayer);
-				game.myTurn = true;
-
-			}else{
-				game.playDong();
-				game.updateGame(nextPlayer);
-				game.myTurn = false;
-			}
 		}
 
 	});

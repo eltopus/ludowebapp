@@ -15,7 +15,8 @@ var smtpTransport = nodemailer.createTransport(smtpTransport({
     secureConnection : false,
     port: 587,
     auth : {
-       
+    	 user : "ludo@efizzypoint.com",
+         pass : "Cute164747#@!~"
     },
     tls: {rejectUnauthorized: false},
     debug:true
@@ -125,6 +126,29 @@ app.get('/load', function(req, res){
 		res.send(data);
 	});
     
+});
+
+
+app.post('/download', function(req, res){
+	var gameId = req.body.gameCode;
+	if (gameId){
+		downloadGameData(gameId, function(data){
+			res.send(data);
+		});
+		
+	}else{
+		res.send({ok : false, message : "Game Code Error! Please check and try again"});
+	}
+   
+});
+
+app.post('/loaddata', function(req, res){
+	var data = JSON.stringify(req.body);
+	var gameData = JSON.parse(data);
+	loadTwoPlayerMultiplayerGame(gameData, function(msg){
+		 res.send(msg);
+	});
+   
 });
 
 
@@ -243,12 +267,18 @@ function deleteGameData(gameId, callback){
 	
 }
 
-function loadTwoPlayerMultiplayerGame(callback){
+function loadTwoPlayerMultiplayerGame(gameData, callback){
 	
-	ldx.loadTwoPlayerMultiplayerGame(function(message){
+	ldx.loadTwoPlayerMultiplayerGame(gameData, function(message){
 		callback(message);
 	});
 	
+}
+
+function downloadGameData(gameId, callback){
+	ldx.downloadGameData(gameId, function(data){
+		callback(data);
+	});
 }
 
 function sendAnonymousReport(report, callback){

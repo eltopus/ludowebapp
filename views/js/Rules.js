@@ -23,6 +23,13 @@ Rules.prototype.applyNextPlayerRule = function(currentPlayer){
 
 
 Rules.prototype.nextPlayer = function(currentPlayer){
+	if (currentPlayer.rolledTwoSixes){
+		currentPlayer.unRolled();
+        currentPlayer.rolledTwoSixes = false;
+        Example.show("Woo-Hoo! You get to roll again...");
+        this.game.diceBtn.visible = true;
+        return currentPlayer;
+    }
     currentPlayer.unRolled();
     currentPlayer.deSelectAll();
     currentPlayer.consumeDice();
@@ -52,6 +59,9 @@ Rules.prototype.applyDiceRules = function(currentPlayer){
 };
 
 Rules.prototype.applyDiceRollRule = function(currentPlayer){
+	if (currentPlayer.rolledDoubleSix()){
+        currentPlayer.rolledTwoSixes = true;
+    }
 	if (currentPlayer.diceIsEmpty()){
 		return false;
 	}else{

@@ -76,86 +76,32 @@ exports.deleteGameData = function(gameId, callback){
 
 };
 
-exports.loadTwoPlayerMultiplayerGame = function(callback){
+exports.downloadGameData = function(gameId, callback){
+	var game = games[gameId];
+	if (game){
+		callback({ok : true, message : "Game Id " + gameId + " does not exist!", gameData : game.gameData});
+	}
+	else{
+		callback({ok : false, message : "Game Id " + gameId + " does not exist!", gameData : {}});
+	}
 
+};
 
-	fs.readFile('gameData.json', 'utf8', function (err, data) {
-		if (err)
-		{
-			//throw err; // we'll not consider error handling for now
-			callback(false);
+exports.loadTwoPlayerMultiplayerGame = function(preparedDataL, callback){
 
-		}else{
-			var preparedDataL = JSON.parse(data);
-			var sock = this;
-			var gameId = preparedDataL.gameId;
-			var players = preparedDataL.players;
-			var playerName1 = null;
-			var playerName2 = null;
-			console.log("GameId: " + gameId);
-			preparedDataL.ok = true;
-			preparedDataL.message = 'OK';
-			preparedDataL.complete = false;
-			preparedDataL.inprogress = false;
-			preparedDataL.setSessionTurn = false;
-			console.log("Pulling from DB GameId: " + gameId);
+	var gameId = preparedDataL.gameId;
+	console.log("GameId: " + gameId);
+	preparedDataL.complete = false;
+	preparedDataL.setSessionTurn = false;
 
-			var playerMode = players.length;
-
-			switch (playerMode){
-
-			case 2:{
-				var player1 = players[0];
-				playerName1 = player1.playerName;
-
-
-				new ludoGameInstance(gameId, null, playerName1, preparedDataL, null, function(gameInstance){
-					gameInstance.gameInProgress = true;
-					gameInstance.numOfPlayers = 0;
-
-					var disconnetedPlayer1 = {};
-					disconnetedPlayer1.screenName = playerName1;
-					disconnetedPlayer1.index = 1;
-					disconnetedPlayer1.turn = player1.turn;
-					disconnetedPlayer1.isOwner = true;
-					gameInstance.disconnectedPlayers.push(disconnetedPlayer1);
-					games[gameId] = gameInstance;
-
-					var player2 = players[1];
-					playerName2 = player2.playerName;
-					var disconnetedPlayer2 = {};
-					disconnetedPlayer2.screenName = playerName2;
-					disconnetedPlayer2.index = 2;
-					disconnetedPlayer2.turn = player2.turn;
-					disconnetedPlayer2.isOwner = true;
-					var gameInstance2 = games[gameId];
-
-					gameInstance2.disconnectedPlayers.push(disconnetedPlayer2);
-					gameInstance2.addPlayer(gameId, null, playerName2, true, function(data){
-						gameInstance2.gameData.inprogress = false;
-						if (data !== null)
-						{
-							gameInstance2.numOfPlayers = 0;
-							console.log("Player Game Data: " + JSON.stringify(data.gameData));
-						}
-
-					});
-				});
-
-				break;
-			}
-			case 4:{
-				console.log("$ Player not implemented");
-				break;
-			}
-			default : break;
-			}
-
-			callback(true);
-
-		}
-
+	new ludoGameInstance(gameId, null, null, preparedDataL, null, false, function(gameInstance){
+		
+		games[gameId] = gameInstance;
+		
 	});
+	
+	callback(true);
+
 
 };
 
@@ -164,7 +110,7 @@ exports.onReport = function(report, callback){
 	if (game){
 		game.getUpdatedGameData(function(updatedGame){
 			//console.log("On Update : " + JSON.stringify(updatedGame) + " PlayerName: " + report.playerName);
-			callback({ok : true, message : "Report sent successfully!", gameData : updatedGame});
+			callback({ok : true, message : "Report sent successfully!", gameData : updatedGame.gameData});
 		});
 	}else{
 		callback({ok : false, message : "Error occured while sending report..."});
@@ -261,6 +207,7 @@ function processNextTurn(data, id, callback){
 	if (socketIds[id] && games[data.gameId])
 	{
 		var screenName = socketIds[id].screenName;
+		//console.log("Data ScreenName: " + screenName);
 		games[data.gameId].getNextSocketId(data.screenName, function(nextPlayer){
 			callback(nextPlayer);
 		});
@@ -307,7 +254,8 @@ function createTwoPlayerMultiplayerGame(preparedData, callback){
 		twoPlayer.complete = false;
 		twoPlayer.inprogress = false;
 		twoPlayer.setSessionTurn = true;
-		new ludoGameInstance(gameId, sock.id, screenName, twoPlayer, preparedData.colors, function (ludoInstance){
+		twoPlayer.gameId = gameId;
+		new ludoGameInstance(gameId, sock.id, screenName, twoPlayer, preparedData.colors, true, function (ludoInstance){
 			games[gameId] = ludoInstance;
 			socketIds[sock.id] = {gameId : gameId, screenName : screenName, owner : true};
 			ludoInstance.gameData.sockId = sock.id;
@@ -334,7 +282,8 @@ function createFourPlayerMultiplayerGame(preparedData, callback){
 		fourPlayer.complete = false;
 		fourPlayer.inprogress = false;
 		fourPlayer.setSessionTurn = true;
-		new ludoGameInstance(gameId, sock.id, screenName, fourPlayer, preparedData.colors, function (ludoInstance){
+		fourPlayer.gameId = gameId;
+		new ludoGameInstance(gameId, sock.id, screenName, fourPlayer, preparedData.colors, true, function (ludoInstance){
 			games[gameId] = ludoInstance;
 			socketIds[sock.id] = {gameId : gameId, screenName : screenName, owner : true};
 			ludoInstance.gameData.sockId = sock.id;
@@ -568,7 +517,7 @@ function randomString(length) {
 function getTwoPlayerGame(callback) {
 	var twoPlayerGame = {gameId: null, gameMode : 2, setSessionTurn : false, owner : false, howManyPlayersJoined : 0, gameEnded : false,
 			diceIds:[{ uniqueId :"0fa40a32-8102-40be-85ae-595e7845d62a", value: 0 }, {uniqueId :"601b50bb-ed85-4323-8cfd-61262f924748", value : 0}],
-			players :[{ piecesNames :["red","blue"], playerName : null, hasRolled :false, index : 0, playerMode : 2, endOfPlay : 0,
+			players :[{ piecesNames :["red","blue"], playerName : null, hasRolled :false, index : 0, playerMode : 2, endOfPlay : 0, playerIndex : 1, creator : true, 
 				pieces:[{piece :"red", state : 0, index : 1, x :118, y:72, x_home:118, y_home:72, imageId:"red_piece", uniqueId :"8d4329e4-bb84-4ef5-97ec-593669ff197c", homeIndex:1 },
 				        {piece:"red",state:0,index:1,x:72,y:118,x_home :72,y_home :118, imageId :"red_piece",uniqueId :"4324a6e0-b3b5-4c36-832a-d9eed25842dc",homeIndex :1 },
 				        {piece:"red",state:0, index:1, x:168, y:118, x_home:168, y_home:118,imageId : "red_piece",uniqueId :"e9833aec-d612-479f-836a-f33a62ee369a", homeIndex :1},
@@ -578,7 +527,7 @@ function getTwoPlayerGame(callback) {
 				        {piece :"blue", state :0, index :14, x :600, y :118, x_home :600, y_home :118, imageId :"blue_piece", uniqueId :"f461039d-4fce-40b7-9ffe-941edf65275b", homeIndex :14},
 				        {piece : "blue" , state :0, index :14, x :552, y :168, x_home :552, y_home :168, imageId :"blue_piece", uniqueId :"db947c8e-c8b4-4f8c-80bd-3698d0f8dfbf", homeIndex :14}],
 				        diceObject :[{uniqueId :"0fa40a32-8102-40be-85ae-595e7845d62a",value : 0, playerName : null, selected : false},{uniqueId :"601b50bb-ed85-4323-8cfd-61262f924748", value : 0, playerName : null, selected : false}], turn :false, selectedPieceId :null, exitingGraphicsPositions :[740,780,820,860]},
-				        { piecesNames :["yellow","green"], playerName : null, hasRolled :false, index :1, playerMode :2, endOfPlay :0, 
+				        { piecesNames :["yellow","green"], playerName : null, hasRolled :false, index :1, playerMode :2, endOfPlay :0, playerIndex : 2, creator : false,
 				        	pieces :[{ piece :"yellow", state :0, index :27, x :552, y :503, x_home :552, y_home :503, imageId :"yellow_piece", uniqueId :"2753916e-d3d6-4546-8edd-e52a9f67ca69", homeIndex:27},
 				        	         { piece :"yellow", state :0, index :27, x :503, y :552, x_home :503, y_home :552, imageId :"yellow_piece", uniqueId :"7c22843d-7255-4672-b691-9a8db162d5ab", homeIndex :27},
 				        	         { piece :"yellow", state :0, index :27, x :600, y :552, x_home :600, y_home :552, imageId :"yellow_piece", uniqueId :"38934697-64df-4c41-8431-55de32e11361", homeIndex :27},
@@ -594,25 +543,25 @@ function getTwoPlayerGame(callback) {
 function getFourPlayerGame(callback){
 	var fourPlayerGame = {gameId :null, gameMode : 4, setSessionTurn : false, owner : false, howManyPlayersJoined : 0, gameEnded : false,
 			diceIds :[{ uniqueId :"de55d5af-6cda-4ebf-80d7-8ae5f6f7698f", value :0},{ uniqueId :"8c89ca63-6a54-4088-8957-9280732b957d", value :0}],
-			players :[{ piecesNames :["red"], playerName : null, hasRolled :false, index :0, playerMode :4, endOfPlay :0, 
+			players :[{ piecesNames :["red"], playerName : null, hasRolled :false, index :0, playerMode :4, endOfPlay :0, playerIndex : 1, creator : true,
 				pieces :[{ piece :"red", state :0, index :1, x :118, y :72, x_home :118, y_home :72, imageId :"red_piece", uniqueId :"8fa049ea-336a-4211-8248-ced65b8fe3f0", homeIndex :1},
 				         { piece :"red", state :0, index :1, x :72, y :118, x_home :72, y_home :118, imageId :"red_piece",uniqueId :"062258e6-dec1-459e-8484-c9f442195093", homeIndex :1},
 				         { piece :"red", state :0, index :1, x :168, y :118, x_home :168, y_home :118, imageId :"red_piece", uniqueId :"a8ceb866-611f-4adc-9e74-0cc76a06ba9e", homeIndex :1},
 				         { piece :"red", state :0, index :1, x :120, y :168, x_home :120, y_home :168, imageId :"red_piece", uniqueId :"305206ff-efb8-4abf-9b92-dc2425056270", homeIndex :1}],
 				         diceObject :[{uniqueId :"de55d5af-6cda-4ebf-80d7-8ae5f6f7698f",value : 0, playerName : null, selected : false},{uniqueId : "8c89ca63-6a54-4088-8957-9280732b957d", value : 0, playerName : null, selected : false}], turn :false, selectedPieceId :null, exitingGraphicsPositions :[740,780,820,860]},
-				         { piecesNames :["blue"], playerName : null, hasRolled :false, index :1, playerMode :4, endOfPlay :0,
+				         { piecesNames :["blue"], playerName : null, hasRolled :false, index :1, playerMode :4, endOfPlay :0, playerIndex : 2, creator : false,
 				        	 pieces :[{ piece :"blue", state :0, index :14, x :552, y :72, x_home :552, y_home :72, imageId :"blue_piece", uniqueId :"e4e6af75-b9ea-42b4-970a-d648d249fceb", homeIndex :14},
 				        	          { piece :"blue", state :0, index :14, x :503, y :118, x_home :503, y_home :118, imageId :"blue_piece", uniqueId :"80eb50f3-1fec-45bb-9174-ad6f2522eda9", homeIndex :14},
 				        	          { piece :"blue", state :0, index :14, x :600, y :118, x_home :600, y_home :118, imageId :"blue_piece", uniqueId :"92861a29-b37a-42b0-afc1-afe048182498", homeIndex :14},
 				        	          { piece :"blue", state :0, index :14, x :552, y :168, x_home :552, y_home :168, imageId :"blue_piece", uniqueId :"38c6c1f9-6d04-4117-8434-aad907d49aa5", homeIndex :14}],
 				        	          diceObject :[{uniqueId :"de55d5af-6cda-4ebf-80d7-8ae5f6f7698f",value : 0, playerName : null, selected : false},{uniqueId : "8c89ca63-6a54-4088-8957-9280732b957d", value : 0, playerName : null, selected : false}], turn :false, selectedPieceId :null, exitingGraphicsPositions :[740,780,820,860]},
-				        	          { piecesNames :["yellow"], playerName : null, hasRolled :false, index :2, playerMode :4, endOfPlay :0, 
+				        	          { piecesNames :["yellow"], playerName : null, hasRolled :false, index :2, playerMode :4, endOfPlay :0, playerIndex : 3, creator : false,
 				        	        	  pieces:[{ piece :"yellow", state :0, index :27, x :552, y :503, x_home :552, y_home :503, imageId :"yellow_piece", uniqueId :"659bb79b-7d05-48c6-80ec-c7129d96ac9c", homeIndex :27},
 				        	        	          { piece :"yellow", state :0, index :27, x :503, y :552, x_home :503, y_home :552, imageId :"yellow_piece", uniqueId :"502bf906-49d4-4933-88ee-232076748573", homeIndex :27},
 				        	        	          { piece :"yellow", state :0, index :27, x :600, y :552, x_home :600, y_home :552, imageId :"yellow_piece", uniqueId :"9dd7de72-4033-429c-9b70-9e7d00fd254d", homeIndex :27},
 				        	        	          { piece :"yellow", state :0, index :27, x :552, y :600, x_home :552, y_home :600, imageId :"yellow_piece", uniqueId :"6924e88b-a7e3-4872-855a-746b0bbaa1f6", homeIndex :27}],
 				        	        	          diceObject :[{uniqueId :"de55d5af-6cda-4ebf-80d7-8ae5f6f7698f",value : 0, playerName : null, selected : false},{uniqueId : "8c89ca63-6a54-4088-8957-9280732b957d", value : 0, playerName : null, selected : false}], turn :false, selectedPieceId :null, exitingGraphicsPositions :[740,780,820,860]},
-				        	        	          { piecesNames :["green"], playerName : null, hasRolled :false, index :3, playerMode :4, endOfPlay :0,
+				        	        	          { piecesNames :["green"], playerName : null, hasRolled :false, index :3, playerMode :4, endOfPlay :0, playerIndex : 4, creator : false,
 				        	        	        	  pieces :[{ piece :"green", state :0, index :40, x :118, y :503, x_home :118, y_home :503, imageId :"green_piece", uniqueId :"07f17e29-609b-4058-8f25-e07977e7dccf", homeIndex :40},
 				        	        	        	           { piece :"green", state :0, index :40, x :72, y :552, x_home :72, y_home :552, imageId :"green_piece", uniqueId :"0a6d7022-2b7a-44da-b77e-781e59df61a0", homeIndex :40},
 				        	        	        	           { piece :"green", state :0, index :40, x :168, y :552, x_home :168, y_home :552, imageId :"green_piece", uniqueId :"2a41f4b8-775e-4ab7-84c8-e4bbfa98eebf", homeIndex :40},

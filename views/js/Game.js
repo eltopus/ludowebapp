@@ -14,6 +14,7 @@ Ludo.Game.prototype = {
 
 		init : function (gameData, saveFlag, socket, myTurn, owner, isMobile, sockId, screenName, rejoin)
 		{
+
 			this.gameData = gameData;
 			this.gameId = this.gameData.gameId;
 			this.saveFlag = saveFlag;
@@ -28,6 +29,7 @@ Ludo.Game.prototype = {
 			this.rejoin = rejoin;
 			this.gameMusic = null;
 			this.colorClassName = null;
+			this.currentPlayer = null;
 
 			var chatColor = null;
 			for (var i = 0; i < gameData.players.length; ++i)
@@ -165,7 +167,6 @@ Ludo.Game.prototype = {
 
 
 			/*
-
 			this.savebutton = this.make.button(720, 320, 'savebutton', this.generateGameJson, this, 2, 1, 0);
 			this.savebutton.alpha = 0.5;
 			this.savebutton.scale.x = 0.3;
@@ -177,7 +178,7 @@ Ludo.Game.prototype = {
 			this.powerBtn.scale.y = 0.5;
 			this.powerBtn.alpha = 0.5;
 
-			this.skipBtn = this.make.button(800, 640, 'skipturn', this.restart, this, 2, 1, 0);
+			this.skipBtn = this.make.button(800, 640, 'skipturn', this.generateGameJson, this, 2, 1, 0);
 			this.skipBtn.scale.x = 0.2;
 			this.skipBtn.scale.y = 0.2;
 			this.skipBtn.alpha = 0.5;
@@ -212,17 +213,17 @@ Ludo.Game.prototype = {
 			buttonGroup.add(this.diceBtn);
 			buttonGroup.add(this.powerBtn);
 
+			
 			this.rule = new Rules(this, this.play, this.myTurn);
 			this.buildWorld();
 			this.controller = new DiceController(this, this.gameId, this.myTurn, this.gameData.diceIds);
 			this.ludo = this.buildPlayers(this.playerMode, this.controller, this.saveFlag);
 			this.populateWorld(this.ludo);
-			this.currentPlayer = null;
+			
 
 			gameIdText = this.add.text(0, 0, this.gameId, gameIdDisplayStyle);
             gameIdText.setTextBounds(720, 290, 175, 30);
 			this.initialSetup();
-
 			diceDisplayText = this.add.text(720, 0, "Die1: 0 Die2: 0", diceDisplayStyle);
 			playerTurnText = this.add.text(0, 0, this.currentPlayer.playerName+"'s Turn", playerTurnDisplayStyle);
             playerTurnText.setTextBounds(720, 400, 175, 30);
@@ -253,8 +254,7 @@ Ludo.Game.prototype = {
 			this.successAlert.anchor.setTo(0.5);
 			this.failureAlert.anchor.setTo(0.5);
 
-
-			if (this.myTurn && this.currentPlayer !== null){
+			if (this.myTurn === true && this.currentPlayer !== null){
 				this.playDing();
 				this.currentPlayer.playerTurn();
 			}
@@ -339,6 +339,8 @@ Ludo.Game.prototype = {
 					}
 				});
 			};
+			
+			console.log("GamePlayerName: " + this.playerName);
 		},
 		
 		ireport : function(){
@@ -474,7 +476,6 @@ Ludo.Game.prototype = {
 					this.greenPlayerConnection.visible = false;
 				}
 				break;
-
 			}
 			default:
 				break;
@@ -485,7 +486,7 @@ Ludo.Game.prototype = {
 
 		onTap : function(pointer, doubleTap) {
 
-			if (doubleTap)
+			if (doubleTap && this.isMobile === false)
 			{
 				if (this.scale.isFullScreen)
 				{
@@ -613,6 +614,9 @@ Ludo.Game.prototype = {
 									diceBtn.visible = false;
 									currentPlayer.rolled();
 									currentPlayer.playerTurn();
+									if (currentPlayer.rolledDoubleSix()){
+		                                currentPlayer.rolledTwoSixes = true;
+		                            }
 								}    
 							}    
 							else{
@@ -626,12 +630,14 @@ Ludo.Game.prototype = {
 						}
 
 						if (playerName === currentPlayerName){
-							playDing();
 							myTurn = true;
+							playDing();
+							
 
 						}else {
-							playDong();
 							myTurn = false;
+							playDong();
+							
 						}
 
 						alertMessage("Game Updated Successfully!", "Success", false);
@@ -683,6 +689,7 @@ Ludo.Game.prototype = {
 			for (var i = 0; i < players.length; ++i)
 			{
 				var pieces = players[i].playerPieces;
+				
 				for (var j = 0; j < pieces.length; ++j)
 				{
 					piece = pieces[j];
@@ -696,6 +703,7 @@ Ludo.Game.prototype = {
 					piece.anchor.x = -0.07;
 					piece.bmd = this.game.add.bitmapData(this.game.width, this.game.height);
 					piece.bmd.addToWorld();
+					
 					if (!pieces[j].isExited()){
 						piece.group.add(piece);
 					}
@@ -891,6 +899,9 @@ Ludo.Game.prototype = {
 								this.diceBtn.visible = false;
 								this.currentPlayer.rolled();
 								this.currentPlayer.playerTurn();
+								if (this.currentPlayer.rolledDoubleSix()){
+	                                this.currentPlayer.rolledTwoSixes = true;
+	                            }
 							} 
 
 						}    
@@ -906,10 +917,12 @@ Ludo.Game.prototype = {
 
 
 					if (currentPlayerName === this.playerName){
+						//console.log("This is me: " + currentPlayerName + " Playername: " + this.playerName);
 						this.myTurn = true;
 						this.playDing();
 
 					}else {
+						//console.log("This is NOT me: " + currentPlayerName + " Playername: " + this.playerName);
 						this.myTurn = false;
 						this.playDong();
 					}
@@ -977,6 +990,9 @@ Ludo.Game.prototype = {
 						this.diceBtn.visible = false;
 						this.currentPlayer.rolled();
 						this.currentPlayer.playerTurn();
+						if (this.currentPlayer.rolledDoubleSix()){
+                            this.currentPlayer.rolledTwoSixes = true;
+                        }
 						break;
 					}
 				}  
@@ -1017,6 +1033,7 @@ Ludo.Game.prototype = {
 			}
 
 			if (this.currentPlayer.diceCompleted()){
+				//console.log("I was completed");
 				this.currentPlayer = this.rule.applyDiceRules(this.currentPlayer);
 				this.currentPlayer.diceCompletionReset();
 			} 

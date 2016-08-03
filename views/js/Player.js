@@ -23,6 +23,7 @@ Player = function(game, name, turn, piecesNames, index, playerMode, controller, 
 	this.pusher = false;
 	this.error = null;
 	this.gameId = gameId;
+	this.rolledTwoSixes = false;
 
 
 };

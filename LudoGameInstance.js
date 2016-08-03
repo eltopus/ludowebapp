@@ -4,99 +4,127 @@ var diceObjects = [];
 
 var diceValue = function(frame){
 
-    switch(frame) {
-        case 0:
-            return 6;
-        case 1:
-            return 1;
-        case 2:
-            return 2;
-        case 4:
-            return 5;
-        case 5:
-            return 3;
-        case 6:
-            return 4;
-        default:
-            return 0;
-    }
+	switch(frame) {
+	case 0:
+		return 6;
+	case 1:
+		return 1;
+	case 2:
+		return 2;
+	case 4:
+		return 5;
+	case 5:
+		return 3;
+	case 6:
+		return 4;
+	default:
+		return 0;
+	}
 };
 
-function LudoGameInstance(gameId, socketId, screenName, gameData, colors, callback) {
+function LudoGameInstance(gameId, socketId, screenName, gameData, colors, newGame, callback) {
 
 	this.colorsOptions = ["red", "blue", "green", "yellow"];
 	this.disconnectedPlayers = [];
-	this.gameData = gameData;
-
-	this.redPieces = [{piece :"red", state : 0, index : 1, x :118, y:72, x_home:118, y_home:72, 
-		imageId:"red_piece", uniqueId :"8d4329e4-bb84-4ef5-97ec-593669ff197c", homeIndex:1 },
-		{piece:"red",state:0,index:1,x:72,y:118,x_home :72,y_home :118, 
-			imageId :"red_piece",uniqueId :"4324a6e0-b3b5-4c36-832a-d9eed25842dc",homeIndex :1 },
-			{piece:"red",state:0, index:1, x:168, y:118, x_home:168, y_home:118,
-				imageId : "red_piece",uniqueId :"e9833aec-d612-479f-836a-f33a62ee369a", homeIndex :1},
-				{piece :"red", state :0, index :1, x :120, y :168, x_home :120, y_home :168, 
-					imageId :"red_piece", uniqueId :"b4e8d1af-6c0e-4604-93da-7ba37c002906", homeIndex :1}];
-
-	this.bluePieces = [{piece:"blue", state :0, index :14, x :552, y :72, x_home :552, y_home :72, imageId :"blue_piece", 
-		uniqueId : "a9e1bda1-4122-45bf-b44a-aed5e480c9fd", homeIndex :14},
-		{piece:"blue", state :0, index : 14, x :503, y :118, x_home :503, y_home :118, 
-			imageId :"blue_piece", uniqueId :"d082c0f2-7fda-44b3-9409-e08acc1575a0", homeIndex :14},
-			{piece :"blue", state :0, index :14, x :600, y :118, x_home :600, y_home :118, 
-				imageId :"blue_piece", uniqueId :"f461039d-4fce-40b7-9ffe-941edf65275b", homeIndex :14},
-				{piece : "blue" , state :0, index :14, x :552, y :168, x_home :552, y_home :168, 
-					imageId :"blue_piece", uniqueId :"db947c8e-c8b4-4f8c-80bd-3698d0f8dfbf", homeIndex :14}];
-
-
-	this.yellowPieces = [{ piece :"yellow", state :0, index :27, x :552, y :503, x_home :552, y_home :503, 
-		imageId :"yellow_piece", uniqueId :"2753916e-d3d6-4546-8edd-e52a9f67ca69", homeIndex:27},
-		{ piece :"yellow", state :0, index :27, x :503, y :552, x_home :503, y_home :552, 
-			imageId :"yellow_piece", uniqueId :"7c22843d-7255-4672-b691-9a8db162d5ab", homeIndex :27},
-			{ piece :"yellow", state :0, index :27, x :600, y :552, x_home :600, y_home :552, 
-				imageId :"yellow_piece", uniqueId :"38934697-64df-4c41-8431-55de32e11361", homeIndex :27},
-				{ piece :"yellow", state :0, index :27, x :552, y :600, x_home :552, y_home :600, 
-					imageId :"yellow_piece", uniqueId :"7afc3d33-f2e2-4a3e-81e5-be11831250b6", homeIndex :27}];
-
-
-	this.greenPieces = [{ piece :"green", state :0, index :40, x :118, y :503, x_home :118, y_home :503, 
-		imageId :"green_piece", uniqueId :"4ba566af-e1e8-4fa7-8492-51d89bc491d3", homeIndex :40},
-		{ piece :"green", state :0, index :40, x :72, y :552, x_home :72, y_home :552, 
-			imageId :"green_piece", uniqueId :"dbfb79bf-30c6-433a-a2f4-d0dc059d08ec", homeIndex :40},
-			{ piece :"green", state :0, index :40, x :168, y :552, x_home :168, y_home :552, 
-				imageId :"green_piece", uniqueId :"0cdbdbd8-dbbb-42aa-b723-69eea1ebbe86", homeIndex :40},
-				{ piece :"green", state :0, index :40, x :118,  y :600, x_home :118, y_home :600, 
-					imageId :"green_piece", uniqueId :"313f6444-cc96-45b4-ae9f-3c9dfddff8a8", homeIndex :40}];
-
-
-
-
+	this.date = new Date();
 	this.ludoPlayers = [];
 	this.screenNames = [];
 	this.notifyEndOfPlay = [];
-
-	this.screenName = screenName;
 	this.numOfPlayers = 0;
-	this.gameData.gameId = gameId;
-	this.gameMode = this.gameData.gameMode;
-	++this.numOfPlayers;
-	this.ludoPlayers[screenName] = new playerInstance(gameId, socketId, screenName, this.gameData, this.numOfPlayers, true);
-	this.gameData = this.ludoPlayers[screenName].gameData;
-	this.ludoPlayers[screenName].deleteGameData();
-	this.choicesLeft = null;
-
-	if (colors !== null){
-		var playerPieces = this.getPlayerPieces(colors);
-		this.addPlayerPieces(screenName, playerPieces, colors);
-	}
-
-	this.screenNames.push(screenName);
-	this.currentPlayerName = screenName;
-	this.gameInProgress = false;
-	this.gameData.screenNames = this.screenNames;
 	this.inBackground = [];
 	this.playerWentInBackground = false;
-	this.date = new Date();
+	this.gameInProgress = false;
+	this.screenName = screenName;
+	this.gameMode = gameData.gameMode;
+	
 	this.gameEnded = false;
-	callback(this);
+	this.choicesLeft = null;
+
+	if (newGame){
+
+		this.redPieces = [{piece :"red", state : 0, index : 1, x :118, y:72, x_home:118, y_home:72, 
+			imageId:"red_piece", uniqueId :"8d4329e4-bb84-4ef5-97ec-593669ff197c", homeIndex:1 },
+			{piece:"red",state:0,index:1,x:72,y:118,x_home :72,y_home :118, 
+				imageId :"red_piece",uniqueId :"4324a6e0-b3b5-4c36-832a-d9eed25842dc",homeIndex :1 },
+				{piece:"red",state:0, index:1, x:168, y:118, x_home:168, y_home:118,
+					imageId : "red_piece",uniqueId :"e9833aec-d612-479f-836a-f33a62ee369a", homeIndex :1},
+					{piece :"red", state :0, index :1, x :120, y :168, x_home :120, y_home :168, 
+						imageId :"red_piece", uniqueId :"b4e8d1af-6c0e-4604-93da-7ba37c002906", homeIndex :1}];
+
+		this.bluePieces = [{piece:"blue", state :0, index :14, x :552, y :72, x_home :552, y_home :72, imageId :"blue_piece", 
+			uniqueId : "a9e1bda1-4122-45bf-b44a-aed5e480c9fd", homeIndex :14},
+			{piece:"blue", state :0, index : 14, x :503, y :118, x_home :503, y_home :118, 
+				imageId :"blue_piece", uniqueId :"d082c0f2-7fda-44b3-9409-e08acc1575a0", homeIndex :14},
+				{piece :"blue", state :0, index :14, x :600, y :118, x_home :600, y_home :118, 
+					imageId :"blue_piece", uniqueId :"f461039d-4fce-40b7-9ffe-941edf65275b", homeIndex :14},
+					{piece : "blue" , state :0, index :14, x :552, y :168, x_home :552, y_home :168, 
+						imageId :"blue_piece", uniqueId :"db947c8e-c8b4-4f8c-80bd-3698d0f8dfbf", homeIndex :14}];
+
+
+		this.yellowPieces = [{ piece :"yellow", state :0, index :27, x :552, y :503, x_home :552, y_home :503, 
+			imageId :"yellow_piece", uniqueId :"2753916e-d3d6-4546-8edd-e52a9f67ca69", homeIndex:27},
+			{ piece :"yellow", state :0, index :27, x :503, y :552, x_home :503, y_home :552, 
+				imageId :"yellow_piece", uniqueId :"7c22843d-7255-4672-b691-9a8db162d5ab", homeIndex :27},
+				{ piece :"yellow", state :0, index :27, x :600, y :552, x_home :600, y_home :552, 
+					imageId :"yellow_piece", uniqueId :"38934697-64df-4c41-8431-55de32e11361", homeIndex :27},
+					{ piece :"yellow", state :0, index :27, x :552, y :600, x_home :552, y_home :600, 
+						imageId :"yellow_piece", uniqueId :"7afc3d33-f2e2-4a3e-81e5-be11831250b6", homeIndex :27}];
+
+
+		this.greenPieces = [{ piece :"green", state :0, index :40, x :118, y :503, x_home :118, y_home :503, 
+			imageId :"green_piece", uniqueId :"4ba566af-e1e8-4fa7-8492-51d89bc491d3", homeIndex :40},
+			{ piece :"green", state :0, index :40, x :72, y :552, x_home :72, y_home :552, 
+				imageId :"green_piece", uniqueId :"dbfb79bf-30c6-433a-a2f4-d0dc059d08ec", homeIndex :40},
+				{ piece :"green", state :0, index :40, x :168, y :552, x_home :168, y_home :552, 
+					imageId :"green_piece", uniqueId :"0cdbdbd8-dbbb-42aa-b723-69eea1ebbe86", homeIndex :40},
+					{ piece :"green", state :0, index :40, x :118,  y :600, x_home :118, y_home :600, 
+						imageId :"green_piece", uniqueId :"313f6444-cc96-45b4-ae9f-3c9dfddff8a8", homeIndex :40}];
+
+
+		++this.numOfPlayers;
+		this.ludoPlayers[screenName] = new playerInstance(gameId, socketId, screenName, gameData, this.numOfPlayers, true, true);
+		this.gameData = this.ludoPlayers[screenName].gameData;
+		this.ludoPlayers[screenName].deleteGameData();
+
+		if (colors !== null){
+			var playerPieces = this.getPlayerPieces(colors);
+			this.addPlayerPieces(screenName, playerPieces, colors);
+		}
+		
+		this.screenNames.push(screenName);
+		this.currentPlayerName = screenName;
+		this.gameData.screenNames = this.screenNames;
+		callback(this);
+
+	}else{
+		
+		gameData.howManyPlayersJoined = 0;
+		this.screenNames = gameData.screenNames;
+		var currentPlayerName  = this.currentPlayerName;
+		var disconnectedPlayers = this.disconnectedPlayers;
+		
+		this.gameData = gameData;
+		console.log("Disconnection: " + JSON.stringify(this.gameData.players));
+		
+		_.any(this.gameData.players, function(player){
+			var disconnetedPlayer = {};
+			disconnetedPlayer.screenName = player.playerName;
+			if (player.turn){
+				currentPlayerName = player.playerName;
+			}
+			
+			disconnetedPlayer.index = player.playerIndex;
+			disconnetedPlayer.isOwner = player.creator;	
+			disconnetedPlayer.turn = player.turn;
+			disconnectedPlayers.push(disconnetedPlayer);
+			
+		});
+		this.gameInProgress = true;
+		//console.log("Disconnection: " + JSON.stringify(this.disconnectedPlayers));
+		//console.log("ScreenNames: " + JSON.stringify(this.screenNames));
+		callback(this);
+
+	}
 
 }
 
@@ -119,35 +147,33 @@ LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, fr
 	if (this.isNotFull()) 
 	{
 
-		if (this.gameInProgress)
+		if (this.gameInProgress || this.playerWasDisconnected(screenName))
 		{
 
 			var screenameExists = false;
-			if (fromDB){
-				//this.gameData.inprogress = true;
-				this.screenNames.push(screenName);
-			}
-
 			for (var i = 0; i < this.disconnectedPlayers.length; ++i)
 			{
 				if (this.disconnectedPlayers[i].screenName === screenName)
 				{
 					screenameExists = true;
 					this.gameData.setSessionTurn = this.disconnectedPlayers[i].turn;
-					this.ludoPlayers[screenName] = new playerInstance(gameId, socketId, screenName, this.gameData, this.disconnectedPlayers[i].index, false);
-					this.gameData = this.ludoPlayers[screenName].gameData;
-					this.ludoPlayers[screenName].deleteGameData();
+					
+					console.log("Sending screenName: " + screenName + " Turn " + this.disconnectedPlayers[i].turn);
+					this.ludoPlayers[screenName] = new playerInstance(gameId, socketId, screenName, this.gameData, this.disconnectedPlayers[i].index, false, false);
+					//this.gameData = this.ludoPlayers[screenName].gameData;
+					//this.ludoPlayers[screenName].deleteGameData();
 					++this.numOfPlayers;
 					if (this.numOfPlayers === this.gameMode){
 						this.gameData.complete = true;
 					}
 					var index = this.disconnectedPlayers[i].index;
 					this.gameData.owner = this.disconnectedPlayers[i].isOwner;
-					if (!fromDB){
-						this.disconnectedPlayers.splice(i, 1);
-					}
+					this.disconnectedPlayers.splice(i, 1);
 					this.gameData.howManyPlayersJoined  = this.numOfPlayers;
+					this.gameData.screenName = screenName;
+					
 					callback({gameData : this.gameData, screenName: screenName, index : index});
+					return {};
 				}
 
 			}
@@ -156,8 +182,6 @@ LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, fr
 			if (!screenameExists){
 				callback({gameData : this.gameData, screenName: screenName, index : -1, availableScreenNames : this.disconnectedPlayers});
 			}
-
-
 
 		}else
 		{
@@ -168,13 +192,13 @@ LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, fr
 			this.screenNames.push(screenName);
 			++this.numOfPlayers;
 			this.gameData.setSessionTurn = false;
-			this.ludoPlayers[screenName] = new playerInstance(gameId, socketId, screenName, this.gameData, this.numOfPlayers, false);
+			this.ludoPlayers[screenName] = new playerInstance(gameId, socketId, screenName, this.gameData, this.numOfPlayers, false, true);
 			this.gameData = this.ludoPlayers[screenName].gameData;
 			this.ludoPlayers[screenName].deleteGameData();
 			if (this.numOfPlayers === this.gameMode){
 				this.gameData.complete = true;
 				this.gameInProgress = true;
-				
+
 			}
 
 			if (this.gameMode === 2){
@@ -223,22 +247,22 @@ LudoGameInstance.prototype.getNextSocketId = function(screenName, callback){
 		if (player === null)
 		{
 			//Unreachable Code
-			//console.log('Next Player migth have been disconnected...' + screenName + " " + this.currentPlayerName);
+			console.log('Next Player migth have been disconnected...' + screenName + " " + this.currentPlayerName);
 			this.notifyEndOfPlay = [];
-			this.gameData.screenName = this.currentPlayerName;
 			var players = this.gameData.players;
 			var currentPlayerName = this.currentPlayerName;
-			//console.log('Preparing next player on connection' + currentPlayerName);
+			console.log('Preparing next player on connection' + currentPlayerName);
 			_.any(players, function(player){
 				if (player.playerName === currentPlayerName){
 					player.hasRolled = false;
 					player.turn = true;
-					//console.log(player.playerName + ' would be next  on connection');
+					console.log(player.playerName + ' would be next  on connection');
 				}else{
 					player.hasRolled = false;
 					player.turn = false;
 				}
 			});
+			this.gameData.screenName = this.currentPlayerName;
 			callback({socketId : null, screenName : this.currentPlayerName, gameData : this.gameData, playerWentInBackground : this.playerWentInBackground});
 
 		}else
@@ -250,10 +274,8 @@ LudoGameInstance.prototype.getNextSocketId = function(screenName, callback){
 					nextPlayerName = key;
 					break;
 				}
-				
-
 			}
-			
+
 			if (nextPlayerName !== null)
 			{
 				var players = this.gameData.players;
@@ -274,22 +296,21 @@ LudoGameInstance.prototype.getNextSocketId = function(screenName, callback){
 					this.notifyEndOfPlay = [];
 					this.currentPlayerName = nextPlayerName;
 					this.gameData.screenName = nextPlayerName;
-					//this.updatePlayerTurn(key);
+					//console.log("Next Player Name: " + this.gameData.screenName);
+					this.updatePlayerTurn(key);
 					callback({socketId : this.ludoPlayers[nextPlayerName].socketId, screenName : nextPlayerName, gameData : this.gameData, playerWentInBackground : this.playerWentInBackground});
 				}else
 				{
-					
+
 					size = this.notifyEndOfPlay.length + this.inBackground.length;
 					if (size >= this.gameMode){
 						//console.log("Updating playerWentInBackground");
 						this.playerWentInBackground = true;
 						callback({gameData : this.gameData, playerWentInBackground : this.playerWentInBackground});
-						
+
 					}else{
 						callback({playerWentInBackground : this.playerWentInBackground});
 					}
-					
-					
 				}
 			}
 		}
@@ -301,54 +322,71 @@ LudoGameInstance.prototype.getNextSocketId = function(screenName, callback){
 
 };
 
-LudoGameInstance.prototype.addPlayerinBackground = function(playerName, callback){
-	//console.log('Updating in background ' + playerName);
-	this.inBackground.push(playerName);
-	this.playerWentInBackground = true;
-	callback(true);
-	
-};
-
-
-LudoGameInstance.prototype.resetInBackground = function(){
-	this.inBackground = [];
-	this.playerWentInBackground = false;
-};
-
 LudoGameInstance.prototype.stillInTheGame = function(index){
 
 	var playerName = null;
-	//console.log('Checking if player is still in game');
+	//console.log('Checking if player is still in game with index ' + index);
 	for (var key in this.ludoPlayers)
 	{
 		if (this.ludoPlayers[key].index === index)
 		{
 			playerName = key;
+			//console.log('Found Player still in the game: ' + key);
 			break;
 
 		}
 	}
 
 	if (playerName === null){
-		//console.log('Seems like player is disconnected from game');
+		console.log('Seems like player might have disconnected from game');
 		for (var i = 0; i < this.disconnectedPlayers.length; ++i){
 
 			if (this.disconnectedPlayers[i].index === index){
 				this.disconnectedPlayers[i].turn = true;
 				this.currentPlayerName = this.disconnectedPlayers[i].screenName;
-				//console.log(this.currentPlayerName + ' Found and turn set to true');
-				
+				console.log(this.currentPlayerName + ' Found and turn set to true');
 				break;
 			}
 		}
 
 	}
-	
+
 	//console.log("After Disconnection: " + JSON.stringify(this.disconnectedPlayers) + "PlayerName: " + playerName);
 	return playerName;
 };
 
+LudoGameInstance.prototype.addPlayerinBackground = function(playerName, callback){
 
+	if (this.backgroundNamesContains(playerName)){
+		//console.log('Cannot update because....' + this.inBackground);
+	}else{
+		this.inBackground.push(playerName);
+		this.playerWentInBackground = true;
+		//console.log('Updating in background ' + playerName + " BackGroundNames: " + this.inBackground);
+
+	}
+	callback(true);
+
+};
+
+LudoGameInstance.prototype.backgroundNamesContains = function(playerName)
+{
+	var len = this.inBackground.length;
+	for(var i = 0 ; i < len; i++)
+	{
+		if(this.inBackground[i] === playerName)
+		{ 
+			return true;
+		}
+	}
+	return false;
+} ;
+
+
+LudoGameInstance.prototype.resetInBackground = function(){
+	this.inBackground = [];
+	this.playerWentInBackground = false;
+};
 
 LudoGameInstance.prototype.updateStartGame = function(callback) {
 	this.gameData.inprogress = true;
@@ -363,7 +401,7 @@ LudoGameInstance.prototype.setUpdatedGameData = function(gameData, callback) {
 LudoGameInstance.prototype.validateScreenName = function(screenName) {
 
 	for (var i = 0; i < this.gameData.players.length; ++i){
-		if (this.gameData.players[i].playerName === screenName)
+		if (this.gameData.players[i].playerName === screenName && !this.playerWasDisconnected(screenName))
 		{
 			screenName = screenName.concat('-1');
 			this.validateScreenName(screenName);
@@ -373,12 +411,23 @@ LudoGameInstance.prototype.validateScreenName = function(screenName) {
 	return screenName;
 };
 
+LudoGameInstance.prototype.playerWasDisconnected = function(screenName){
+
+	for (var i = 0; i < this.disconnectedPlayers.length; ++i){
+		if (this.disconnectedPlayers[i].screenName === screenName){
+			return true;
+		}
+	}
+	return false;
+
+};
+
 
 LudoGameInstance.prototype.updateNotifyEndOfPlay = function(screenName) {
 
 	this.notifyEndOfPlay.push(screenName);
 	return {size :this.notifyEndOfPlay.length, ok : true};
-	
+
 };
 
 
@@ -470,6 +519,7 @@ LudoGameInstance.prototype.removePlayer = function(screenName, isOwner) {
 		disconnetedPlayer.screenName = player.screenName;
 		disconnetedPlayer.index = player.index;
 		disconnetedPlayer.isOwner = isOwner;
+		//console.log("Removed Player: " + JSON.stringify(this.ludoPlayers[screenName]));
 		delete this.ludoPlayers[screenName];
 		--this.numOfPlayers;
 		for (var i = 0; i < this.gameData.players.length; ++i){
@@ -483,8 +533,19 @@ LudoGameInstance.prototype.removePlayer = function(screenName, isOwner) {
 			}
 
 		}
-		//console.log("After Disconnection: " + JSON.stringify(this.disconnectedPlayers));
+		console.log("After Disconnection: " + JSON.stringify(this.disconnectedPlayers));
 	}
+
+
+	for (var j = 0; j < this.inBackground.length; ++j){
+		if (this.inBackground[j] === screenName){
+
+			this.inBackground.splice(j, 1);
+			console.log("Need to remove screenName " + screenName + " from Background: " + this.inBackground);
+			break;
+		}
+	}
+
 };
 
 LudoGameInstance.prototype.getPlayer = function(socketId) {
@@ -500,7 +561,7 @@ LudoGameInstance.prototype.getPlayer = function(socketId) {
 
 
 LudoGameInstance.prototype.updateDiceRoll = function(diceObject, callback) {
-	
+
 	diceObjects.push(diceObject);
 	if (diceObjects.length > 1){
 		//console.log("After Dice Rool : " + JSON.stringify(diceObjects));
@@ -528,24 +589,24 @@ LudoGameInstance.prototype.updateDiceRoll = function(diceObject, callback) {
 };
 
 LudoGameInstance.prototype.updateDiceSelection = function(diceObject, callback) {
-	
-		_.any(this.gameData.players, function(player){
-			if (player.playerName === diceObject.playerName)
-			{
-				for (var i = 0; i < player.diceObject.length; ++i){
-					if (player.diceObject[i].uniqueId === diceObject.uniqueId){
-						player.diceObject[i].selected = true;
-						callback(true);
-						return {};
-					}
+
+	_.any(this.gameData.players, function(player){
+		if (player.playerName === diceObject.playerName)
+		{
+			for (var i = 0; i < player.diceObject.length; ++i){
+				if (player.diceObject[i].uniqueId === diceObject.uniqueId){
+					player.diceObject[i].selected = true;
+					callback(true);
+					return {};
 				}
 			}
-		});
-		callback(false);
+		}
+	});
+	callback(false);
 };
 
 LudoGameInstance.prototype.updateDiceUnSelection = function(diceObject, callback) {
-	
+
 	_.any(this.gameData.players, function(player){
 		if (player.playerName === diceObject.playerName)
 		{
@@ -562,7 +623,7 @@ LudoGameInstance.prototype.updateDiceUnSelection = function(diceObject, callback
 };
 
 LudoGameInstance.prototype.updatePlayerTurn = function(playerName) {
-	
+
 	var players = this.gameData.players;
 	_.any(players, function(player){
 		if (player.playerName === playerName){
@@ -576,7 +637,7 @@ LudoGameInstance.prototype.updatePlayerTurn = function(playerName) {
 };
 
 LudoGameInstance.prototype.updatePlayerPieceSelection = function(playerInfo, callback) {
-	
+
 	var players = this.gameData.players;
 	_.any(players, function(player){
 		if (player.playerName === playerInfo.playerName){
@@ -592,7 +653,7 @@ LudoGameInstance.prototype.updatePlayerPieceSelection = function(playerInfo, cal
 };
 
 LudoGameInstance.prototype.updatePieceInfo = function(playerInfo, callback) {
-	
+
 	var players = this.gameData.players;
 	_.any(players, function(player){
 		if (player.playerName === playerInfo.playerName){
@@ -607,12 +668,12 @@ LudoGameInstance.prototype.updatePieceInfo = function(playerInfo, callback) {
 			}
 		}
 	});
-	
+
 	callback(true);
 };
 
 LudoGameInstance.prototype.updateDiceInfo = function(diceInfo, callback) {
-	
+
 	var gameData = this.gameData;
 	//console.log("FBefore : " + JSON.stringify(gameData));
 	_.any(gameData.players, function(player){
@@ -624,9 +685,9 @@ LudoGameInstance.prototype.updateDiceInfo = function(diceInfo, callback) {
 					player.diceObject[i].value = 0;
 					break;
 				}
-				
+
 			}
-			
+
 			for (var j = 0; j < gameData.diceIds.length; ++j)
 			{
 				if (gameData.diceIds[j].uniqueId === diceInfo.uniqueId){

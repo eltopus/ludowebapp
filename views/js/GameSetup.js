@@ -233,7 +233,6 @@ Ludo.GameSetup.prototype = {
 			};
 
 			var joinGameSetupFinished = function(){
-				Example.show("What took you so long? <b>"+gameObj.playerName+"</b>");
 				$('#joinGameBtn').click();
 
 			};
@@ -293,7 +292,6 @@ Ludo.GameSetup.prototype = {
 
 			};
 
-
 			var gameSetupCreateGame = function(){
 				bootbox.dialog({
 					message: '<form class="navbar-form">'+
@@ -331,7 +329,6 @@ Ludo.GameSetup.prototype = {
 
 				});
 
-
 			};
 			
 			var gameSetupJoinGame = function(){
@@ -365,7 +362,7 @@ Ludo.GameSetup.prototype = {
 
 								gameObj.joinPlayerName = playerName;
 								gameObj.gameCode = gameCode;
-								console.log(playerName + " " + gameCode);
+								
 								var message = gameObj.verifyJoinGame();
 								if (message === "ok")
 								{
@@ -467,8 +464,6 @@ Ludo.GameSetup.prototype = {
 				}
 			});
 
-
-
 			var socket = this.socket;
 			var state = this.game.state;
 			var isMobile = this.isMobile;
@@ -525,6 +520,7 @@ Ludo.GameSetup.prototype = {
 					{	socket.emit('createFourPlayerMultiplayerGame', {screenName : gameObj.playerName, colors : gameObj.playerColors}, function (data){
 						if (data.ok)
 						{
+							//console.log("Stringify::: " + JSON.stringify(data));
 							$("#main").fadeOut(1000);
 							state.start('WaitMenu', true, false, data, true, socket, data.setSessionTurn, true, isMobile, menuMusic);
 						}
@@ -555,7 +551,6 @@ Ludo.GameSetup.prototype = {
 							alertMessage(message + ' has disconnected.', "Diconnection",  false);
 						});
 
-
 					}
 
 					socket.on("disconnect", function(){
@@ -579,16 +574,21 @@ Ludo.GameSetup.prototype = {
 
 								if (data.screenName === 'ADMIN'){
 									$("#main").fadeOut(1000);
-									state.start('Game', true, false, data, true, socket, data.setSessionTurn, false, isMobile, data.sockId, data.screenName, true);
+									state.start('Game', true, false, data, true, socket, false, false, isMobile, data.sockId, data.screenName, true);
 								}else{
 									$("#main").fadeOut(1000);
 									socket.emit('playerReconnected', {gameId : gameObj.gameCode, screenName : data.screenName });
+									
+									console.log("Turn: " + data.setSessionTurn + " Owner: " + data.owner + " ScreenName: " + data.screenName);
 									state.start('Game', true, false, data, true, socket, data.setSessionTurn, data.owner, isMobile, data.sockId, data.screenName, true);
 								}
 							}
 							else
 							{
 								$("#main").fadeOut(1000);
+								Example.show("What took you so long? <b>"+gameObj.playerName+"</b>");
+								
+								console.log("Joining player name " + data.screenName);
 								state.start('WaitMenu', true, false, data, true, socket, data.setSessionTurn, data.owner, isMobile, menuMusic);
 							}
 
