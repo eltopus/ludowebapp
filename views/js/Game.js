@@ -6,6 +6,7 @@ var diceDisplayText = null;
 var ding = null;
 var socketIsConnected = true;
 var diceBtnReference = null;
+var playerTurn = false;
 Ludo.Game = function (game) {
 };
 
@@ -21,7 +22,7 @@ Ludo.Game.prototype = {
 			this.socket = socket;
 			this.playerMode = this.gameData.playerMode;
 			this.myTurn = myTurn;
-			this.access = myTurn;
+			playerTurn = myTurn;
 			this.owner = owner;
 			this.isMobile = isMobile;
 			this.sockId = sockId;
@@ -178,7 +179,7 @@ Ludo.Game.prototype = {
 			this.powerBtn.scale.y = 0.5;
 			this.powerBtn.alpha = 0.5;
 
-			this.skipBtn = this.make.button(800, 640, 'skipturn', this.generateGameJson, this, 2, 1, 0);
+			this.skipBtn = this.make.button(800, 640, 'skipturn', this.restart, this, 2, 1, 0);
 			this.skipBtn.scale.x = 0.2;
 			this.skipBtn.scale.y = 0.2;
 			this.skipBtn.alpha = 0.5;
@@ -431,12 +432,9 @@ Ludo.Game.prototype = {
 						var pieceName = pieces[j].piece;
 						this.displayConnectionAlert(pieceName, status);
 					}
-
 					break;
 				}
-
 			}
-
 		},
 
 		displayConnectionAlert : function (piece, status){
@@ -483,7 +481,6 @@ Ludo.Game.prototype = {
 
 		},
 
-
 		onTap : function(pointer, doubleTap) {
 
 			if (doubleTap && this.isMobile === false)
@@ -496,11 +493,9 @@ Ludo.Game.prototype = {
 				{
 					this.scale.startFullScreen(false);
 				}
-
 			}
 
 		},
-
 
 		rollDiceEmission : function(diceObject){
 			this.playShakeAndRoll();
@@ -526,17 +521,12 @@ Ludo.Game.prototype = {
 				this.controller.rollDice(this.currentPlayer, true, diceObject);
 				this.diceBtn.visible = false;
 			}
-
-
 		},
-
 
 		playDice : function(){
 			if (this.myTurn){
 				this.currentPlayer.play(null);
 			}
-
-
 		},
 
 		playDiceEmission : function(playerPlayed){
@@ -574,6 +564,20 @@ Ludo.Game.prototype = {
 			} 
 			
 		},
+		
+		prepareForBackgroundUpdate : function(){
+			
+			this.controller.consumeDice();
+			this.consumeCurrentPlayerDice();
+			this.play.visible = false;
+			if (this.myTurn){
+				diceBtnReference.visible = true;
+				diceBtnReference.alpha = 1;
+				//console.log("Updating game in background My turn");
+			}else{
+				//console.log("Updating game in background NOT My turn");
+			}
+		},
 
 		saveGame : function(){
 
@@ -599,7 +603,7 @@ Ludo.Game.prototype = {
 					var gameData = data.gameData;
 					var currentPlayerName = data.screenName;
 
-					if (gameData !== null)
+					if (gameData !== null && !currentPlayer.hasMovingPiece())
 					{
 						
 						for (var i = 0; i < ludo.length; ++i)
@@ -622,7 +626,6 @@ Ludo.Game.prototype = {
 							else{
 								ludo[i].deSelectAll();
 							}
-
 						}
 
 						if (currentPlayer.selectedPiece !== null){
@@ -630,11 +633,13 @@ Ludo.Game.prototype = {
 						}
 
 						if (playerName === currentPlayerName){
+							tempPlayer = this.currentPlayer;
+							console.log("This is me: " + currentPlayerName + " Playername: " + playerName);
 							myTurn = true;
 							playDing();
 							
-
 						}else {
+							console.log("This is NOT me: " + currentPlayerName + " Playername: " + playerName);
 							myTurn = false;
 							playDong();
 							
@@ -672,7 +677,7 @@ Ludo.Game.prototype = {
 			var obj = this.gameData.players; 
 			for (var i = 0; i < obj.length; ++i)
 			{
-				var player = new Player(this, obj[i].playerName, obj[i].turn, obj[i].piecesNames, obj[i].index, obj[i].playerMode, controller, this.gameData.gameId);
+				var player = new Player(this, obj[i].playerName, obj[i].turn, obj[i].piecesNames, obj[i].index, obj[i].playerMode, controller, this.gameData.gameId, this.playerName);
 				player.setPieces(this, obj[i].pieces, obj[i].playerName);
 				player.setDice(obj[i].diceObject);
 				player.setSelectedPieceById(obj[i].selectedPieceId);
@@ -757,7 +762,6 @@ Ludo.Game.prototype = {
 						if (this.currentPlayer.setSelectedPiece(piece)){
 
 							this.game.world.bringToTop(this.currentPlayer.selectedPiece.group);
-
 						}  
 					}  
 				}
@@ -835,9 +839,8 @@ Ludo.Game.prototype = {
 			}
 
 			if (this.currentPlayer.hasAllPiecesExited()){
-				
 				this.exitFullScreen();
-				alertMessage("Winner is " + this.currentPlayer.playerName, "Winner!", true);
+				alertMessage(this.currentPlayer.playerName + " Wins!!!", "Winner!", true);
 				this.socket.emit('endOfGame', {gameId : this.gameId});
 				this.currentPlayer.resetAllPiecesExited();
 			}
@@ -878,7 +881,7 @@ Ludo.Game.prototype = {
 			return Math.round((Math.pow(36, length + 1) - Math.random() * Math.pow(36, length))).toString(36).slice(1);
 		},
 
-		updateGame : function(data){
+		updateGame : function(data, callback){
 
 			var gameData = data.gameData;
 			var currentPlayerName = data.screenName;
@@ -902,33 +905,34 @@ Ludo.Game.prototype = {
 								if (this.currentPlayer.rolledDoubleSix()){
 	                                this.currentPlayer.rolledTwoSixes = true;
 	                            }
-							} 
-
+							}
 						}    
 						else{
 							this.ludo[i].deSelectAll();
 						} 
-
 					}
-
 					if (this.currentPlayer.selectedPiece !== null){
 						this.select(this.currentPlayer.selectedPiece, this);
 					}
 
-
 					if (currentPlayerName === this.playerName){
-						//console.log("This is me: " + currentPlayerName + " Playername: " + this.playerName);
+						tempPlayer = this.currentPlayer;
+						console.log("This is me: " + currentPlayerName + " Playername: " + this.playerName);
 						this.myTurn = true;
 						this.playDing();
-
 					}else {
-						//console.log("This is NOT me: " + currentPlayerName + " Playername: " + this.playerName);
+						console.log("This is NOT me: " + currentPlayerName + " Playername: " + this.playerName);
 						this.myTurn = false;
 						this.playDong();
 					}
-					
 				}
+				else{
+					console.log("Game Data is null");
+				}
+			}else{
+				console.log("Player has moving pieces... ");
 			}
+			callback(true);
 
 		},
 
@@ -1062,17 +1066,12 @@ Ludo.Game.prototype = {
 				//this.play.visible = true;
 			}
 
-			if (tempPlayer != this.currentPlayer && !tempPlayer.hasMovingPiece())
-			{
-				if (this.playerName === 'ADMIN'){
-
-				}else{
-					this.playDong();
-					tempPlayer.emitNextPlayer();
-					this.myTurn = false;
-				}
-
+			if (tempPlayer.playerName !== this.currentPlayer.playerName && !tempPlayer.hasMovingPiece()){
 				
+				this.playDong();
+				this.myTurn = false;
+				tempPlayer.emitNextPlayer();
+				//console.log("Emiting next player: " + this.currentPlayer.playerName);
 				tempPlayer = this.currentPlayer;
 			}
 

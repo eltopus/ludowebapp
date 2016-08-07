@@ -1,4 +1,4 @@
-Player = function(game, name, turn, piecesNames, index, playerMode, controller, gameId){
+Player = function(game, name, turn, piecesNames, index, playerMode, controller, gameId, sessionName){
 
 	this.game = game;
 	this.controller = controller;
@@ -24,12 +24,12 @@ Player = function(game, name, turn, piecesNames, index, playerMode, controller, 
 	this.error = null;
 	this.gameId = gameId;
 	this.rolledTwoSixes = false;
-
-
+	this.sessionName = sessionName;
 };
 
-
-
+Player.prototype.isSessionTurn = function(){
+	return (this.sessionName === this.playerName);
+};
 
 Player.prototype.releasePlay = function(game){
 	this.consumeDice();
@@ -389,7 +389,7 @@ Player.prototype.setSelectedPiece = function(piece){
 
 
 Player.prototype.emitNextPlayer = function(){
-	this.gameio.emitNextPlayer({screenName : this.playerName, gameId : this.gameId, gameMode : this.playerMode});
+	this.gameio.emitNextPlayer({screenName : this.playerName, gameId : this.gameId, gameMode : this.playerMode, sessionTurn : this.game.myTurn});
 };
 
 Player.prototype.updateGameOnDisconnection = function(updatedGameData){
@@ -397,8 +397,10 @@ Player.prototype.updateGameOnDisconnection = function(updatedGameData){
 };
 
 
-Player.prototype.setSelectedPieceById = function(id){
-	for (var i = 0; i < this.playerPieces.length; ++i){
+Player.prototype.setSelectedPieceById = function(id)
+{
+	for (var i = 0; i < this.playerPieces.length; ++i)
+	{
 		if (this.playerPieces[i].uniqueId === id){
 			if (this.selectedPiece !== null){
 				this.selectedPiece.playDeselect();

@@ -11,37 +11,37 @@ var nodemailer = require("nodemailer");
 var smtpTransport = require("nodemailer-smtp-transport");
 
 var smtpTransport = nodemailer.createTransport(smtpTransport({
-    host : "smtp.ipage.com",
-    secureConnection : false,
-    port: 587,
-    auth : {
-    	 user : "ludo@efizzypoint.com",
-         pass : "Cute164747#@!~"
-    },
-    tls: {rejectUnauthorized: false},
-    debug:true
+	host : "smtp.ipage.com",
+	secureConnection : false,
+	port: 587,
+	auth : {
+		user : "ludo@efizzypoint.com",
+		pass : "Cute164747#@!~"
+	},
+	tls: {rejectUnauthorized: false},
+	debug:true
 }));
 
 passport.use(new Strategy(
-  function(username, password, cb) {
-    db.users.findByUsername(username, function(err, user) {
-      if (err) { return cb(err); }
-      if (!user) { return cb(null, false); }
-      if (user.password != password) { return cb(null, false); }
-      return cb(null, user);
-    });
-  }));
+		function(username, password, cb) {
+			db.users.findByUsername(username, function(err, user) {
+				if (err) { return cb(err); }
+				if (!user) { return cb(null, false); }
+				if (user.password != password) { return cb(null, false); }
+				return cb(null, user);
+			});
+		}));
 
 
 passport.serializeUser(function(user, cb) {
-  cb(null, user.id);
+	cb(null, user.id);
 });
 
 passport.deserializeUser(function(id, cb) {
-  db.users.findById(id, function (err, user) {
-    if (err) { return cb(err); }
-    cb(null, user);
-  });
+	db.users.findById(id, function (err, user) {
+		if (err) { return cb(err); }
+		cb(null, user);
+	});
 });
 
 
@@ -81,51 +81,51 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.get('/', function(req, res){
-    res.sendFile(__dirname + '/views/index.html');
+	res.sendFile(__dirname + '/views/index.html');
 });
 
 app.get('/ludo', function(req, res){
-    res.sendFile(__dirname + '/views/ludo.html');
+	res.sendFile(__dirname + '/views/ludo.html');
 });
 
 app.get('/login', function(req, res){
-    res.sendFile(__dirname + '/views/login.html');
+	res.sendFile(__dirname + '/views/login.html');
 });
 
 app.post('/login', passport.authenticate('local', { failureRedirect: '/login' }),
 		function(req, res) {
-		    res.redirect('/admin');
+	res.redirect('/admin');
 });
 
 app.get('/logout',
-		  function(req, res){
-		    req.logout();
-		    res.redirect('/login');
+		function(req, res){
+	req.logout();
+	res.redirect('/login');
 });
 
 app.get('/setup', function(req, res){
-    res.sendFile(__dirname + '/views/setup.html');
+	res.sendFile(__dirname + '/views/setup.html');
 });
 
 app.get('/admin', require('connect-ensure-login').ensureLoggedIn(),
 		function(req, res){
-		res.sendFile(__dirname + '/views/admin.html');
+	res.sendFile(__dirname + '/views/admin.html');
 });
 
 app.get('/fetch', function(req, res){
-	
+
 	getGameData(function(data){
 		res.send(data);
 	});
-    
+
 });
 
 app.get('/load', function(req, res){
-	
+
 	loadTwoPlayerMultiplayerGame(function(data){
 		res.send(data);
 	});
-    
+
 });
 
 
@@ -135,20 +135,20 @@ app.post('/download', function(req, res){
 		downloadGameData(gameId, function(data){
 			res.send(data);
 		});
-		
+
 	}else{
 		res.send({ok : false, message : "Game Code Error! Please check and try again"});
 	}
-   
+
 });
 
 app.post('/loaddata', function(req, res){
 	var data = JSON.stringify(req.body);
 	var gameData = JSON.parse(data);
 	loadTwoPlayerMultiplayerGame(gameData, function(msg){
-		 res.send(msg);
+		res.send(msg);
 	});
-   
+
 });
 
 
@@ -158,7 +158,7 @@ app.post('/delete', function(req, res) {
 		deleteGameData(gameId, function(message){
 			res.send(message);
 		});
-		
+
 	}else{
 		res.send({message : "Game Code Error! Please check and try again"});
 	}
@@ -171,37 +171,68 @@ app.post('/report', function(req, res) {
 			if (message.ok){
 				var messageBody = JSON.stringify(message.gameData);
 				console.log("Message is ok");
-				 var mailOptions={
-					        from : "ludo@efizzypoint.com",
-					        to : "ludo@efizzypoint.com",
-					        subject : "Bug reported by: " + report.playerName,
-					        text : messageBody,
-					        html : "<html> <body> <p>" + report.message + "</p> <p>" + messageBody + "</p> </body> </html>"
-					    };
-				    smtpTransport.sendMail(mailOptions, function(error, response){
-				        if(error){
-				            console.log(error);
-				        }else{
-				            console.log(response.response.toString());
-				            console.log("Message sent: " + response.message);
-				           
-				        }
-				    });
+				var mailOptions={
+						from : "ludo@efizzypoint.com",
+						to : "ludo@efizzypoint.com",
+						subject : "Bug reported by: " + report.playerName,
+						text : messageBody,
+						html : "<html> <body> <p>" + report.message + "</p> <p>" + messageBody + "</p> </body> </html>"
+				};
+				smtpTransport.sendMail(mailOptions, function(error, response){
+					if(error){
+						console.log(error);
+					}else{
+						console.log(response.response.toString());
+						console.log("Message was sent successfully");
+
+					}
+				});
 			}
 			res.send(message.message);
-			
-			
+
+
 		});
-		
+
 	}else{
 		res.send("A Great error has occurred");
 	}
 });
 
 
+app.post('/contact', function(req, res) {
+	var contactinfo = req.body;
+	if (contactinfo){
+
+		var mailOptions={
+				from : contactinfo.email,
+				to : "ludo@efizzypoint.com",
+				subject : contactinfo.subject,
+				text : '',
+				html : "<html> <body> <p>" + contactinfo.subject + "</p> <p>" + contactinfo.message + "</p> </body> </html>"
+		};
+		smtpTransport.sendMail(mailOptions, function(error, response){
+			if(error){
+				console.log(error);
+				res.send("Error!!! Message NOT sent!");
+			}else{
+				console.log(response.response.toString());
+				res.send("Message was sent successfully ");
+			}
+		});
+
+		
+
+	}else{
+		res.send("A Great error has occurred");
+	}
+});
+
+
+
+
 io.on('connection', function(socket){
 	debug('Listening on ' + socket.id);
-    ldx.initGame(io, socket);
+	ldx.initGame(io, socket);
 });
 
 //var port = process.env.OPENSHIFT_NODEJS_PORT || 3000;
@@ -215,64 +246,64 @@ http.listen(port);
 http.on('listening', onListening);
 
 function onListening() {
-	  var addr = http.address();
-	  var bind = typeof addr === 'string'
-	    ? 'pipe ' + addr
-	    : 'port ' + addr.port;
-	  debug('Listening on ' + bind);
-	  console.log( "Listening on server_port: " + addr.port);
-	}
+	var addr = http.address();
+	var bind = typeof addr === 'string'
+		? 'pipe ' + addr
+				: 'port ' + addr.port;
+	debug('Listening on ' + bind);
+	console.log( "Listening on server_port: " + addr.port);
+}
 
 
 function normalizePort(val) {
-	  var port = parseInt(val, 10);
+	var port = parseInt(val, 10);
 
-	  if (isNaN(port)) {
-	    // named pipe
-	    return val;
-	  }
-
-	  if (port >= 0) {
-	    // port number
-	    return port;
-	  }
-
-	  return false;
+	if (isNaN(port)) {
+		// named pipe
+		return val;
 	}
- 
+
+	if (port >= 0) {
+		// port number
+		return port;
+	}
+
+	return false;
+}
+
 function getGameData(callback){
-	
+
 	var data = { data: [] };
-	
+
 	ldx.getGameData(function(games){
 		if (games){
-			
+
 			for (var key in games){
 				var game = games[key];
 				var isEmpty = game.isEmpty();
 				data.data.push([ key, game.gameMode, game.screenNames,  game.gameInProgress,  isEmpty, game.date]);
 			}
 		}
-		
+
 		callback(data);
 	});
 }
 
 
 function deleteGameData(gameId, callback){
-	
+
 	ldx.deleteGameData(gameId, function(message){
 		callback(message);
 	});
-	
+
 }
 
 function loadTwoPlayerMultiplayerGame(gameData, callback){
-	
+
 	ldx.loadTwoPlayerMultiplayerGame(gameData, function(message){
 		callback(message);
 	});
-	
+
 }
 
 function downloadGameData(gameId, callback){
@@ -282,9 +313,9 @@ function downloadGameData(gameId, callback){
 }
 
 function sendAnonymousReport(report, callback){
-	
+
 	ldx.onReport(report, function(message){
 		callback(message);
 	});
-	
+
 }

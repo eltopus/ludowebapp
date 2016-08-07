@@ -3,6 +3,11 @@ var _ = require('underscore');
 function LudoPlayerInstance(gameId, socketId, screenName, gameData, index, owner, newPlayer){
 
 	var playerIndex = 0;
+	this.index = 0;
+	this.connect = true;
+	this.focus = true;
+	this.owner = owner;
+	this.myTurn = false;
 	
 	updateScreenName = function(name, data){
 		_.any(data.players, function(player){
@@ -34,6 +39,14 @@ function LudoPlayerInstance(gameId, socketId, screenName, gameData, index, owner
 	
 }
 
+LudoPlayerInstance.prototype.setTurn = function(playerName){
+	if (this.screenName === playerName){
+		this.myTurn = true;
+	}else{
+		this.myTurn = false;
+	}
+};
+
 LudoPlayerInstance.prototype.updateGameData = function(gameData){
 	this.gameData = gameData;
 };
@@ -41,5 +54,33 @@ LudoPlayerInstance.prototype.updateGameData = function(gameData){
 LudoPlayerInstance.prototype.deleteGameData = function(){
 	this.gameData = null;
 };
+
+LudoPlayerInstance.prototype.connected = function(){
+	this.connect = true;
+};
+
+LudoPlayerInstance.prototype.disconnected = function(){
+	this.connect = false;
+};
+
+LudoPlayerInstance.prototype.isConnected = function(){
+	return(this.connect);
+};
+
+LudoPlayerInstance.prototype.inFocus = function(){
+	//console.log('Going into focus');
+	this.focus = true;
+};
+
+LudoPlayerInstance.prototype.outFocus = function(){
+	//console.log('Going out of focus');
+	this.focus = false;
+};
+
+LudoPlayerInstance.prototype.isInFocus = function(){
+	return(this.focus);
+};
+
+
 
 module.exports = LudoPlayerInstance;

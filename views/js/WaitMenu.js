@@ -182,11 +182,12 @@ Ludo.WaitMenu.prototype = {
 			var userFour = this.userFour;
 			var start_game = this.start_game;
 			var owner = this.owner;
+			
 
 			this.socket.on('disconnected', function(message){
 				start_game.visible = false;
-				userOne.value =  message;
-				userOne.updateText();
+				//userOne.value =  message;
+				//userOne.updateText();
 			});
 
 
@@ -194,8 +195,6 @@ Ludo.WaitMenu.prototype = {
 			{
 				var screenNames = data.screenNames;
 			
-				
-
 				if (data.gameMode === 2)
 				{
 					

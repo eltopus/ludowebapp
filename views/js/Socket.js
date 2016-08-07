@@ -6,6 +6,7 @@ var sockId = null;
 var game = null;
 var gameio = null;
 var inBackground = false;
+var inFocus = true;
 
 Socket = function(ludogame){
 
@@ -78,19 +79,34 @@ Socket = function(ludogame){
 
 	});
 
-	gameio.on('updatePlayerInBackground', function(status){
+	gameio.on('updatePlayerInBackground', function(nextPlayer){
 		if (inBackground){
-			inBackground = false;
-			game.restartEmission();
+			game.updateGame(nextPlayer, function(status){
+				//console.log("Update from background finished...");
+				inBackground = false;
+				game.prepareForBackgroundUpdate();
+				//if you are not in focus and it is not your turn
+				if (!inFocus && !game.myTurn){
+					
+					inBackground = false;
+					game.controller.consumeDice();
+					game.consumeCurrentPlayerDice();
+					gameio.emit('browserInBackground', {gameId: gameId, playerName : playerName}, function(status){
+						console.log("I have updated but it is not my turn");
+						inBackground = true;
+					});
+				}
+			});
+			
 		}
-
-
 	});
 
 	gameio.on('nextTurn', function(nextPlayer){
 
-		game.updateGame(nextPlayer);
 		if (!inBackground){
+			game.updateGame(nextPlayer, function(status){
+				//console.log("Update finished...");
+			});
 		}
 
 	});
@@ -98,8 +114,8 @@ Socket = function(ludogame){
 	gameio.on('updateGame', function(gameData){
 		//game.updateGame(gameData);
 	});
-	
-	
+
+
 	gameio.on('onMessage', function(message){
 		$('#chatLog').append(message);
 		var chatLogDiv = document.getElementById("chatLog");
@@ -108,23 +124,18 @@ Socket = function(ludogame){
 
 
 	gameio.on('playerReconnected', function(screenName){
-		if (!inBackground){
-			if (screenName !== null){
-				alertMessage(screenName + " has reconnected", "Reconnection",  false);
-				game.connectionNotificationAlert(screenName, true);
-			}
 
+		if (screenName !== null){
+			alertMessage(screenName + " has reconnected", "Reconnection",  false);
+			game.connectionNotificationAlert(screenName, true);
 		}
-
 	});
 
 	gameio.on('disconnected', function(screenName){
-		if (!inBackground){
-			game.connectionNotificationAlert(screenName, false);
-		}
+		game.connectionNotificationAlert(screenName, false);
 
 	});
-	
+
 	gameio.on('connect', function(){
 		alertMessage("You have been reconnected", "Reconnection",  false);
 	});
@@ -134,26 +145,27 @@ Socket = function(ludogame){
 	{
 		var gameId = game.gameId;
 		var playerName = game.playerName;
+		
 		window.addEventListener("focus", function(evt){
-			if (inBackground){
-				game.controller.consumeDice();
-				game.consumeCurrentPlayerDice();
-			}
+			inFocus = true;
 		}, false);
 
 		window.addEventListener("blur", function(evt){
 			if (!game.myTurn){
 				inBackground = true;
+				inFocus = false;
+				game.controller.consumeDice();
+				game.consumeCurrentPlayerDice();
 				gameio.emit('browserInBackground', {gameId: gameId, playerName : playerName}, function(status){
 
 				});
 			}
 		}, false);
 	}
-	
-	
-	
-	
+
+
+
+
 };
 
 Socket.prototype.emitDiceIsPlayed = function(diceInfo){

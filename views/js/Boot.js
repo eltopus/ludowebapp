@@ -9,6 +9,7 @@ Ludo.Boot.prototype = {
 		this.isMobile = false;
 		this.x = 32;
 		this.y = 80;
+		this.game.stage.disableVisibilityChange = true;
 		//this.game.sound.mute = true;
 		
 		var device = Phaser.Device;
@@ -36,7 +37,6 @@ Ludo.Boot.prototype = {
     	if (this.game.device.desktop) {
     		this.input.maxPointers = 1;
     		this.game.add.plugin(Fabrique.Plugins.InputField);
-   		 	this.game.stage.disableVisibilityChange = true;
    		 	this.game.stage.smoothed = true; 
    		 	this.game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
    		 	this.scale.pageAlignHorizontally = true;

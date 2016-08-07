@@ -11,7 +11,25 @@
 <link href="/assets/css/font-awesome.min.css" rel="stylesheet">
 <link href="" rel="stylesheet">
 <link href="assets/css/sections-frmwrk-styles.css" rel="stylesheet">
+<script src="js/jquery-1.12.2.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
 <script src="js/bootbox.js"></script>
+<script src="js/Example.js"></script>
+
+<style>
+	
+.bb-alert
+{
+    position : fixed;
+    bottom: 25%;
+    right: 0;
+    margin-bottom: 0;
+    font-size: 1.2em;
+    padding: 1em 1.3em;
+    z-index: 2000;
+}
+	
+</style>
 
 </head>
 	<body>
@@ -69,7 +87,7 @@
 								<strong>Welcome to Ludo Africa</strong>
 							</h1>
 							<p class="lead">
-								The biggest online Ludo Community. New to the game? Follow quick steps for creating new game or joining existing game. Also, please support Ludo Africa Project. Enjoy!!!
+								The biggest online Ludo Community. New to the game? Follow quick steps for playing game. Also, please support Ludo Africa Project. Enjoy!!!
 							</p>
 						</div>
 						<div class="item">
@@ -98,6 +116,9 @@
 </section>
 <section style="display: block;">
 	<div class="container">
+		<div class="bb-alert alert alert-info" id="bootModal" style="display:none;">
+       					<span></span>
+ 		</div>
 		<div class="row">
 			<div style="min-height: 1px;" class="col-xs-12 col-sm-12 col-md-12 col-lg-8 col-lg-offset-2">
 				<div class="page-header text-center">
@@ -115,19 +136,19 @@
 				<span class="icon-chat img-center margin-top-20"></span>
 				<p class="text-center margin-top-20 text-xs">
 					Ludo Africa Project is in dire need of various technical and non technical expertise such as software developers, system engineers, artists, bloggers, e.t.c.
-				</p> <a class="btn btn-danger btn-lg margin-top-20" href="#">Click to Contribute?</a>
+				</p> <a class="btn btn-danger btn-lg margin-top-20" id="sendMessage1">Click to Contribute?</a>
 			</div>
 			<div style="min-height: 1px;" class="col-xs-12 col-sm-4 col-md-4 col-lg-4 text-center">
 				<span class="icon-clock img-center margin-top-20"></span>
 				<p class="text-center margin-top-20">
-					Ludo Africa Project will officially commence in August of 2016. In the meantime, you can help by reporting bugs discovered during a ludo game
-				</p> <a class="btn btn-danger btn-lg margin-top-20" href="#">Click to Report Bug?</a>
+					Ludo Africa Project will officially commence in later this year. In the meantime, you can help by reporting bugs discovered during a ludo game
+				</p> <a class="btn btn-danger btn-lg margin-top-20"  id="sendMessage2">Click to Report Bug?</a>
 			</div>
 			<div style="min-height: 1px;" class="col-xs-12 col-sm-4 col-md-4 col-lg-4 text-center">
 				<span class="icon-location img-center margin-top-20"></span>
 				<p class="text-center margin-top-20">
 					There are thousands of tradition African games, music, arts, and culture that we would love to explore. Tell us more about these and other ideas.
-				</p> <a class="btn btn-danger btn-lg margin-top-20" href="#">Click to Contact Us</a>
+				</p> <a class="btn btn-danger btn-lg margin-top-20"  id="sendMessage3">Click to Contact Us</a>
 			</div>
 		</div>
 	</div>
@@ -471,12 +492,110 @@
 <script id="userscripts" type="text/javascript">(function($){(function ($) { try { } catch (exc) { alert('Script has an error:' + exc) } })})(window.jQuery);</script>
 <script>
 
+function validateEmail(email) {
+  var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  return re.test(email);
+}
+
+function validateMessage(message) {
+  return (message.length > 10);
+}
+
+function sendMessage(){
+	bootbox.dialog({
+					message: '<div class="row">'+
+                        '<div class="col-sm-6 col-sm-offset-3 form-box">'+
+                        	'<div class="form-top">' +
+                        		'<div class="form-top-left">' +
+                        			'<h3>Contact us</h3>'+
+                            		'<p>Fill in the form below to send us a message:</p>' +
+                        		'</div>' +
+                        		'<div class="form-top-right">'+
+                        			'<i class="fa fa-envelope"></i>' +
+                        		'</div>' +
+                            '</div>' +
+                            '<div class="form-bottom contact-form">' +
+			                    '<form role="form">' +
+			                    	'<div class="form-group">' +
+			                    		'<label class="sr-only" for="contact-email">Email</label>' +
+			                        	'<input type="text" name="email" placeholder="Email..." class="contact-email form-control" id="contact-email">' +
+			                        '</div>' +
+			                        '<div class="form-group">' +
+			                        	'<label class="sr-only" for="contact-subject">Subject</label>' +
+			                        	'<input type="text" name="subject" placeholder="Subject..." class="contact-subject form-control" id="contact-subject">' +
+			                        '</div>' +
+			                        '<div class="form-group">' +
+			                        	'<label class="sr-only" for="contact-message">Message</label>' +
+			                        	'<textarea name="message" placeholder="Message..." class="contact-message form-control" id="contact-message"></textarea>' +
+			                        '</div>' +
+			   
+			                    '</form>' +
+		                    '</div>' +
+                        '</div>' +
+                    '</div>',
+					buttons: {
+						success: {
+							label: "SEND MESSAGE",
+							className: "btn-success",
+							callback: function() {
+								var email = $('#contact-email').val();
+								var subject = $('#contact-subject').val();
+								var message = $('#contact-message').val();
+								
+								if (validateEmail(email)){
+									
+									if (validateMessage(message)){
+											$.ajax({
+								        	type: "POST",
+								        	url: "contact",
+								        	data: {email : email, subject : subject,  message : message},
+								        	success: function(msg){
+								        		Example.show(msg);
+								        		bootbox.hideAll();
+								            },
+								        	error: function(msg){
+								        		Example.show(msg);
+								        	}
+								        });
+									}else{
+										Example.show("Message not long enough");
+									}
+								}else{
+									Example.show("Invalid email address!");
+								}
+								return false;
+							} 
+						}
+					}
+				});
+	
+}
+
+
+
 jQuery(document).ready(function ($) {
+	
+	$(function () {
+            Example.init({
+                "selector": ".bb-alert"
+            });
+     });
    	$('.carousel').carousel({
   		interval: 5000
 	});
 	
+	$('#sendMessage1').click(function() {
+		sendMessage();
+	});
 	
+	$('#sendMessage2').click(function() {
+		sendMessage();
+	});
+	
+	$('#sendMessage3').click(function() {
+		sendMessage();
+	});
+
 });
 </script>
 </body>

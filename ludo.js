@@ -79,6 +79,24 @@ exports.deleteGameData = function(gameId, callback){
 exports.downloadGameData = function(gameId, callback){
 	var game = games[gameId];
 	if (game){
+		
+		game.gameData.screenNameFromGame = [];
+		game.gameData.indexFromGame = [];
+		
+		for (var key in game.ludoPlayers)
+		{
+			game.gameData.screenNameFromGame.push(game.ludoPlayers[key].screenName);
+			game.gameData.indexFromGame.push(game.ludoPlayers[key].index);
+			
+		}
+		
+		game.gameData.numOfPlayers =  game.numOfPlayers;
+		game.gameData.inBackground = game.inBackground;
+		game.gameData.playerWentInBackground = game.playerWentInBackground;
+		game.gameData.screenNameFromGame = game.screenNames;
+		game.gameData.disconnectedPlayers = JSON.stringify(game.disconnectedPlayers);
+		game.gameData.currentPlayerName = game.currentPlayerName;
+		
 		callback({ok : true, message : "Game Id " + gameId + " does not exist!", gameData : game.gameData});
 	}
 	else{
@@ -186,15 +204,15 @@ function emitNextPlayer(data, callback)
 	processNextTurn(data, sock.id, function(nextPlayer){
 
 		if (nextPlayer.gameData){
-			if (!nextPlayer.playerWentInBackground){
-				data.newId = nextPlayer.socketId;
-				io.sockets.in(data.gameId).emit('nextTurn', nextPlayer);
-				callback(data);
-			}else{
+			data.newId = nextPlayer.socketId;
+			io.sockets.in(data.gameId).emit('nextTurn', nextPlayer);
+			
+			console.log("playerWentInBackground: " + nextPlayer.playerWentInBackground);
+			if (nextPlayer.playerWentInBackground){
 				games[data.gameId].resetInBackground();
-				io.sockets.in(data.gameId).emit('updatePlayerInBackground', true);
-				callback(null);
+				io.sockets.in(data.gameId).emit('updatePlayerInBackground', nextPlayer);
 			}
+			callback(data);
 		}else{
 			callback(null);
 		}
@@ -208,7 +226,7 @@ function processNextTurn(data, id, callback){
 	{
 		var screenName = socketIds[id].screenName;
 		//console.log("Data ScreenName: " + screenName);
-		games[data.gameId].getNextSocketId(data.screenName, function(nextPlayer){
+		games[data.gameId].getNextSocketId(data, function(nextPlayer){
 			callback(nextPlayer);
 		});
 	}
@@ -323,11 +341,11 @@ function connectMultiplayerGame(newPlayer, callback){
 					callback({ok : false, message : "Game ID: " + gameId + " seems to be full."});
 				}else{
 
-					if (data.index < 1)
+					if (!data.ok)
 					{
 						var screenNames = [];
 						for (var i = 0; i <  data.availableScreenNames.length; ++i){
-							//console.log("Names: " + data.availableScreenNames[i].screenName)
+							console.log("Names: " + data.availableScreenNames[i].screenName);
 							screenNames.push(data.availableScreenNames[i].screenName);
 						}
 						callback({ok : false, message : "Disconnected ScreenNames are: " + screenNames});
@@ -469,7 +487,12 @@ function disconnected(data){
 				console.log("Player: " + screenName + " was removed from game " + gameId + " on " + new Date());
 				delete socketIds[sock.id];
 				if (game.isEmpty()){
-					console.log('Game is empty. Persisting ' + gameId);
+					if (game.gameInProgress){
+						console.log('Game is empty. Persisting ' + gameId);
+					}else{
+						console.log('Game is empty. Deleting ' + gameId);
+						delete games[gameId];
+					}
 					//_.without(games, gameId);
 					//delete games[gameId];
 
