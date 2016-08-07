@@ -15,8 +15,7 @@ var smtpTransport = nodemailer.createTransport(smtpTransport({
 	secureConnection : false,
 	port: 587,
 	auth : {
-		user : "ludo@efizzypoint.com",
-		pass : "Cute164747#@!~"
+		
 	},
 	tls: {rejectUnauthorized: false},
 	debug:true

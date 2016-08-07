@@ -328,10 +328,15 @@ function connectMultiplayerGame(newPlayer, callback){
 	if (game)
 	{
 		if (screenName === 'ADMIN'){
-			game.addAdminPlayer(screenName, function(gameData){
-				sock.join(gameId.toString());
-				callback(gameData);
-			});
+			if (!game.gameInProgress){
+				callback({ok : false, message : "Game ID: " + gameId + " is NOT in progress!" });
+			}else{
+				game.addAdminPlayer(screenName, function(gameData){
+					sock.join(gameId.toString());
+					callback(gameData);
+				});
+			}
+			
 
 		}else{
 

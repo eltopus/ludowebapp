@@ -147,7 +147,13 @@ Socket = function(ludogame){
 		var playerName = game.playerName;
 		
 		window.addEventListener("focus", function(evt){
-			inFocus = true;
+			
+			if (!game.myTurn && !inFocus){
+				inFocus = true;
+				Example.show("Live updates will be restored on next player turn.");
+			}
+			
+			
 		}, false);
 
 		window.addEventListener("blur", function(evt){

@@ -314,10 +314,16 @@ Ludo.GameSetup.prototype = {
 							label: "NEXT",
 							className: "btn-success",
 							callback: function() {
-								var playerName = $('#playerNameInput').val();
+								var playerName = $('#playerNameInput').val().toString().trim().toUpperCase();
+								if (playerName === 'ADMIN'){
+									Example.show("ADMIN is a reserved Player Name.");
+									return false;
+								}
+								
 								if (playerName === ''){
-									gameSetupCreateGame();
-									Example.show("Invalid Player Name"); 
+									Example.show("Invalid Player Name");
+									return false;
+									 
 								}else{
 									gameObj.playerName = playerName;
 									$('#playerName').val(playerName);
@@ -472,7 +478,13 @@ Ludo.GameSetup.prototype = {
 			$('#createBtn').parent().on("click", function () {
 
 
-				gameObj.playerName = $('#playerName').val();
+				var playerName = $('#playerName').val().toString().trim().toUpperCase();
+				if (playerName === 'ADMIN'){
+					alertMessage('ADMIN is a reserved Player Name.', "Invalid Player Name",  false);
+					return;
+				}
+				
+				gameObj.playerName = playerName;
 				var message = gameObj.verifyCreateGame();
 				//console.log("Message " + message);
 
