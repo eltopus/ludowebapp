@@ -35,7 +35,9 @@
 	src="https://cdn.datatables.net/responsive/2.1.0/js/dataTables.responsive.min.js"> </script>
 <script src="https://cdn.datatables.net/responsive/2.1.0/js/responsive.bootstrap.min.js"></script>
 <script src="js/bootstrap-filestyle.min.js"></script>
+<script src="js/socket.io.js"></script>
 <script src="js/Example.js"></script>
+<script src="js/bootbox.js"></script>
 	
 
 <style>
@@ -53,6 +55,8 @@ btn.sharp {
     padding: 1em 1.3em;
     z-index: 2000;
 }
+
+.RbtnMargin { margin-left: 5px; }
 </style>
 
 </head>
@@ -149,6 +153,7 @@ btn.sharp {
 								<input type="file" name="example" id="input01">
 							</div>
 							<button type="button" class="btn btn-warning" id="loadGameData" onclick="loadFile()">Load GameData</button>
+							<button type="button" class="btn btn-success pull-right RbtnMargin" id="messageall" onclick="sendMessage()">SEND MESSAGE</button>
 						</form>
 					</div>			
 				</nav>
@@ -204,6 +209,38 @@ btn.sharp {
 		      
 		    }
   
+  	};
+  	
+  	var sendMessage = function(){
+  		
+  		bootbox.dialog({
+					message: '<div class="well">' +
+									'<textarea class="form-control noresize" rows="4" id="comment" placeholder="ENTER MESSAGE HERE" maxlength="300">' +
+									'</textArea>'+
+								'</div>',
+					title: "Send Message to all players?",
+					buttons: {
+						danger: {
+							label: "DON'T SEND",
+							className: "btn-danger",
+							callback: function() {							
+								Example.show("Message Not Sent");
+							}
+						},
+						success: {
+							label: "SEND",
+							className: "btn-success",
+							callback: function() {
+								var message = $('#comment').val();
+								var socket = io();
+								socket.emit('sendMessageFromAdmin', message, function(msg){
+									Example.show(msg);
+									socket.disconnect();
+								});
+							} 
+						}
+					}
+				});
   	};
 	
     $(document).ready(function() {

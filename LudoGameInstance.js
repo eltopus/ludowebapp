@@ -37,6 +37,9 @@ function LudoGameInstance(gameId, socketId, screenName, gameData, colors, newGam
 	this.screenName = screenName;
 	this.gameMode = gameData.gameMode;
 	this.currentPlayerName = "";
+	this.initialGamaData = null;
+	this.initialCurrentPlayerName = screenName;
+	this.restartRequests = 0;
 
 	this.gameEnded = false;
 	this.choicesLeft = null;
@@ -92,7 +95,6 @@ function LudoGameInstance(gameId, socketId, screenName, gameData, colors, newGam
 			this.addPlayerPieces(screenName, playerPieces, colors);
 		}
 
-
 		this.screenNames.push(screenName);
 		this.currentPlayerName = screenName;
 		this.gameData.screenNames = this.screenNames;
@@ -107,11 +109,11 @@ function LudoGameInstance(gameId, socketId, screenName, gameData, colors, newGam
 
 		gameData.howManyPlayersJoined = 0;
 		this.screenNames = gameData.screenNames;
-		var currentPlayerName  = this.currentPlayerName;
+		var currentPlayerName  = '';
 		var disconnectedPlayers = this.disconnectedPlayers;
 
 		this.gameData = gameData;
-		console.log("Disconnection: " + JSON.stringify(this.gameData.players));
+		
 
 		_.any(this.gameData.players, function(player){
 			var disconnetedPlayer = {};
@@ -126,14 +128,51 @@ function LudoGameInstance(gameId, socketId, screenName, gameData, colors, newGam
 			disconnectedPlayers.push(disconnetedPlayer);
 
 		});
+		
+		this.currentPlayerName = currentPlayerName;
+		console.log("Current Name is : " + this.currentPlayerName);
+		
 		this.gameInProgress = true;
 		//console.log("Disconnection: " + JSON.stringify(this.disconnectedPlayers));
 		//console.log("ScreenNames: " + JSON.stringify(this.screenNames));
+		
+		for (var j = 0; j < this.screenNames.length; ++j){
+			console.log("Creating player account for: " + this.screenNames[j]);
+			this.addPlayerFromDB(this.screenNames[j], gameId);
+		}
+		this.initialGamaData = JSON.stringify(gameData);
+		this.initialCurrentPlayerName = currentPlayerName;
 		callback(this);
 
 	}
 
 }
+
+LudoGameInstance.prototype.getUpdatedGameData = function(callback) {
+	callback({gameData : this.gameData, screenName  : this.currentPlayerName});
+};
+
+LudoGameInstance.prototype.updateRestartRequests = function(callback) {
+	++this.restartRequests;
+	if (this.restartRequests >= this.gameMode){
+		this.restartRequests = 0;
+		this.restartGame(function(data){
+			return callback(data);
+		});
+	}
+	callback(null);
+};
+
+
+LudoGameInstance.prototype.restartGame = function(callback) {
+	this.currentPlayerName = this.initialCurrentPlayerName;
+	//console.log("Original: " + this.currentPlayerName + " GameData: " + JSON.stringify(this.gameData));
+	this.gameData = JSON.parse(this.initialGamaData);
+	this.notifyEndOfPlay = [];
+	this.gameData.inprogress = true;
+	//this.gameData.screenName = this.currentPlayerName;
+	callback({gameData : this.gameData, screenName : this.currentPlayerName});
+};
 
 
 LudoGameInstance.prototype.addAdminPlayer = function(screenName, callback) {
@@ -171,6 +210,23 @@ LudoGameInstance.prototype.reshuffleColors = function(colors) {
 };
 
 
+LudoGameInstance.prototype.addPlayerFromDB = function(screenName, gameId) {
+	
+	for (var i = 0; i < this.disconnectedPlayers.length; ++i)
+	{
+		if (this.disconnectedPlayers[i].screenName === screenName)
+		{
+			var index = this.disconnectedPlayers[i].index;
+			var owner = this.disconnectedPlayers[i].isOwner;
+			console.log("Creating account for : " + screenName + " index: " + index + " owner: " + owner);
+			this.ludoPlayers[screenName] = new playerInstance(gameId, null, screenName, this.gameData, index , owner, false);
+		}
+	}
+	
+	
+};
+
+
 LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, fromDB, callback) {
 
 	if (this.isNotFull()) 
@@ -184,6 +240,7 @@ LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, fr
 			{
 				if (this.disconnectedPlayers[i].screenName === screenName)
 				{
+					var owner = this.disconnectedPlayers[i].isOwner;
 					screenameExists = true;
 					//replaces disconnected player index turn
 					this.gameData.setSessionTurn = this.getNextPlayerTurn(screenName);
@@ -197,10 +254,11 @@ LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, fr
 
 					this.ludoPlayers[screenName].connected();
 					this.ludoPlayers[screenName].inFocus();
+					
 					this.disconnectedPlayers.splice(i, 1);
 					this.gameData.howManyPlayersJoined  = this.numOfPlayers;
 
-					callback({gameData : this.gameData, screenName: screenName, ok : true});
+					callback({gameData : this.gameData, screenName: screenName, ok : true, owner : owner});
 					return {};
 				}
 			}
@@ -221,12 +279,10 @@ LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, fr
 			this.ludoPlayers[screenName] = new playerInstance(gameId, socketId, screenName, this.gameData, this.numOfPlayers, false, true);
 			this.gameData = this.ludoPlayers[screenName].gameData;
 			this.ludoPlayers[screenName].deleteGameData();
-			if (this.numOfPlayers === this.gameMode){
-				this.gameData.complete = true;
-				this.gameInProgress = true;
-
-			}
-
+			
+			
+			
+			
 			if (this.gameMode === 2){
 				colorsLeft = this.colorsOptions;
 				playerPieces = this.getPlayerPieces(this.colorsOptions);
@@ -234,12 +290,21 @@ LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, fr
 				//console.log(JSON.stringify(this.gameData));
 			}
 			else if (this.gameMode === 4 && this.colorsOptions.length > 0){
+				
+				
 				colorsLeft = [];
 				colorsLeft.push(this.colorsOptions[0]);
 				playerPieces = this.getPlayerPieces(colorsLeft);
 				this.addPlayerPieces(screenName , playerPieces, colorsLeft);
+				//console.log("Color Options: " + this.colorsOptions);
 				//console.log(JSON.stringify(this.gameData));
-
+			}
+			
+			if (this.numOfPlayers === this.gameMode){
+				this.gameData.complete = true;
+				this.gameInProgress = true;
+				this.gameData.complete = true;
+				this.initialGamaData = JSON.stringify(this.gameData);
 			}
 
 			this.gameData.howManyPlayersJoined  = this.numOfPlayers;
@@ -253,9 +318,6 @@ LudoGameInstance.prototype.addPlayer = function(gameId, socketId, screenName, fr
 
 };
 
-LudoGameInstance.prototype.getUpdatedGameData = function(callback) {
-	callback({gameData : this.gameData, screenName  : this.currentPlayerName});
-};
 
 
 LudoGameInstance.prototype.getNextSocketId = function(previousPlayer, callback){
@@ -304,14 +366,14 @@ LudoGameInstance.prototype.getNextSocketId = function(previousPlayer, callback){
 			this.notifyEndOfPlay = [];
 			//console.log('Destroyed... : ' + this.notifyEndOfPlay);
 			//console.log('GameData: ' + JSON.stringify(this.gameData));
-			callback({socketId : null, screenName : this.currentPlayerName, gameData : this.gameData, playerWentInBackground : this.playerWentInBackground});
+			return callback({socketId : null, screenName : this.currentPlayerName, gameData : this.gameData, playerWentInBackground : this.playerWentInBackground});
 		}else{
-			callback({});
+			return callback({});
 		}
 
 	}else{
 		console.log('ScreenName : ' + screenName + ' cannot be FOUND');
-		callback({});
+		return callback({});
 	}
 
 };
@@ -416,6 +478,7 @@ LudoGameInstance.prototype.getPlayerPieces = function(colors){
 			selectedPieces.push(this.greenPieces[1]);
 			selectedPieces.push(this.greenPieces[2]);
 			selectedPieces.push(this.greenPieces[3]);
+		
 			this.colorsOptions =_.without(this.colorsOptions, colors[i]);
 			break;
 		case "yellow":
@@ -482,6 +545,12 @@ LudoGameInstance.prototype.removePlayer = function(screenName, isOwner) {
 					break;
 				}
 			}
+			
+			if (this.inBackground.length < 1){
+				console.log("No screenName in background ");
+				this.resetInBackground();
+			}
+			
 
 
 		}else{
@@ -504,7 +573,7 @@ LudoGameInstance.prototype.disconnectionBeforeGameStarts = function(screenName) 
 		for (var j = 0; j < this.gameData.screenNames.length; ++j){
 			if (this.gameData.screenNames[j] === screenName){
 				this.gameData.screenNames.splice(j, 1);
-				//console.log("screenNames After Deletion " + this.gameData.screenNames);
+				console.log("screenNames After Deletion " + this.gameData.screenNames);
 				break;
 			}
 		}

@@ -167,7 +167,7 @@ Ludo.GameSetup.prototype = {
 								gameObj.joinGame = true;
 								Example.show("Do you have a Game Code?");
 								gameSetupJoinGame();
-								
+
 							}
 						},
 						success: {
@@ -213,7 +213,7 @@ Ludo.GameSetup.prototype = {
 								if (gameObj.playerMode === 0){
 									Example.show("SELECT 2-PLAYER OR 4-PLAYER");
 									gameSetupSelectPlayerMode();
-									
+
 								}else{
 									gameSetupCreateGame();
 								}
@@ -319,11 +319,11 @@ Ludo.GameSetup.prototype = {
 									Example.show("ADMIN is a reserved Player Name.");
 									return false;
 								}
-								
+
 								if (playerName === ''){
 									Example.show("Invalid Player Name");
 									return false;
-									 
+
 								}else{
 									gameObj.playerName = playerName;
 									$('#playerName').val(playerName);
@@ -336,15 +336,15 @@ Ludo.GameSetup.prototype = {
 				});
 
 			};
-			
+
 			var gameSetupJoinGame = function(){
 				bootbox.dialog({
 					message: '<form class="navbar-form">'+
-									'<div class="form-group">' +
-										'<input id="joinPlayerNameInput" class="form-control" placeholder="PLAYER NAME" type="text" maxlength="10"/>' + 
-									'</div>'+
-									'<input id="joinGameCodeInput" class="form-control" placeholder="GAME CODE" type="text" maxlength="10"/>' + 
-								'</form>',
+					'<div class="form-group">' +
+					'<input id="joinPlayerNameInput" class="form-control" placeholder="PLAYER NAME" type="text" maxlength="10"/>' + 
+					'</div>'+
+					'<input id="joinGameCodeInput" class="form-control" placeholder="GAME CODE" type="text" maxlength="10"/>' + 
+					'</form>',
 					title: "Enter Player Name and Game Code",
 					buttons: {
 						danger: {
@@ -368,7 +368,7 @@ Ludo.GameSetup.prototype = {
 
 								gameObj.joinPlayerName = playerName;
 								gameObj.gameCode = gameCode;
-								
+
 								var message = gameObj.verifyJoinGame();
 								if (message === "ok")
 								{
@@ -386,6 +386,30 @@ Ludo.GameSetup.prototype = {
 							}
 						}
 					}
+				});
+			};
+			
+			var guestPrompt = function(){
+				bootbox.dialog({
+					message: "<b>Do you need help creating or joining a game? </b>",
+					title: "Guest Option",
+					buttons: {
+						danger: {
+							label: "NO THANKS",
+							className: "btn-info",
+							callback: function() {
+								Example.show("Got it...");
+							}
+						},
+						success: {
+							label: "YES PLEASE",
+							className: "btn-success",
+							callback: function() {
+								gameSetupPrompt();
+							}
+						}
+					}
+
 				});
 			};
 
@@ -420,11 +444,19 @@ Ludo.GameSetup.prototype = {
 				if (gameObj.playerMode === 0){
 					alertMessage("Please select Player Mode", "Missing Player Mode", true);
 				}else{
-					$(this).toggleClass("clicked");
+
 					if (gameObj.addPlayerColors("red")){
-						selectColors("red");
+						$(this).toggleClass("clicked");
+						$(this).css({ opacity: 0.3});
+						selectBtn(cred);
 					}else{
-						alertMessage("Number of Selected Colors Allowed Reached!", "Error!", true);
+						if (gameObj.isMaxColorsReached()){
+							alertMessage("Number of Selected Colors Allowed Reached!", "Error!", true);
+						}else{
+							$(this).css({ opacity: 1 });
+							unselectBtn(cred);
+						}
+
 					}
 
 				}
@@ -436,9 +468,16 @@ Ludo.GameSetup.prototype = {
 					alertMessage("Please select Player Mode", "Missing Player Mode", true);
 				}else{
 					if (gameObj.addPlayerColors("blue")){
-						selectColors("blue");
+						$(this).toggleClass("clicked");
+						$(this).css({ opacity: 0.3});
+						selectBtn(cblue);
 					}else{
-						alertMessage("Number of Selected Colors Allowed Reached!", "Error!", true);
+						if (gameObj.isMaxColorsReached()){
+							alertMessage("Number of Selected Colors Allowed Reached!", "Error!", true);
+						}else{
+							$(this).css({ opacity: 1});
+							unselectBtn(cblue);
+						}
 					}
 
 				}
@@ -449,9 +488,16 @@ Ludo.GameSetup.prototype = {
 					alertMessage("Please select Player Mode", "Missing Player Mode", true);
 				}else{
 					if (gameObj.addPlayerColors("yellow")){
-						selectColors("yellow");
+						$(this).toggleClass("clicked");
+						$(this).css({ opacity: 0.3});
+						selectBtn(cyellow);
 					}else{
-						alertMessage("Number of Selected Colors Allowed Reached!", "Error!", true);
+						if (gameObj.isMaxColorsReached()){
+							alertMessage("Number of Selected Colors Allowed Reached!", "Error!", true);
+						}else{
+							$(this).css({ opacity: 1});
+							unselectBtn(cyellow);
+						}
 					}
 
 				}
@@ -462,9 +508,16 @@ Ludo.GameSetup.prototype = {
 					alertMessage("Please select Player Mode", "Missing Player Mode", true);
 				}else{
 					if (gameObj.addPlayerColors("green")){
-						selectColors("green");
+						$(this).toggleClass("clicked");
+						$(this).css({ opacity: 0.3});
+						selectBtn(cgreen);
 					}else{
-						alertMessage("Number of Selected Colors Allowed Reached!", "Error!", true);
+						if (gameObj.isMaxColorsReached()){
+							alertMessage("Number of Selected Colors Allowed Reached!", "Error!", true);
+						}else{
+							$(this).css({ opacity: 1});
+							unselectBtn(cgreen);
+						}
 					}
 
 				}
@@ -483,7 +536,7 @@ Ludo.GameSetup.prototype = {
 					alertMessage('ADMIN is a reserved Player Name.', "Invalid Player Name",  false);
 					return;
 				}
-				
+
 				gameObj.playerName = playerName;
 				var message = gameObj.verifyCreateGame();
 				//console.log("Message " + message);
@@ -504,8 +557,8 @@ Ludo.GameSetup.prototype = {
 						});
 
 					}
-					socket.on("disconnect", function(){
-						socket.emit('disconnect', {gameId : gameId, screenName : loadScreenName});
+					socket.on('disconnect', function(){
+						alertMessage("You have been Disconnencted" + gameObj.gameCode, "Disconnection",  true);
 					});
 
 					switch (gameObj.playerMode)
@@ -517,7 +570,6 @@ Ludo.GameSetup.prototype = {
 							if (data.ok)
 							{
 								$("#main").fadeOut(1000);
-								//$("#main").hide( "slide", { direction: "up"  }, 2000 );
 								state.start('WaitMenu', true, false, data, true, socket, data.setSessionTurn, true, isMobile, menuMusic);
 							}
 							else
@@ -532,7 +584,6 @@ Ludo.GameSetup.prototype = {
 					{	socket.emit('createFourPlayerMultiplayerGame', {screenName : gameObj.playerName, colors : gameObj.playerColors}, function (data){
 						if (data.ok)
 						{
-							//console.log("Stringify::: " + JSON.stringify(data));
 							$("#main").fadeOut(1000);
 							state.start('WaitMenu', true, false, data, true, socket, data.setSessionTurn, true, isMobile, menuMusic);
 						}
@@ -565,12 +616,8 @@ Ludo.GameSetup.prototype = {
 
 					}
 
-					socket.on("disconnect", function(){
-						socket.emit('disconnect', {gameId : gameObj.gameCode, screenName : loadScreenName});
-					});
-
 					socket.on('disconnect', function(){
-						alertMessage("Yo have been Disconnencted. Refresh Page and enter GameCode: " + gameObj.gameCode, "Disconnection",  true);
+						alertMessage("You have been Disconnencted" + gameObj.gameCode, "Disconnection",  true);
 
 					});
 
@@ -589,8 +636,7 @@ Ludo.GameSetup.prototype = {
 									state.start('Game', true, false, data, true, socket, false, false, isMobile, data.sockId, data.screenName, true);
 								}else{
 									$("#main").fadeOut(1000);
-									socket.emit('playerReconnected', {gameId : gameObj.gameCode, screenName : data.screenName });
-									
+									socket.emit('playerReconnected', {gameId : data.gameId, screenName : data.screenName });
 									console.log("Turn: " + data.setSessionTurn + " Owner: " + data.owner + " ScreenName: " + data.screenName);
 									state.start('Game', true, false, data, true, socket, data.setSessionTurn, data.owner, isMobile, data.sockId, data.screenName, true);
 								}
@@ -598,8 +644,6 @@ Ludo.GameSetup.prototype = {
 							else
 							{
 								$("#main").fadeOut(1000);
-								Example.show("What took you so long? <b>"+gameObj.playerName+"</b>");
-								
 								console.log("Joining player name " + data.screenName);
 								state.start('WaitMenu', true, false, data, true, socket, data.setSessionTurn, data.owner, isMobile, menuMusic);
 							}
@@ -613,7 +657,7 @@ Ludo.GameSetup.prototype = {
 							}else{
 								alertMessage(data.message, "Error", true);
 							}
-							
+
 						}
 					});
 				}else{
@@ -625,30 +669,68 @@ Ludo.GameSetup.prototype = {
 
 
 			(function () {
-				bootbox.dialog({
-					message: "<b>Do you need help creating or joining a game? </b>",
-					title: "Guest Option",
-					buttons: {
-						danger: {
-							label: "NO THANKS",
-							className: "btn-info",
-							callback: function() {
-								Example.show("Got it...");
-							}
-						},
-						success: {
-							label: "YES PLEASE",
-							className: "btn-success",
-							callback: function() {
-								gameSetupPrompt();
-							}
-						}
+				
+				var storagePlayerName = localStorage.getItem('playerName');
+				var storageGameId = localStorage.getItem('gameId');
+				
+				if (storagePlayerName && storageGameId){
+					
+					console.log("Found: " + storagePlayerName);
+					console.log("Found: " + storageGameId);
+					if (socket === null)
+					{
+						socket = io();
+						socket.on('disconnected', function(message){
+							alertMessage(message + ' has disconnected.', "Diconnection",  false);
+						});
+
 					}
 
-				});
+					socket.on('disconnect', function(){
+						alertMessage("You have been Disconnencted! Game Code is " + gameObj.gameCode, "Disconnection",  true);
+
+					});
+
+					socket.emit('connectMultiplayerGame', {screenName :  storagePlayerName, gameId : storageGameId}, function (data){
+
+						if (data.ok)
+						{	
+							if (data.inprogress)
+							{
+								if (menuMusic !== null){
+									menuMusic.destroy();
+								}
+
+								if (data.screenName === 'ADMIN'){
+									$("#main").fadeOut(1000);
+									state.start('Game', true, false, data, true, socket, false, false, isMobile, data.sockId, data.screenName, true);
+								}else{
+									$("#main").fadeOut(1000);
+									socket.emit('playerReconnected', {gameId : data.gameId, screenName : data.screenName });
+									console.log("Turn: " + data.setSessionTurn + " Owner: " + data.owner + " ScreenName: " + data.screenName);
+									state.start('Game', true, false, data, true, socket, data.setSessionTurn, data.owner, isMobile, data.sockId, data.screenName, true);
+								}
+							}
+							else
+							{
+								$("#main").fadeOut(1000);
+								Example.show("What took you so long? <b>"+gameObj.playerName+"</b>");
+								console.log("Joining player name " + data.screenName);
+								state.start('WaitMenu', true, false, data, true, socket, data.setSessionTurn, data.owner, isMobile, menuMusic);
+							}
+
+						}else{
+							Example.show("Oops! Something went wrong");
+							console.log("Not found Name " + storagePlayerName);
+							console.log("Not found GamdId " + storageGameId);
+							guestPrompt();
+						}
+					});
+
+				}else{
+					guestPrompt();
+				}
 			})();
-
-
 		},
 
 		colorChooser : function(){

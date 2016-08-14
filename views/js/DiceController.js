@@ -23,11 +23,7 @@ DiceController.prototype.setDiceValue = function(currentPlayer){
 	var isDiceOne = this.dice[0].setSavedCurrentPlayer(currentPlayer);
 	var isDiceTwo = this.dice[1].setSavedCurrentPlayer(currentPlayer);
 	
-	if (isDiceOne || isDiceTwo){
-		return true;
-	}else{
-		return false;
-	}
+	return (isDiceOne === true || isDiceTwo === true);
 };
 
 

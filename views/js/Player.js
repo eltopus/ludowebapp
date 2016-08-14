@@ -75,12 +75,28 @@ Player.prototype.setPieces = function(game, pieces, playername){
 
 };
 
+
+Player.prototype.resetPlayer = function(){
+	this.endOfPlay = 0;
+	
+	for (var i = 0; i < this.playerPieces.length; ++i){
+		this.playerPieces[i].resetPiece();  
+		this.playerPieces[i].visible = true;
+	}
+	this.redGraphicsIndex = 0;
+	this.blueGraphicsIndex = 0;
+	this.greenGraphicsIndex = 0;
+	this.yellowGraphicsIndex = 0;
+};
+
+
 Player.prototype.updatePlayer = function(players){
 
 	var player = null;
 	for (var i = 0; i < players.length; ++i){
 		if (players[i].playerName === this.playerName){
 			player = players[i];
+			break;
 		}
 	}
 

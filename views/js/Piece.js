@@ -13,9 +13,8 @@ Piece = function (game, x, y, name, imageId, uniqueId, isMovable, state, index, 
     this.uniqueId = uniqueId;       
     this.isMovable = isMovable;      
     this.state = state;   
-    this.index = index;      
-    this.homeIndex = index;     
-    this. i = 0;      
+    this.index = index;
+    this.homeIndex = index;        
     this.graph = null;     
     this.bmd = null;      
     this.isSelectable = isSelectable;      
@@ -47,6 +46,13 @@ Piece = function (game, x, y, name, imageId, uniqueId, isMovable, state, index, 
 this.Piece.prototype = Object.create(Phaser.Sprite.prototype);
 this.Piece.prototype.constructor = this.Piece;
 
+Piece.prototype.resetPiece = function() {
+	this.frame = 0;
+	this.index = this.homeIndex;
+	this.state = 0;
+	this.x = this.x_home;    
+    this.y = this.y_home; 
+};
 
 Piece.prototype.playSelect = function() {
 	this.frame = 1;
@@ -57,7 +63,7 @@ Piece.prototype.playDeselect = function() {
 };
 
 Piece.prototype.isSelected = function() {
-	  return ( this.frame === 1 );
+	  return ( this.frame === 1);
 };
 
 
@@ -84,6 +90,11 @@ Piece.prototype.updatePiece = function(pieces)
         if (pieces[i].uniqueId === this.uniqueId){
             this.index = pieces[i].index;
             this.state = pieces[i].state;
+            /*
+            if (this.state === 3){
+            	this.visible = false;
+            }
+            */
             this.x = pieces[i].x;
             this.y = pieces[i].y;
             break;

@@ -111,10 +111,14 @@ Socket = function(ludogame){
 
 	});
 
-	gameio.on('updateGame', function(gameData){
-		//game.updateGame(gameData);
+	gameio.on('restartGame', function(gameData){
+		game.resetPlayer(gameData);
+
 	});
 
+	gameio.on('messagefromadmin', function(message){
+		alertMessage(message, "Message from ADMIN",  false);
+	});
 
 	gameio.on('onMessage', function(message){
 		$('#chatLog').append(message);
@@ -139,8 +143,47 @@ Socket = function(ludogame){
 	gameio.on('connect', function(){
 		alertMessage("You have been reconnected", "Reconnection",  false);
 	});
+	
+	gameio.on('restartGameRequest', function(data){
+		
+		bootbox.dialog({
+			message: data.playerName + ' has requested a restart of the game',
+			title: "Do you want to restart game?",
+			buttons: {
+				danger: {
+					label: "DECLINE",
+					className: "btn-danger",
+					callback: function() {	
+						gameio.emit('restartGameResponse', {gameId : game.gameId, playerName : game.playerName, accept : false}, function(msg){
+							Example.show(msg);
+						});
+					}
+				},
+				success: {
+					label: "ACCEPT",
+					className: "btn-success",
+					callback: function() {
+						gameio.emit('restartGameResponse', {gameId : game.gameId, playerName : game.playerName, accept : true}, function(msg){
+							Example.show(msg);
+						});
+					} 
+				}
+			}
+		});
+	});
+	
+	gameio.on('restartGameResponse', function(data){
+		
+		if (data.accept){
+			Example.show(data.message);
+		}else{
+			alertMessage(data.message, "Restart Declined",  false);
+		}
+		
+	});
 
 
+	
 	if (game.isMobile)
 	{
 		var gameId = game.gameId;
@@ -168,7 +211,6 @@ Socket = function(ludogame){
 			}
 		}, false);
 	}
-
 
 
 

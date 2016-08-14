@@ -31,6 +31,7 @@ Ludo.Game.prototype = {
 			this.gameMusic = null;
 			this.colorClassName = null;
 			this.currentPlayer = null;
+			
 
 			var chatColor = null;
 			for (var i = 0; i < gameData.players.length; ++i)
@@ -43,26 +44,27 @@ Ludo.Game.prototype = {
 
 			switch(chatColor)
 			{
-				case 'red':
-					this.colorClassName = "text-danger";
-					break;
-				case 'blue':
-					this.colorClassName = "text-primary";
-					break;
-				case 'yellow':
-					this.colorClassName =  "text-warning";
-					break;
-				case 'green':
-					this.colorClassName =  "text-success";
-					break;
-				default:
-					this.colorClassName = "text-info";
+			case 'red':
+				this.colorClassName = "text-danger";
+				break;
+			case 'blue':
+				this.colorClassName = "text-primary";
+				break;
+			case 'yellow':
+				this.colorClassName =  "text-warning";
+				break;
+			case 'green':
+				this.colorClassName =  "text-success";
+				break;
+			default:
+				this.colorClassName = "text-info";
 			}
 		},
 
 
 		create: function(){
 
+			
 			this.redneckRoll = null;
 			this.shakeAndroll = null;
 			if (this.isMobile === false)
@@ -92,13 +94,6 @@ Ludo.Game.prototype = {
 			this.dieValueOne = 1;
 			this.dieValueTwo = 1;
 			this.filter = null;
-			this.playerOne = ["red", "blue"];
-			this.playerTwo = ["yellow", "green"];
-			this.playerRed = ["red"];
-			this.playerBlue = ["blue"];
-			this.playerGreen = ["green"];
-			this.playerYellow = ["yellow"];
-			//this.gameId = this.getUuid();
 			this.diceObjects = [];
 			this.errorX = 810;
 			this.errorY = 600;
@@ -172,23 +167,23 @@ Ludo.Game.prototype = {
 			this.savebutton.alpha = 0.5;
 			this.savebutton.scale.x = 0.3;
 			this.savebutton.scale.y = 0.3;
-			*/
-			
-			this.powerBtn = this.make.button(730, 655, 'power', null, this, 2, 1, 0);
+			 */
+
+			this.powerBtn = this.make.button(730, 655, 'power', this.restartGame, this, 2, 1, 0);
 			this.powerBtn.scale.x = 0.5;
 			this.powerBtn.scale.y = 0.5;
-			this.powerBtn.alpha = 0.5;
+			this.powerBtn.alpha = 0.8;
 
-			this.skipBtn = this.make.button(800, 640, 'skipturn', this.restart, this, 2, 1, 0);
+			this.skipBtn = this.make.button(800, 640, 'skipturn', this.skipTurn, this, 2, 1, 0);
 			this.skipBtn.scale.x = 0.2;
 			this.skipBtn.scale.y = 0.2;
-			this.skipBtn.alpha = 0.5;
-			
+			this.skipBtn.alpha = 0.8;
+
 			this.report = this.make.button(730, 320, 'report', this.ireport, this, 2, 1, 0);
 			this.report.alpha = 0.5;
 			this.report.scale.x = 0.3;
 			this.report.scale.y = 0.3;
-            
+
 			this.updateBtn = this.make.button(810, 323, 'updateBtn', this.saveGame, this, 2, 1, 0);
 			this.updateBtn.alpha = 0.5;
 			this.updateBtn.scale.x = 0.6;
@@ -214,21 +209,21 @@ Ludo.Game.prototype = {
 			buttonGroup.add(this.diceBtn);
 			buttonGroup.add(this.powerBtn);
 
-			
+
 			this.rule = new Rules(this, this.play, this.myTurn);
 			this.buildWorld();
 			this.controller = new DiceController(this, this.gameId, this.myTurn, this.gameData.diceIds);
 			this.ludo = this.buildPlayers(this.playerMode, this.controller, this.saveFlag);
 			this.populateWorld(this.ludo);
-			
+
 
 			gameIdText = this.add.text(0, 0, this.gameId, gameIdDisplayStyle);
-            gameIdText.setTextBounds(720, 290, 175, 30);
+			gameIdText.setTextBounds(720, 290, 175, 30);
 			this.initialSetup();
 			diceDisplayText = this.add.text(720, 0, "Die1: 0 Die2: 0", diceDisplayStyle);
 			playerTurnText = this.add.text(0, 0, this.currentPlayer.playerName+"'s Turn", playerTurnDisplayStyle);
-            playerTurnText.setTextBounds(720, 400, 175, 30);
-			
+			playerTurnText.setTextBounds(720, 400, 175, 30);
+
 			this.graphics = this.game.add.graphics(0, 0);
 			this.drawExitedPieces();
 			this.gameio = new Socket(this);
@@ -249,11 +244,6 @@ Ludo.Game.prototype = {
 			this.bluePlayerConnection = this.getConnectionText(650, 30, "blue");
 			this.yellowPlayerConnection = this.getConnectionText(650, 700, "yellow");
 			this.greenPlayerConnection = this.getConnectionText(70, 700, "green");
-
-			this.successAlert = new Alert(this, this.game.world.centerX, this.game.world.centerY, "success");
-			this.failureAlert = new Alert(this, this.game.world.centerX, this.game.world.centerY, "failure");
-			this.successAlert.anchor.setTo(0.5);
-			this.failureAlert.anchor.setTo(0.5);
 
 			if (this.myTurn === true && this.currentPlayer !== null){
 				this.playDing();
@@ -294,18 +284,18 @@ Ludo.Game.prototype = {
 					}
 				}
 			});
-			
+
 			this.reportBug = function(){
-				
+
 				var socket = this.socket;
 				var gameId = this.gameId;
 				var playerName = this.playerName;
-				
+
 				bootbox.dialog({
 					message: '<div class="well">' +
-									'<textarea class="form-control noresize" rows="4" id="comment" placeholder="ENTER DESCRIPTION HERE" maxlength="300">' +
-									'</textArea>'+
-								'</div>',
+					'<textarea class="form-control noresize" rows="4" id="comment" placeholder="ENTER DESCRIPTION HERE" maxlength="300">' +
+					'</textArea>'+
+					'</div>',
 					title: "Send Anonymous Bug Report?",
 					buttons: {
 						danger: {
@@ -322,16 +312,16 @@ Ludo.Game.prototype = {
 								var message = $('#comment').val();
 								if (message !== ''){
 									$.ajax({
-							        	type: "POST",
-							        	url: "report",
-							        	data: {gameId : gameId, playerName : playerName,  message : message},
-							        	success: function(msg){
-							        		Example.show(msg);
-							            },
-							        	error: function(){
-							        		Example.show("Report NOT sent");
-							        	}
-							        });
+										type: "POST",
+										url: "report",
+										data: {gameId : gameId, playerName : playerName,  message : message},
+										success: function(msg){
+											Example.show(msg);
+										},
+										error: function(){
+											Example.show("Report NOT sent");
+										}
+									});
 								}else{
 									Example.show("Report cannot be empty");
 								}
@@ -340,10 +330,56 @@ Ludo.Game.prototype = {
 					}
 				});
 			};
+
+			localStorage.setItem('playerName', this.playerName);
+			localStorage.setItem('gameId', this.gameId);
 			
-			console.log("GamePlayerName: " + this.playerName);
 		},
-		
+
+		restartGame : function(){
+
+			var socket = this.socket;
+			var playerName = this.playerName;
+			var gameId = this.gameId;
+
+			bootbox.dialog({
+				message: 'Game will restart if all players accept your request',
+				title: "Restart Game or Exit Game?",
+				buttons: {
+					exitgame: {
+						label: "EXIT GAME",
+						className: "btn-danger btn-sm",
+						callback: function() {							
+							if (confirm("Exit game? Are you sure?") === true) {
+								window.localStorage.clear();
+								localStorage.removeItem('playerName');
+								localStorage.removeItem('gameId');
+								location.reload();
+							} 
+						}
+					},
+					cancel: {
+						label: "RELOAD",
+						className: "btn-warning btn-sm",
+						callback: function() {							
+							if (confirm("Reload game? Are you sure?") === true) {
+								location.reload();
+							} 
+						}
+					},
+					restart: {
+						label: "RESTART",
+						className: "btn-success btn-sm",
+						callback: function() {
+							socket.emit('restartGameRequest', {gameId : gameId, playerName  : playerName}, function(msg){
+								Example.show(msg);
+							});
+						} 
+					}
+				}
+			});
+		},
+
 		ireport : function(){
 			this.reportBug();
 		},
@@ -546,27 +582,25 @@ Ludo.Game.prototype = {
 		},
 
 
-		restart: function(){
-				/*
-			this.socket.emit('updateGame', this.gameId, function(gameData){
-				//game.state.restart(true, false, gameData, saveFlag, socket, true, owner, isMobile, sockId, playerName, rejoin);
-				alertMessage("Game Updated Successfully!", "Success", false);
-			});
-			 */
-			
-			if (confirm("Skip Turn?") === true) {
-				if (this.myTurn && this.currentPlayer !== null)
-				{
-					this.currentPlayer.releasePlay();
-					this.socket.emit('releaseGame', {gameId : this.gameId});
+		skipTurn: function(){
 
-				}
-			} 
-			
+			if (this.myTurn){
+				if (confirm("Skip Turn?") === true) {
+					if (this.myTurn && this.currentPlayer !== null)
+					{
+						this.currentPlayer.releasePlay();
+						this.socket.emit('releaseGame', {gameId : this.gameId});
+					}
+				} 
+
+			}else{
+				Example.show("You can only skip your turn.");
+			}
+
 		},
-		
+
 		prepareForBackgroundUpdate : function(){
-			
+
 			this.controller.consumeDice();
 			this.consumeCurrentPlayerDice();
 			this.play.visible = false;
@@ -594,8 +628,6 @@ Ludo.Game.prototype = {
 				var myTurn = this.myTurn;
 				var playDing = this.playDing;
 				var playDong = this.playDong;
-				var successAlert = this.successAlert;
-				var failureAlert = this.failureAlert;
 
 
 				this.socket.emit('updateGame', this.gameId, function(data){
@@ -605,7 +637,7 @@ Ludo.Game.prototype = {
 
 					if (gameData !== null && !currentPlayer.hasMovingPiece())
 					{
-						
+
 						for (var i = 0; i < ludo.length; ++i)
 						{
 							ludo[i].updatePlayer(gameData.players);
@@ -619,8 +651,8 @@ Ludo.Game.prototype = {
 									currentPlayer.rolled();
 									currentPlayer.playerTurn();
 									if (currentPlayer.rolledDoubleSix()){
-		                                currentPlayer.rolledTwoSixes = true;
-		                            }
+										currentPlayer.rolledTwoSixes = true;
+									}
 								}    
 							}    
 							else{
@@ -633,16 +665,16 @@ Ludo.Game.prototype = {
 						}
 
 						if (playerName === currentPlayerName){
-							tempPlayer = this.currentPlayer;
+							tempPlayer = currentPlayer;
 							console.log("This is me: " + currentPlayerName + " Playername: " + playerName);
 							myTurn = true;
 							playDing();
-							
+
 						}else {
 							console.log("This is NOT me: " + currentPlayerName + " Playername: " + playerName);
 							myTurn = false;
 							playDong();
-							
+
 						}
 
 						alertMessage("Game Updated Successfully!", "Success", false);
@@ -694,7 +726,7 @@ Ludo.Game.prototype = {
 			for (var i = 0; i < players.length; ++i)
 			{
 				var pieces = players[i].playerPieces;
-				
+
 				for (var j = 0; j < pieces.length; ++j)
 				{
 					piece = pieces[j];
@@ -708,7 +740,7 @@ Ludo.Game.prototype = {
 					piece.anchor.x = -0.07;
 					piece.bmd = this.game.add.bitmapData(this.game.width, this.game.height);
 					piece.bmd.addToWorld();
-					
+
 					if (!pieces[j].isExited()){
 						piece.group.add(piece);
 					}
@@ -852,7 +884,7 @@ Ludo.Game.prototype = {
 			}
 
 		},
-		
+
 		exitFullScreen : function(){
 			if (this.scale.isFullScreen){
 				this.scale.stopFullScreen();
@@ -881,6 +913,25 @@ Ludo.Game.prototype = {
 			return Math.round((Math.pow(36, length + 1) - Math.random() * Math.pow(36, length))).toString(36).slice(1);
 		},
 
+		resetPlayer : function(gameData){
+			this.graphics.clear();
+			this.controller.consumeDice();
+			this.consumeCurrentPlayerDice();
+			//necessary to stop players from emiting next player on reset
+			var currentPlayer = this.currentPlayer;
+			for (var i = 0; i < this.ludo.length; ++i){
+				this.ludo[i].resetPlayer();
+			}
+			this.updateGame(gameData, function(status){
+				console.log("Restart Finished..." + status);
+				tempPlayer = currentPlayer;
+			});
+			this.play.visible = false;
+			this.diceBtn.visible = true;
+			
+			
+		},
+
 		updateGame : function(data, callback){
 
 			var gameData = data.gameData;
@@ -903,8 +954,8 @@ Ludo.Game.prototype = {
 								this.currentPlayer.rolled();
 								this.currentPlayer.playerTurn();
 								if (this.currentPlayer.rolledDoubleSix()){
-	                                this.currentPlayer.rolledTwoSixes = true;
-	                            }
+									this.currentPlayer.rolledTwoSixes = true;
+								}
 							}
 						}    
 						else{
@@ -916,6 +967,7 @@ Ludo.Game.prototype = {
 					}
 
 					if (currentPlayerName === this.playerName){
+						//necessary to stop players from emiting next player on update
 						tempPlayer = this.currentPlayer;
 						console.log("This is me: " + currentPlayerName + " Playername: " + this.playerName);
 						this.myTurn = true;
@@ -995,8 +1047,8 @@ Ludo.Game.prototype = {
 						this.currentPlayer.rolled();
 						this.currentPlayer.playerTurn();
 						if (this.currentPlayer.rolledDoubleSix()){
-                            this.currentPlayer.rolledTwoSixes = true;
-                        }
+							this.currentPlayer.rolledTwoSixes = true;
+						}
 						break;
 					}
 				}  
@@ -1066,8 +1118,8 @@ Ludo.Game.prototype = {
 				//this.play.visible = true;
 			}
 
-			if (tempPlayer.playerName !== this.currentPlayer.playerName && !tempPlayer.hasMovingPiece()){
-				
+			if (tempPlayer != this.currentPlayer && !tempPlayer.hasMovingPiece()){
+
 				this.playDong();
 				this.myTurn = false;
 				tempPlayer.emitNextPlayer();

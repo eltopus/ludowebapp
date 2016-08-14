@@ -28,6 +28,9 @@ Rules.prototype.nextPlayer = function(currentPlayer){
         currentPlayer.rolledTwoSixes = false;
         Example.show("Woo-Hoo! You get to roll again...");
         this.game.diceBtn.visible = true;
+        if (this.game.myTurn){
+        	this.game.diceBtn.alpha = 1;
+        }
         return currentPlayer;
     }
     currentPlayer.unRolled();

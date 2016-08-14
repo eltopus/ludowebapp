@@ -163,6 +163,18 @@ app.post('/delete', function(req, res) {
 	}
 });
 
+app.post('/sendmessage', function(req, res) {
+	var message = req.body.message;
+	if (message){
+		sendMessage(message, function(reply){
+			res.send(reply);
+		});
+
+	}else{
+		res.send("Message is invalid");
+	}
+});
+
 app.post('/report', function(req, res) {
 	var report = req.body;
 	if (report){
@@ -308,6 +320,12 @@ function loadTwoPlayerMultiplayerGame(gameData, callback){
 function downloadGameData(gameId, callback){
 	ldx.downloadGameData(gameId, function(data){
 		callback(data);
+	});
+}
+
+function sendMessage(message, callback){
+	ldx.sendMessageToAllPlayers(message, function(reply){
+		callback(reply);
 	});
 }
 

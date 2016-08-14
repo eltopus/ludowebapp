@@ -92,6 +92,18 @@ GameObj.prototype.verifyCreateGame = function(){
 	}
 };
 
+GameObj.prototype.isMaxColorsReached = function(){
+	
+	if (this.playerMode === 4){
+		return (this.playerColors.length === 1);
+	}else if (this.playerMode === 2) {
+		return (this.playerColors.length === 2);
+	}else{
+		return false;
+	}
+	
+};
+
 GameObj.prototype.verifyJoinGame = function(){
 
 
